@@ -338,3 +338,78 @@ def transfer_assisted_model_b_layer_weights(
 
     transfer_layer_weights(trained_measure_layer, model_b.measure_layer)
     transfer_layer_weights(trained_combine_layer, model_b.combine_layer)
+
+def train_layer(layer, ds, loss, epochs: int, metrics=None):
+    """
+    Train a single Keras layer or callable module by supervised imitation.
+
+    This utility wraps an arbitrary layer (or callable) into a minimal
+    `tf.keras.Model` and trains it on a `tf.data.Dataset` using standard
+    Keras `model.fit` semantics.
+
+    The function is intentionally *semantics-agnostic*:
+    it does not know whether the layer represents a measurement rule,
+    a combine/parity operation, or any other transformation. The meaning
+    of the inputs and targets is fully determined by how the dataset `ds`
+    was constructed by the caller.
+
+    Parameters
+    ----------
+    layer : tf.keras.layers.Layer or callable
+        The layer or callable to be trained. It must accept either:
+        - a single tensor input, or
+        - multiple tensor inputs (passed as a tuple/list).
+        The layer is assumed to be stateless beyond its trainable weights.
+
+    ds : tf.data.Dataset
+        A dataset yielding `(x, y)` pairs, where:
+        - `x` is either a tensor or a tuple/list of tensors,
+        - `y` is the corresponding supervision target.
+        All tensors must be batch-first. The dataset is assumed to be
+        finite and suitable for supervised training.
+
+    loss : tf.keras.losses.Loss or str
+        Loss function used for training (e.g. binary cross-entropy,
+        binary cross-entropy from logits, MSE). The loss must be compatible
+        with the outputs produced by `layer` and the targets `y`.
+
+    epochs : int
+        Number of training epochs.
+
+    metrics : list, optional
+        Optional list of Keras metrics to track during training.
+        Defaults to an empty list.
+
+    Returns
+    -------
+    tf.keras.Model
+        A compiled and trained Keras model that wraps the provided layer.
+        The returned model can be used for inference, evaluation, or
+        further composition into larger models.
+
+    Notes
+    -----
+    - This function performs *no architectural interpretation*.
+      It does not call shared-randomness layers, apply discretization,
+      or enforce domain-specific invariants.
+    - The wrapper model is constructed dynamically by inspecting a
+      single batch from the dataset to infer input structure.
+    - Optimizer is fixed to Adam for consistency across experiments.
+    - This function is intended for imitation/bootstrap training of
+      components that will later be composed into larger systems.
+    """
+    metrics = metrics or []
+    # Build a small wrapper model depending on whether ds yields single or multi-input.
+    sample_x, sample_y = next(iter(ds.take(1)))
+    if isinstance(sample_x, (tuple, list)):
+        inputs = [tf.keras.Input(shape=x.shape[1:], dtype=x.dtype) for x in sample_x]
+        outputs = layer(*inputs) if hasattr(layer, "__call__") else layer(inputs)
+        model = tf.keras.Model(inputs, outputs)
+    else:
+        inp = tf.keras.Input(shape=sample_x.shape[1:], dtype=sample_x.dtype)
+        out = layer(inp)
+        model = tf.keras.Model(inp, out)
+
+    model.compile(optimizer="adam", loss=loss, metrics=metrics)
+    model.fit(ds, epochs=epochs, verbose=1)
+    return model

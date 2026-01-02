@@ -141,10 +141,7 @@ venvs/
 # Temporary directories (case-insensitive)
 [Tt]emp/
 [Tt]emp*/
-
-# Specification directories (case-insensitive)
-[Ss]pecification/
-[Ss]pecifications/
+[Aa]rchive/
 
 # Pickle files
 *.pkl
@@ -190,6 +187,9 @@ Desktop.ini
 *.bak
 *.swp
 *.swo
+
+# Movie frames
+movie_frames/
 
 # Notebooks output (optional - uncomment if you don't want to track outputs)
 # *.ipynb

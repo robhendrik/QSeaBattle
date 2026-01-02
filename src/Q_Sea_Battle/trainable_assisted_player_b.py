@@ -94,20 +94,35 @@ class TrainableAssistedPlayerB(PlayerB):
         if len(prev_meas_list) < 1 or len(prev_out_list) < 1:
             raise ValueError("parent.previous lists must have length >= 1.")
 
-        # Ensure tensors are batched (1,n2) for the Lin case.
-        prev_meas0 = prev_meas_list[0]
-        prev_out0 = prev_out_list[0]
-        if isinstance(prev_meas0, np.ndarray):
-            prev_meas0 = tf.convert_to_tensor(prev_meas0, dtype=tf.float32)
-        if isinstance(prev_out0, np.ndarray):
-            prev_out0 = tf.convert_to_tensor(prev_out0, dtype=tf.float32)
+        prev_meas_list, prev_out_list = self.parent.previous
 
-        if len(prev_meas0.shape) == 1:
-            prev_meas0 = prev_meas0[None, :]
-        if len(prev_out0.shape) == 1:
-            prev_out0 = prev_out0[None, :]
+        # Normalize to lists (linear case: single tensor → list of length 1)
+        if not isinstance(prev_meas_list, (list, tuple)):
+            prev_meas_list = [prev_meas_list]
+        if not isinstance(prev_out_list, (list, tuple)):
+            prev_out_list = [prev_out_list]
 
-        shoot_logit = self.model_b([gun_batch, comm_batch, [prev_meas0], [prev_out0]])  # (1,1)
+        prev_meas_batch = []
+        prev_out_batch = []
+
+        for pm, po in zip(prev_meas_list, prev_out_list):
+            if isinstance(pm, np.ndarray):
+                pm = tf.convert_to_tensor(pm, dtype=tf.float32)
+            if isinstance(po, np.ndarray):
+                po = tf.convert_to_tensor(po, dtype=tf.float32)
+
+            if pm.shape.rank == 1:
+                pm = pm[None, :]
+            if po.shape.rank == 1:
+                po = po[None, :]
+
+            prev_meas_batch.append(pm)
+            prev_out_batch.append(po)
+
+        shoot_logit = self.model_b(
+            [gun_batch, comm_batch, prev_meas_batch, prev_out_batch]
+        )  # (1,1)
+
         shoot_prob = tf.sigmoid(shoot_logit)[0, 0]
 
         if do_explore:

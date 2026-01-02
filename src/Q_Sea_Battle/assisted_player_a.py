@@ -116,12 +116,12 @@ class AssistedPlayerA(PlayerA):
                 aux_intermediate[2 * k + 1] = outcome_a[k]
 
             # Step 4: collapse into a new intermediate field where each bit
-            # is 1 if the pair in aux_intermediate is equal, else 0.
+            # is 0 if the pair in aux_intermediate is equal, else 1.
             new_intermediate = np.empty(half, dtype=int)
             for k in range(half):
                 a = aux_intermediate[2 * k]
                 b = aux_intermediate[2 * k + 1]
-                new_intermediate[k] = 1 if a == b else 0
+                new_intermediate[k] = 0 if a == b else 1
 
             intermediate_field = new_intermediate
             level += 1
