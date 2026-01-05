@@ -129,10 +129,11 @@ Use the navigation on the left to dive in.
 ## Ready to Explore?
 
 Start with the one of the tutorials:
+
 - [Tutorial 1 – Quick Start Guide](html/Tutorial_QSeaBattle_QuickStartGuide.html)
-- [Tutorial 1 – Quick Start Guide](html/Tutorial_imitation_training_neural_net_models.html)
-- [Tutorial 1 – Quick Start Guide](html/Tutorial_DIAL_DRU_training_neural_net_models.html)
-- [Tutorial 1 – Quick Start Guide](html/Tutorial_LinTrainableAssisted_Imitation.html)
-- [Tutorial 1 – Quick Start Guide](html/Tutorial_PyrTrainableAssisted_Imitation.html)
+- [Tutorial 2 – Quick Start Guide](html/Tutorial_imitation_training_neural_net_models.html)
+- [Tutorial 3 – Quick Start Guide](html/Tutorial_DIAL_DRU_training_neural_net_models.html)
+- [Tutorial 4 – Quick Start Guide](html/Tutorial_LinTrainableAssisted_Imitation.html)
+- [Tutorial 5 – Quick Start Guide](html/Tutorial_PyrTrainableAssisted_Imitation.html)
 
 QSeaBattle is designed to reward curiosity — whether theoretical or practical.
