@@ -51,8 +51,9 @@ extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
-  - Introduction: introduction.md
-  - Index: index.md
+  - Introduction: index.md
+  - Background: 
+      - Index: background/background.md
   - Algorithms:
       - Algorithms: algorithms/algorithms.md
       - Majority: algorithms/majority_algorithm.md
