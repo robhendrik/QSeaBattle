@@ -38,7 +38,7 @@ markdown_extensions:
       alternate_style: true
 
   # --- Math rendering (LaTeX-style) ---
-  # Use $...$ for inline and $$...$$ for display math.
+  # Use $math$ for inline and $$math$$ for display math.
   - pymdownx.arithmatex:
       generic: true
 
