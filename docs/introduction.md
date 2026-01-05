@@ -1,4 +1,4 @@
-# # Introduction to QSeaBattle
+# Introduction to QSeaBattle
 
 ## What is QSeaBattle?
 
