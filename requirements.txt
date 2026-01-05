@@ -32,6 +32,10 @@ scikit-learn
 requests
 tqdm
 
+#mkdocs
+mkdocs>=1.5
+mkdocs-material>=9
+
 # Optional / dev tools (uncomment to install locally)
 # pytest
 # black
