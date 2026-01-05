@@ -6,6 +6,8 @@ A quantum-enhanced sea battle game implementation using machine learning and rei
 
 QSeaBattle is an advanced implementation of the classic Battleship game that incorporates quantum computing concepts and machine learning algorithms. The project explores the intersection of quantum mechanics, game theory, and artificial intelligence.
 
+Check out the project web-page (continuously updated during development) https://robhendrik.github.io/QSeaBattle/
+
 ## Features
 
 - 🎮 Classic Battleship gameplay mechanics
