@@ -1,0 +1,2721 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Living specification for the QSeaBattle project.">
+      
+      
+        <meta name="author" content="Rob Hendriks">
+      
+      
+      
+      
+        <link rel="next" href="..">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Introduction - QSeaBattle Specification</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#introduction-to-qseabattle" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="QSeaBattle Specification" class="md-header__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QSeaBattle Specification
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Introduction
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="QSeaBattle Specification" class="md-nav__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QSeaBattle Specification
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is QSeaBattle?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What is QSeaBattle?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-core-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Core Challenge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why QSeaBattle?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why QSeaBattle?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scientific-motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scientific Motivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#educational-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Educational Value
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-game-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Game Mechanics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Game Mechanics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#game-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Game Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-1-core-game-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 1: Core Game Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-2-deterministic-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 2: Deterministic Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-3-classical-neural-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 3: Classical Neural Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-4-assisted-players-classical-quantum-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 4: Assisted Players (Classical Quantum Simulation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-5-trainable-assisted-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 5: Trainable Assisted Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supporting-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supporting Utilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#information-flow-in-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information Flow in QSeaBattle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Information Flow in QSeaBattle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classical-neural-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classical Neural Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trainable-assisted-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainable Assisted Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow and Reproducibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow and Reproducibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tournament-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tournament Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logged-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logged Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reproducibility-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility Guarantees
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#research-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#educational-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Educational Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Design Philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modularity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modularity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transparency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transparency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gradual-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradual Complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research-Ready
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theoretical Foundations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theoretical Foundations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#information-causality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information Causality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chsh-inequality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHSH Inequality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#communication-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Algorithms
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/majority_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majority
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Game
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/GameLayout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/GameEnv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/Game/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/Tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tournament
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Players
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Base
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/deterministic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Deterministic
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/assisted/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Assisted
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players/neural/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Neural
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared randomness
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Shared randomness
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared_randomness/shared_randomness/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Classical
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared_randomness/layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Layer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/lin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../models/pyr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyramid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Training
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/imitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Imitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/dru/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DRU / DIAL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training/rl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reinforcement learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invariants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invariants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is QSeaBattle?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What is QSeaBattle?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-core-challenge" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Core Challenge
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why QSeaBattle?
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Why QSeaBattle?">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scientific-motivation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scientific Motivation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#educational-value" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Educational Value
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-game-mechanics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Game Mechanics
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="The Game Mechanics">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Basic Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#game-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Game Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#layer-1-core-game-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 1: Core Game Infrastructure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-2-deterministic-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 2: Deterministic Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-3-classical-neural-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 3: Classical Neural Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-4-assisted-players-classical-quantum-simulation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 4: Assisted Players (Classical Quantum Simulation)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#layer-5-trainable-assisted-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Layer 5: Trainable Assisted Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#supporting-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supporting Utilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#information-flow-in-qseabattle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information Flow in QSeaBattle
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Information Flow in QSeaBattle">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#classical-neural-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classical Neural Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#trainable-assisted-players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainable Assisted Players
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-flow-and-reproducibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data Flow and Reproducibility
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data Flow and Reproducibility">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#tournament-execution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tournament Execution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logged-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logged Data
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reproducibility-guarantees" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducibility Guarantees
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#use-cases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Use Cases
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Use Cases">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#research-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#educational-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Educational Applications
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Getting Started
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Getting Started">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quick-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#design-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Philosophy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Design Philosophy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#modularity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Modularity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transparency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Transparency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gradual-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gradual Complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#research-ready" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research-Ready
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#theoretical-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Theoretical Foundations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Theoretical Foundations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#information-causality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Information Causality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#chsh-inequality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHSH Inequality
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#communication-complexity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Communication Complexity
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Conclusion
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="introduction-to-qseabattle"># Introduction to QSeaBattle<a class="headerlink" href="#introduction-to-qseabattle" title="Permanent link">&para;</a></h1>
+<h2 id="what-is-qseabattle">What is QSeaBattle?<a class="headerlink" href="#what-is-qseabattle" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle is a collaborative quantum game framework that explores the boundaries between classical and quantum information processing. It provides a testbed for investigating how quantum-inspired correlations can enable coordination between agents with limited classical communication.</p>
+<h3 id="the-core-challenge">The Core Challenge<a class="headerlink" href="#the-core-challenge" title="Permanent link">&para;</a></h3>
+<p>In QSeaBattle, two players work together to solve a coordination problem:</p>
+<ul>
+<li><strong>Player A</strong> observes a binary battlefield (an <span class="arithmatex">\(n \times n\)</span> grid of 0s and 1s)</li>
+<li><strong>Player A</strong> can send only <span class="arithmatex">\(m\)</span> classical bits to <strong>Player B</strong> (where <span class="arithmatex">\(m\)</span> is much smaller than <span class="arithmatex">\(n^2\)</span>)</li>
+<li><strong>Player B</strong> sees only a gun position and must decide whether to shoot</li>
+<li>Success means correctly guessing the value at the gun position</li>
+</ul>
+<p>This setup mirrors fundamental questions in quantum information theory: How much can two parties coordinate when restricted to limited classical communication?</p>
+<h2 id="why-qseabattle">Why QSeaBattle?<a class="headerlink" href="#why-qseabattle" title="Permanent link">&para;</a></h2>
+<h3 id="scientific-motivation">Scientific Motivation<a class="headerlink" href="#scientific-motivation" title="Permanent link">&para;</a></h3>
+<p>QSeaBattle was developed to bridge several areas of research:</p>
+<p><strong>1. Quantum Information Theory</strong></p>
+<ul>
+<li>Explores concepts like shared randomness and quantum correlations</li>
+<li>Investigates information-theoretic limits (Information Causality)</li>
+<li>Provides concrete implementations of abstract quantum protocols</li>
+</ul>
+<p><strong>2. Multi-Agent Reinforcement Learning</strong></p>
+<ul>
+<li>Studies emergent communication in cooperative settings</li>
+<li>Tests architectures like DIAL (Differentiable Inter-Agent Learning)</li>
+<li>Examines the role of shared resources in coordination</li>
+</ul>
+<p><strong>3. Neural-Symbolic Integration</strong></p>
+<ul>
+<li>Combines algorithmic knowledge (classical quantum protocols) with learning</li>
+<li>Uses imitation learning to bootstrap neural agents from known strategies</li>
+<li>Investigates how neural networks can discover or approximate quantum advantages</li>
+</ul>
+<h3 id="educational-value">Educational Value<a class="headerlink" href="#educational-value" title="Permanent link">&para;</a></h3>
+<p>QSeaBattle serves as an accessible introduction to:</p>
+<ul>
+<li>Quantum game theory without requiring quantum hardware</li>
+<li>Information-theoretic constraints in communication</li>
+<li>The relationship between correlation, communication, and computation</li>
+<li>Modern deep learning architectures for multi-agent systems</li>
+</ul>
+<h2 id="the-game-mechanics">The Game Mechanics<a class="headerlink" href="#the-game-mechanics" title="Permanent link">&para;</a></h2>
+<h3 id="basic-setup">Basic Setup<a class="headerlink" href="#basic-setup" title="Permanent link">&para;</a></h3>
+<p>A single game of QSeaBattle proceeds as follows:</p>
+<p><strong>1. Field Generation</strong></p>
+<p>A battlefield of size <span class="arithmatex">\(n \cdot n\)</span> is created, where each cell independently has probability <span class="arithmatex">\(p\)</span> of containing an enemy (value 1)</p>
+<p><strong>2. Gun Placement</strong></p>
+<p>A gun position is randomly selected from the <span class="arithmatex">\(n^2\)</span> possible locations</p>
+<p><strong>3. Player A Decision</strong></p>
+<ul>
+<li>Observes the entire battlefield</li>
+<li>Generates an <span class="arithmatex">\(m\)</span>-bit communication message</li>
+<li>This message passes through a noisy channel with bit-flip probability <span class="arithmatex">\(c\)</span></li>
+</ul>
+<p><strong>4. Player B Decision</strong></p>
+<ul>
+<li>Sees only the gun position</li>
+<li>Receives the (possibly noisy) communication</li>
+<li>Decides to shoot (1) or not shoot (0)</li>
+</ul>
+<p><strong>5. Evaluation</strong></p>
+<p>The decision is correct if:</p>
+<ul>
+<li>Shoot when there is an enemy at that position, or</li>
+<li>Do not shoot when that position is empty</li>
+</ul>
+<h3 id="game-parameters">Game Parameters<a class="headerlink" href="#game-parameters" title="Permanent link">&para;</a></h3>
+<p>The game is configured through a GameLayout object with the following parameters:</p>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Symbol</th>
+<th>Description</th>
+<th>Typical Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>field_size</td>
+<td><span class="arithmatex">\(n\)</span></td>
+<td>Dimension of battlefield</td>
+<td>4, 8, 16, 32, 64</td>
+</tr>
+<tr>
+<td>comms_size</td>
+<td><span class="arithmatex">\(m\)</span></td>
+<td>Number of communication bits</td>
+<td>1 to 16</td>
+</tr>
+<tr>
+<td>enemy_probability</td>
+<td><span class="arithmatex">\(p\)</span></td>
+<td>Probability of enemy per cell</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>channel_noise</td>
+<td><span class="arithmatex">\(c\)</span></td>
+<td>Bit-flip probability</td>
+<td>0.0 to 0.3</td>
+</tr>
+</tbody>
+</table>
+<h3 id="performance-metrics">Performance Metrics<a class="headerlink" href="#performance-metrics" title="Permanent link">&para;</a></h3>
+<p>Player performance is measured by:</p>
+<ul>
+<li><strong>Win Rate</strong>: Proportion of correct decisions across many games</li>
+<li><strong>Comparison to Baselines</strong>: Simple random guessing, majority voting, classical protocols</li>
+<li><strong>Information-Theoretic Bounds</strong>: Limits imposed by Information Causality given <span class="arithmatex">\(m\)</span> and <span class="arithmatex">\(c\)</span></li>
+</ul>
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle is organized into several layers, from basic game infrastructure to advanced trainable agents.</p>
+<h3 id="layer-1-core-game-infrastructure">Layer 1: Core Game Infrastructure<a class="headerlink" href="#layer-1-core-game-infrastructure" title="Permanent link">&para;</a></h3>
+<p>The foundation provides the essential game mechanics:</p>
+<ul>
+<li><strong>GameLayout</strong>: Configuration parameters</li>
+<li><strong>GameEnv</strong>: Battlefield generation and evaluation</li>
+<li><strong>Players</strong>: Base class for player implementations</li>
+<li><strong>PlayerA/PlayerB</strong>: Individual player interfaces</li>
+<li><strong>Game</strong>: Single game execution</li>
+<li><strong>Tournament</strong>: Multiple game execution and logging</li>
+<li><strong>TournamentLog</strong>: Data collection and analysis</li>
+</ul>
+<p>Purpose: Ensures consistent game execution, reproducibility, and data collection across all player types.</p>
+<h3 id="layer-2-deterministic-players">Layer 2: Deterministic Players<a class="headerlink" href="#layer-2-deterministic-players" title="Permanent link">&para;</a></h3>
+<p>Hand-crafted strategies that serve as baselines:</p>
+<ul>
+<li><strong>SimplePlayers</strong>: Direct communication of first <span class="arithmatex">\(m\)</span> cells</li>
+<li><strong>MajorityPlayers</strong>: Segment-wise majority voting strategy</li>
+</ul>
+<p>Purpose: Provide interpretable baselines and verify game mechanics are working correctly.</p>
+<h3 id="layer-3-classical-neural-players">Layer 3: Classical Neural Players<a class="headerlink" href="#layer-3-classical-neural-players" title="Permanent link">&para;</a></h3>
+<p>Trainable agents without shared randomness:</p>
+<p><strong>NeuralNetPlayers</strong>: Two independent neural networks</p>
+<ul>
+<li>Model A: field to communication logits</li>
+<li>Model B: gun and communication to shoot logit</li>
+</ul>
+<p>Features:</p>
+<ul>
+<li>Can be trained by imitation (supervised learning on baseline strategies)</li>
+<li>Can be trained by reinforcement learning (self-play with policy gradients)</li>
+<li>Provides comparison point for quantum-inspired approaches</li>
+</ul>
+<p>Purpose: Establish what purely classical learning can achieve within information-theoretic constraints.</p>
+<h3 id="layer-4-assisted-players-classical-quantum-simulation">Layer 4: Assisted Players (Classical Quantum Simulation)<a class="headerlink" href="#layer-4-assisted-players-classical-quantum-simulation" title="Permanent link">&para;</a></h3>
+<p>Deterministic algorithms that simulate quantum correlations using shared randomness:</p>
+<p><strong>AssistedPlayers</strong>: Classical implementation of quantum protocols</p>
+<ul>
+<li><strong>SharedRandomness</strong>: Simulates entangled measurements</li>
+<li><strong>AssistedPlayerA</strong>: Hierarchical measurement strategy</li>
+<li><strong>AssistedPlayerB</strong>: Complementary measurement strategy</li>
+</ul>
+<p>Key Concept: These players share access to pre-established random bits that are correlated in a specific way (controlled by parameter <span class="arithmatex">\(p_{\mathrm{high}}\)</span>). This correlation mimics quantum entanglement and enables coordination beyond classical limits.</p>
+<p>Purpose: Demonstrate the target behavior that trainable quantum-inspired agents should learn.</p>
+<h3 id="layer-5-trainable-assisted-players">Layer 5: Trainable Assisted Players<a class="headerlink" href="#layer-5-trainable-assisted-players" title="Permanent link">&para;</a></h3>
+<p>Neural implementations that combine learning with quantum-inspired structure:</p>
+<p><strong>TrainableAssistedPlayers</strong>: Neural networks with shared randomness layers</p>
+<p><strong>Linear Architecture:</strong></p>
+<ul>
+<li>LinMeasurementLayerA/B: Learn measurement choices</li>
+<li>SharedRandomnessLayer: Fixed correlation (differentiable)</li>
+<li>LinCombineLayerA/B: Learn how to use outcomes</li>
+<li>Single shared resource per decision</li>
+</ul>
+<p><strong>Pyramid Architecture:</strong></p>
+<ul>
+<li>PyrMeasurementLayerA/B: Multi-level measurement</li>
+<li>Multiple SharedRandomnessLayers (one per level)</li>
+<li>PyrCombineLayerA/B: Hierarchical combination</li>
+<li><span class="arithmatex">\(\log(n^2)\)</span> shared resources per decision</li>
+</ul>
+<p><strong>Training Approaches:</strong></p>
+<ol>
+<li>Imitation Learning: Train on synthetic datasets generated by classical assisted algorithms</li>
+<li>Differentiable Communication: Use DRU (Discretize/Regularize Unit) for end-to-end gradient flow</li>
+<li>Reinforcement Learning: Policy gradient methods with shared randomness</li>
+</ol>
+<p>Purpose: Enable neural networks to discover and improve quantum-inspired strategies through learning.</p>
+<h3 id="supporting-utilities">Supporting Utilities<a class="headerlink" href="#supporting-utilities" title="Permanent link">&para;</a></h3>
+<p>Several utility modules provide consistent implementations across the framework:</p>
+<ul>
+<li><strong>logit_utils</strong>: Stable logit/probability conversions</li>
+<li><strong>dru_utils</strong>: Differentiable communication (DIAL)</li>
+<li><strong>reference_performance_utils</strong>: Analytic baselines and bounds</li>
+<li><strong>imitation_utils</strong>: Synthetic dataset generation</li>
+</ul>
+<h2 id="information-flow-in-qseabattle">Information Flow in QSeaBattle<a class="headerlink" href="#information-flow-in-qseabattle" title="Permanent link">&para;</a></h2>
+<p>The key architectural pattern is how information flows between players.</p>
+<h3 id="classical-neural-players">Classical Neural Players<a class="headerlink" href="#classical-neural-players" title="Permanent link">&para;</a></h3>
+<p>Flow diagram:</p>
+<div class="highlight"><pre><span></span><code>Field → Model A → Communication → Model B → Shoot Decision
+        ↓                           ↑
+      [Loss A]                   [Loss B]
+</code></pre></div>
+<p>Characteristics:</p>
+<ul>
+<li>Independent training possible</li>
+<li>Communication is a bottleneck (<span class="arithmatex">\(m\)</span> bits)</li>
+<li>Limited by classical information theory</li>
+</ul>
+<h3 id="trainable-assisted-players">Trainable Assisted Players<a class="headerlink" href="#trainable-assisted-players" title="Permanent link">&para;</a></h3>
+<p>Flow diagram:</p>
+<div class="highlight"><pre><span></span><code>Field → Measurement A → Shared Randomness ← Measurement B ← Gun
+              ↓              ↓    ↓              ↓
+          Outcome A      Correlation      Outcome B
+              ↓                                   ↓
+        Combine A → Communication → Combine B → Shoot
+              ↓                                   ↓
+           [Loss A]                          [Loss B]
+</code></pre></div>
+<p>Characteristics:</p>
+<ul>
+<li>Measurements are learned (neural layers)</li>
+<li>Shared randomness is fixed (simulates physics)</li>
+<li>Combine operations are learned (neural layers)</li>
+<li>Key advantage: Correlation is outside the <span class="arithmatex">\(m\)</span>-bit channel</li>
+<li>Can exceed classical limits if trained correctly</li>
+</ul>
+<h2 id="data-flow-and-reproducibility">Data Flow and Reproducibility<a class="headerlink" href="#data-flow-and-reproducibility" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle ensures full reproducibility through careful data management.</p>
+<h3 id="tournament-execution">Tournament Execution<a class="headerlink" href="#tournament-execution" title="Permanent link">&para;</a></h3>
+<p>Pseudocode for tournament flow:</p>
+<div class="highlight"><pre><span></span><code><span class="k">for</span> <span class="n">each</span> <span class="n">game</span><span class="p">:</span>
+    <span class="n">env</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>          <span class="c1"># New field and gun</span>
+    <span class="n">players</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>      <span class="c1"># Clear player state</span>
+
+    <span class="n">field</span><span class="p">,</span> <span class="n">gun</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">provide</span><span class="p">()</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">playerA</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="n">comm_noisy</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">apply_channel_noise</span><span class="p">(</span><span class="n">comm</span><span class="p">)</span>
+    <span class="n">shoot</span> <span class="o">=</span> <span class="n">playerB</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="n">gun</span><span class="p">,</span> <span class="n">comm_noisy</span><span class="p">)</span>
+    <span class="n">reward</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">shoot</span><span class="p">)</span>
+
+    <span class="n">log</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">field</span><span class="p">,</span> <span class="n">gun</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">shoot</span><span class="p">,</span> <span class="n">reward</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">players</span><span class="o">.</span><span class="n">has_log_probs</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">update_log_probs</span><span class="p">(</span><span class="n">playerA</span><span class="o">.</span><span class="n">get_log_prob</span><span class="p">(),</span> 
+                            <span class="n">playerB</span><span class="o">.</span><span class="n">get_log_prob</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">players</span><span class="o">.</span><span class="n">has_prev</span><span class="p">:</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">update_log_prev</span><span class="p">(</span><span class="n">playerA</span><span class="o">.</span><span class="n">get_prev</span><span class="p">())</span>
+</code></pre></div>
+<h3 id="logged-data">Logged Data<a class="headerlink" href="#logged-data" title="Permanent link">&para;</a></h3>
+<p>The TournamentLog captures everything needed for analysis and training:</p>
+<p><strong>Inputs</strong>: field, gun, comm (post-noise)</p>
+<p><strong>Outputs</strong>: shoot, reward</p>
+<p><strong>Metadata</strong>: game_id, tournament_id, timestamps</p>
+<p><strong>Training Data</strong> (optional):</p>
+<ul>
+<li>logprob_comm, logprob_shoot for policy gradients</li>
+<li>prev_measurements, prev_outcomes for assisted players</li>
+<li>sample_weight for curriculum learning</li>
+</ul>
+<h3 id="reproducibility-guarantees">Reproducibility Guarantees<a class="headerlink" href="#reproducibility-guarantees" title="Permanent link">&para;</a></h3>
+<ul>
+<li>All randomness derives from a single global seed</li>
+<li>Logged games can be exactly replayed</li>
+<li>Models can be serialized and restored</li>
+<li>Training datasets are deterministically generated</li>
+</ul>
+<h2 id="use-cases">Use Cases<a class="headerlink" href="#use-cases" title="Permanent link">&para;</a></h2>
+<h3 id="research-applications">Research Applications<a class="headerlink" href="#research-applications" title="Permanent link">&para;</a></h3>
+<p><strong>1. Quantum Advantage Without Quantum Hardware</strong></p>
+<ul>
+<li>Investigate when quantum-inspired correlations provide benefits</li>
+<li>Test predictions from quantum information theory</li>
+<li>Explore the classical-quantum boundary</li>
+</ul>
+<p><strong>2. Multi-Agent Learning</strong></p>
+<ul>
+<li>Study emergent communication protocols</li>
+<li>Compare different coordination mechanisms</li>
+<li>Investigate transfer learning from classical to quantum-inspired agents</li>
+</ul>
+<p><strong>3. Neural Architecture Design</strong></p>
+<ul>
+<li>Test structured vs unstructured neural networks</li>
+<li>Evaluate importance of inductive biases</li>
+<li>Study gradient flow through discrete operations</li>
+</ul>
+<h3 id="educational-applications">Educational Applications<a class="headerlink" href="#educational-applications" title="Permanent link">&para;</a></h3>
+<p><strong>1. Introduction to Quantum Games</strong></p>
+<ul>
+<li>Visualize quantum concepts without mathematics</li>
+<li>Interactive experiments with correlations</li>
+<li>Hands-on exploration of information limits</li>
+</ul>
+<p><strong>2. Deep Learning Pedagogy</strong></p>
+<ul>
+<li>End-to-end differentiable systems</li>
+<li>Imitation and reinforcement learning</li>
+<li>Custom Keras layers and training loops</li>
+</ul>
+<h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h2>
+<h3 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clone the repository</span>
+git<span class="w"> </span>clone<span class="w"> </span>https://github.com/yourusername/QSeaBattle.git
+<span class="nb">cd</span><span class="w"> </span>QSeaBattle
+
+<span class="c1"># Install dependencies</span>
+pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+
+<span class="c1"># Install package</span>
+pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span>.
+</code></pre></div>
+<h3 id="quick-example">Quick Example<a class="headerlink" href="#quick-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle</span><span class="w"> </span><span class="kn">import</span> <span class="n">GameLayout</span><span class="p">,</span> <span class="n">GameEnv</span><span class="p">,</span> <span class="n">SimplePlayers</span><span class="p">,</span> <span class="n">Tournament</span>
+
+<span class="c1"># Configure the game</span>
+<span class="n">layout</span> <span class="o">=</span> <span class="n">GameLayout</span><span class="p">(</span>
+    <span class="n">field_size</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>        <span class="c1"># 8x8 battlefield</span>
+    <span class="n">comms_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>        <span class="c1"># 1 bit of communication</span>
+    <span class="n">enemy_probability</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+    <span class="n">channel_noise</span><span class="o">=</span><span class="mf">0.0</span>
+<span class="p">)</span>
+
+<span class="c1"># Create environment and players</span>
+<span class="n">env</span> <span class="o">=</span> <span class="n">GameEnv</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+<span class="n">players</span> <span class="o">=</span> <span class="n">SimplePlayers</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>
+
+<span class="c1"># Run a tournament</span>
+<span class="n">tournament</span> <span class="o">=</span> <span class="n">Tournament</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">layout</span><span class="p">)</span>
+<span class="n">log</span> <span class="o">=</span> <span class="n">tournament</span><span class="o">.</span><span class="n">tournament</span><span class="p">()</span>
+
+<span class="c1"># Analyze results</span>
+<span class="n">mean_reward</span><span class="p">,</span> <span class="n">std_error</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">outcome</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Win rate: </span><span class="si">{</span><span class="n">mean_reward</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> ± </span><span class="si">{</span><span class="n">std_error</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Tutorial 1</strong>: Understanding the game mechanics with deterministic players</li>
+<li><strong>Tutorial 2</strong>: Training neural players by imitation learning</li>
+<li><strong>Tutorial 3</strong>: Implementing and training assisted players</li>
+<li><strong>Tutorial 4</strong>: Reinforcement learning and emergent strategies</li>
+<li><strong>Tutorial 5</strong>: Analyzing results and comparing to theoretical bounds</li>
+</ul>
+<h2 id="design-philosophy">Design Philosophy<a class="headerlink" href="#design-philosophy" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle is built on several key principles.</p>
+<h3 id="modularity">Modularity<a class="headerlink" href="#modularity" title="Permanent link">&para;</a></h3>
+<p>Each component is self-contained and can be tested independently:</p>
+<ul>
+<li>Game environment independent of players</li>
+<li>Player implementations share common interfaces</li>
+<li>Training utilities separated from game logic</li>
+<li>Easy to add new player types or game variants</li>
+</ul>
+<h3 id="transparency">Transparency<a class="headerlink" href="#transparency" title="Permanent link">&para;</a></h3>
+<p>All behavior is explicit and inspectable:</p>
+<ul>
+<li>No hidden state in game mechanics</li>
+<li>Full logging of all decisions and outcomes</li>
+<li>Deterministic reproducibility from seeds</li>
+<li>Clear separation of learned vs fixed components</li>
+</ul>
+<h3 id="gradual-complexity">Gradual Complexity<a class="headerlink" href="#gradual-complexity" title="Permanent link">&para;</a></h3>
+<p>The framework supports learning progressively:</p>
+<ul>
+<li>Start with simple deterministic baselines</li>
+<li>Add learning with classical neural networks</li>
+<li>Introduce quantum-inspired structure gradually</li>
+<li>Each layer builds on previous understanding</li>
+</ul>
+<h3 id="research-ready">Research-Ready<a class="headerlink" href="#research-ready" title="Permanent link">&para;</a></h3>
+<p>Designed for experimentation and publication:</p>
+<ul>
+<li>Clean API for custom player implementations</li>
+<li>Comprehensive logging for analysis</li>
+<li>Serialization for model sharing</li>
+<li>Utilities for theoretical comparisons</li>
+</ul>
+<h2 id="theoretical-foundations">Theoretical Foundations<a class="headerlink" href="#theoretical-foundations" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle is grounded in several theoretical frameworks.</p>
+<h3 id="information-causality">Information Causality<a class="headerlink" href="#information-causality" title="Permanent link">&para;</a></h3>
+<p>This principle from quantum foundations states that the amount of information Bob can learn about Alice’s <span class="arithmatex">\(N\)</span>-bit string, given <span class="arithmatex">\(m\)</span> bits of communication, is bounded by <span class="arithmatex">\(m\)</span>. QSeaBattle provides a testbed for this bound.</p>
+<p>In our setting: With <span class="arithmatex">\(N = n^2\)</span> and communication <span class="arithmatex">\(m\)</span>, classical strategies cannot exceed certain win rates. Quantum-inspired strategies can approach but not violate these bounds.</p>
+<h3 id="chsh-inequality">CHSH Inequality<a class="headerlink" href="#chsh-inequality" title="Permanent link">&para;</a></h3>
+<p>The game mechanics are related to Bell-type inequalities. The correlation parameter <span class="arithmatex">\(p_{\mathrm{high}}\)</span> in shared randomness can be tuned to reproduce behaviors from:</p>
+<ul>
+<li>Classical local hidden variables: <span class="arithmatex">\(p_{\mathrm{high}} = 0.5\)</span></li>
+<li>Quantum mechanics: <span class="arithmatex">\(p_{\mathrm{high}} \approx 0.85\)</span></li>
+<li>Post-quantum (signaling) theories: <span class="arithmatex">\(p_{\mathrm{high}} = 1.0\)</span></li>
+</ul>
+<h3 id="communication-complexity">Communication Complexity<a class="headerlink" href="#communication-complexity" title="Permanent link">&para;</a></h3>
+<p>The constraint of <span class="arithmatex">\(m\)</span> bits relates to classical communication complexity. QSeaBattle explores:</p>
+<ul>
+<li>How much coordination is possible with limited communication</li>
+<li>The value of shared randomness or entanglement</li>
+<li>Tradeoffs between computation, communication, and correlation</li>
+</ul>
+<h2 id="conclusion">Conclusion<a class="headerlink" href="#conclusion" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle provides a rich environment for exploring the interplay between:</p>
+<ul>
+<li>Classical and quantum information processing</li>
+<li>Hand-crafted algorithms and learned strategies</li>
+<li>Communication, correlation, and computation</li>
+<li>Theory and implementation</li>
+</ul>
+<p>Whether you are interested in quantum foundations, multi-agent learning, or neural architecture design, QSeaBattle offers concrete problems, clean implementations, and connections to deep theoretical questions.</p>
+<p>The framework is designed to be accessible to newcomers while providing enough depth for advanced research. We hope it serves as a bridge between different communities and inspires new insights into the nature of information, correlation, and intelligence.</p>
+<p>Ready to explore? Head to the Quick Start Guide or dive into the Tutorials.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

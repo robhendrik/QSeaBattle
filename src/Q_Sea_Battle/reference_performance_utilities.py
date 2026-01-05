@@ -95,7 +95,20 @@ def expected_win_rate_majority(
     enemy_probability: Number = 0.5,
     channel_noise: Number = 0.0,
 ) -> float:
-    """Analytic expected win rate for MajorityPlayers."""
+    """Analytic expected win rate for MajorityPlayers.
+
+    Model:
+    - Field has N = field_size^2 i.i.d. Bernoulli(p) cells, p = enemy_probability.
+    - Alice partitions the flattened field into m = comms_size equal contiguous blocks,
+      each of length L = N/m, and sends the per-block majority bit (ties -> 1).
+    - The communicated bits pass through a binary symmetric channel with flip prob c.
+    - Bob, given a uniformly random gun index, selects the corresponding block bit
+      and outputs it as his guess for that cell.
+
+    Returns the average success probability over the random field and random gun index.
+    """
+    import math
+
     if field_size < 1:
         raise ValueError("field_size must be >= 1.")
     N = field_size * field_size
@@ -112,26 +125,18 @@ def expected_win_rate_majority(
     if not (0.0 <= c <= 1.0):
         raise ValueError("channel_noise must lie in [0.0, 1.0].")
 
-    # Quick degeneracies to avoid log(0)
-    if p == 0.0:
-        # All cells are 0 with prob 1
-        # Majority bit is always 0, channel flips with prob c
-        # Success prob is probability we shoot a 0-cell = (1 - c)
-        return 1.0 - c
-    if p == 1.0:
-        # All cells are 1 with prob 1
-        # Majority bit is always 1, channel flips with prob c
-        # Success prob = probability we shoot a 1-cell = (1 - c)
+    # Degenerate fields: majority bit is deterministic; only channel flips can fail.
+    if p == 0.0 or p == 1.0:
         return 1.0 - c
 
     L = N // m
 
+    # Precompute logs for stability
     log_p = math.log(p)
     log_q = math.log(1.0 - p)
 
-    def binom_prob(L_: int, k_: int, p_: float) -> float:
+    def binom_prob(L_: int, k_: int) -> float:
         """Binomial pmf in log-space to avoid overflow."""
-        # log C(L, k) + k log p + (L-k) log(1-p)
         log_prob = (
             math.lgamma(L_ + 1)
             - math.lgamma(k_ + 1)
@@ -144,18 +149,23 @@ def expected_win_rate_majority(
     expected_success = 0.0
 
     for k in range(L + 1):
-        majority_bit = 1 if (k * 2 >= L) else 0
-        p_cell_1 = k / float(L)
+        # k = number of ones in the block
+        majority_bit = 1 if (k * 2 >= L) else 0  # ties -> 1, per your MajorityPlayerA spec
+        p_cell_1 = k / float(L)       # probability the queried cell in this block is 1
         p_cell_0 = 1.0 - p_cell_1
 
+        # Channel flip: transmitted majority_bit is flipped with prob c before Bob uses it.
         if majority_bit == 1:
+            # Bob outputs 1 w.p. (1-c), 0 w.p. c
             p_success_given_k = (1.0 - c) * p_cell_1 + c * p_cell_0
         else:
+            # Bob outputs 0 w.p. (1-c), 1 w.p. c
             p_success_given_k = (1.0 - c) * p_cell_0 + c * p_cell_1
 
-        expected_success += binom_prob(L, k, p) * p_success_given_k
+        expected_success += binom_prob(L, k) * p_success_given_k
 
     return float(expected_success)
+
 
 
 def expected_win_rate_assisted(

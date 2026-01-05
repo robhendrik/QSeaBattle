@@ -1,0 +1,80 @@
+site_name: QSeaBattle Specification
+site_description: Living specification for the QSeaBattle project.
+site_author: Rob Hendriks
+
+# Where your Markdown lives (matches your skeleton)
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - toc.follow
+    - content.code.copy
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+  # Technical-spec friendly extensions
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+
+  # --- Math rendering (LaTeX-style) ---
+  # Use $...$ for inline and $$...$$ for display math.
+  - pymdownx.arithmatex:
+      generic: true
+
+plugins:
+  - search
+
+
+# Load MathJax (CDN). This enables LaTeX math rendering in the browser.
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+nav:
+  - Introduction: introduction.md
+  - Index: index.md
+  - Algorithms:
+      - Algorithms: algorithms/algorithms.md
+      - Majority: algorithms/majority_algorithm.md
+  - Conventions: conventions.md
+  - Game:
+      - GameLayout: game/GameLayout.md
+      - GameEnv: game/GameEnv.md
+      - Game: game/Game.md
+      - Tournament: game/Tournament.md
+  - Players:
+      - Base: players/base.md
+      - Deterministic: players/deterministic.md
+      - Assisted: players/assisted.md
+      - Neural: players/neural.md
+  - Shared randomness:
+      - Classical: shared_randomness/shared_randomness.md
+      - Layer: shared_randomness/layer.md
+  - Models:
+      - Linear: models/lin.md
+      - Pyramid: models/pyr.md
+  - Training:
+      - Imitation: training/imitation.md
+      - DRU / DIAL: training/dru.md
+      - Reinforcement learning: training/rl.md
+  - Invariants: invariants.md
