@@ -45,21 +45,21 @@ markdown_extensions:
 
 plugins:
   - search
-  - mkdocstrings:
-      default_handler: python
-      handlers:
-        python:
-          options:
-            docstring_style: google
-            show_signature: true
-            show_source: false
-markdown_extensions:
-  - toc:
-      permalink: true
-      slugify: !!python/name:pymdownx.slugs.slugify
-  - pymdownx.superfences      
-  - pymdownx.highlight:
-      anchor_linenums: true
+#   - mkdocstrings:
+#       default_handler: python
+#       handlers:
+#         python:
+#           options:
+#             docstring_style: google
+#             show_signature: true
+#             show_source: false
+# markdown_extensions:
+#   - toc:
+#       permalink: true
+#       slugify: !!python/name:pymdownx.slugs.slugify
+#   - pymdownx.superfences      
+#   - pymdownx.highlight:
+#       anchor_linenums: true
 
 
 
