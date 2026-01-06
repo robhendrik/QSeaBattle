@@ -42,8 +42,25 @@ markdown_extensions:
   - pymdownx.arithmatex:
       generic: true
 
+
 plugins:
   - search
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_signature: true
+            show_source: false
+markdown_extensions:
+  - toc:
+      permalink: true
+      slugify: !!python/name:pymdownx.slugs.slugify
+  - pymdownx.superfences      
+  - pymdownx.highlight:
+      anchor_linenums: true
+
 
 
 # Load MathJax (CDN). This enables LaTeX math rendering in the browser.
