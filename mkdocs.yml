@@ -83,8 +83,8 @@ nav:
       - TournamentLog: game/TournamentLog.md
   - Players:
       - Players: players/Players.md
-      - PlayersA: players/PlayersA.md
-      - PlayersB: players/PlayersB.md
+      - PlayersA: players/PlayerA.md
+      - PlayersB: players/PlayerB.md
       - Deterministic: players/deterministic.md
       - Assisted: players/assisted.md
       - Neural: players/neural.md
