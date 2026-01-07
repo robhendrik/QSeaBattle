@@ -2,7 +2,7 @@
 
 > **Role**: Structured accumulator for per-game tournament results and simple aggregate statistics.
 
-**Location**: `Q_Sea_Battle.tournament_log.TournamentLog` fileciteturn5file0
+**Location**: `Q_Sea_Battle.tournament_log.TournamentLog`
 
 !!! note "Derived constraints from GameLayout"
     Let `field_size = n` and `n2 = n**2`. Let `comms_size = m`.
@@ -16,17 +16,17 @@
 
 | Parameter | Type | Description |
 |---|---|---|
-| game_layout | `GameLayout`, scalar | Layout providing the log column names. fileciteturn5file0 |
+| game_layout | `GameLayout`, scalar | Layout providing the log column names.|
 
 **Preconditions**
 
 - `game_layout` is a valid `GameLayout`, scalar.
-- `game_layout.log_columns` is a `list[str]` defining DataFrame column names. fileciteturn5file0
+- `game_layout.log_columns` is a `list[str]` defining DataFrame column names.
 
 **Postconditions**
 
-- `self.game_layout` is set to `game_layout`. fileciteturn5file0
-- `self.log` is an empty `pd.DataFrame` with columns `game_layout.log_columns`. fileciteturn5file0
+- `self.game_layout` is set to `game_layout`. 
+- `self.log` is an empty `pd.DataFrame` with columns `game_layout.log_columns`.
 
 **Errors**
 
@@ -47,7 +47,7 @@
 
 **Signature**
 
-- `update(field, gun, comm, shoot, cell_value, reward) -> None` fileciteturn5file0
+- `update(field, gun, comm, shoot, cell_value, reward) -> None`
 
 **Purpose**
 
@@ -74,24 +74,24 @@ Append one game result row to the log, initialising optional fields to `None`.
 
 **Postconditions**
 
-- Exactly one new row is appended to `self.log`. fileciteturn5file0
+- Exactly one new row is appended to `self.log`.
 - The appended row contains:
   - the provided inputs (`field`, `gun`, `comm`, `shoot`, `cell_value`, `reward`),
   - plus initial placeholders:
     - `logprob_comm = None`, `logprob_shoot = None`,
     - `game_id = None`, `tournament_id = None`, `meta_id = None`, `game_uid = None`,
-    - `prev_measurements = None`, `prev_outcomes = None`. fileciteturn5file0
+    - `prev_measurements = None`, `prev_outcomes = None`.
 
 **Errors**
 
 - May raise exceptions from Pandas assignment if the DataFrame is misconfigured or the values are incompatible.
-  (No explicit validation is performed.) fileciteturn5file0
+  (No explicit validation is performed.)
 
 ### update_log_probs
 
 **Signature**
 
-- `update_log_probs(logprob_comm: float, logprob_shoot: float) -> None` fileciteturn5file0
+- `update_log_probs(logprob_comm: float, logprob_shoot: float) -> None`
 
 **Purpose**
 
@@ -114,17 +114,17 @@ Update log-probability fields for the **last** logged game.
 
 - For the last row:
   - `logprob_comm` is set to `float(logprob_comm)`.
-  - `logprob_shoot` is set to `float(logprob_shoot)`. fileciteturn5file0
+  - `logprob_shoot` is set to `float(logprob_shoot)`.
 
 **Errors**
 
-- Raises `RuntimeError` if the log is empty (via `_last_row_index`). fileciteturn5file0
+- Raises `RuntimeError` if the log is empty (via `_last_row_index`).
 
 ### update_log_prev
 
 **Signature**
 
-- `update_log_prev(prev_meas: Any, prev_out: Any) -> None` fileciteturn5file0
+- `update_log_prev(prev_meas: Any, prev_out: Any) -> None` 
 
 **Purpose**
 
@@ -149,17 +149,17 @@ Update previous-measurement and previous-outcome fields for the **last** logged 
 
 - For the last row:
   - `prev_measurements` is set to `prev_meas`.
-  - `prev_outcomes` is set to `prev_out`. fileciteturn5file0
+  - `prev_outcomes` is set to `prev_out`.
 
 **Errors**
 
-- Raises `RuntimeError` if the log is empty (via `_last_row_index`). fileciteturn5file0
+- Raises `RuntimeError` if the log is empty (via `_last_row_index`).
 
 ### update_indicators
 
 **Signature**
 
-- `update_indicators(game_id: int, tournament_id: int, meta_id: int) -> None` fileciteturn5file0
+- `update_indicators(game_id: int, tournament_id: int, meta_id: int) -> None`
 
 **Purpose**
 
@@ -183,17 +183,17 @@ Update identifier fields for the **last** logged game and generate a unique `gam
 
 - For the last row:
   - `game_id`, `tournament_id`, `meta_id` are set to their `int(...)` values.
-  - `game_uid` is set to a new UUID4 hex string (`str`, scalar). fileciteturn5file0
+  - `game_uid` is set to a new UUID4 hex string (`str`, scalar).
 
 **Errors**
 
-- Raises `RuntimeError` if the log is empty (via `_last_row_index`). fileciteturn5file0
+- Raises `RuntimeError` if the log is empty (via `_last_row_index`).
 
 ### outcome
 
 **Signature**
 
-- `outcome() -> tuple[float, float]` fileciteturn5file0
+- `outcome() -> tuple[float, float]`
 
 **Purpose**
 
@@ -208,11 +208,11 @@ Compute aggregate tournament performance statistics from the `reward` column.
 - `(mean_reward, std_error)` where:
   - `mean_reward`: `float`, scalar.
   - `std_error`: `float`, scalar.
-    - Standard error of the mean computed as sample std (`ddof=1`) divided by `sqrt(n)` for `n > 1`. fileciteturn5file0
+    - Standard error of the mean computed as sample std (`ddof=1`) divided by `sqrt(n)` for `n > 1`.
 
 !!! note "Empty or singleton logs"
-    - If the log is empty, returns `(0.0, 0.0)`. fileciteturn5file0
-    - If the log has exactly one row, returns `(mean_reward, 0.0)`. fileciteturn5file0
+    - If the log is empty, returns `(0.0, 0.0)`.
+    - If the log has exactly one row, returns `(mean_reward, 0.0)`.
 
 **Preconditions**
 
@@ -232,7 +232,7 @@ Compute aggregate tournament performance statistics from the `reward` column.
 
 **Signature**
 
-- `_last_row_index() -> int` fileciteturn5file0
+- `_last_row_index() -> int`
 
 **Purpose**
 
@@ -256,7 +256,7 @@ Return index of the last logged row.
 
 **Errors**
 
-- Raises `RuntimeError` if the log is empty. fileciteturn5file0
+- Raises `RuntimeError` if the log is empty.
 
 !!! tip "Internal helper"
     This is an internal helper method and may change without notice; prefer the public update APIs.
@@ -264,9 +264,9 @@ Return index of the last logged row.
 ## Data & State
 
 - Attributes (public):
-  - `game_layout`: `GameLayout`, scalar. fileciteturn5file0
+  - `game_layout`: `GameLayout`, scalar.
   - `log`: `pd.DataFrame`, rows `n_games`, columns `len(game_layout.log_columns)`.
-    - Contains one row per game. fileciteturn5file0
+    - Contains one row per game.
 
 - Side effects:
   - `update(...)` appends a row to `log`.
@@ -287,7 +287,7 @@ Return index of the last logged row.
 - Column initialisation:
   - The DataFrame is created with columns `game_layout.log_columns`, but `update(...)` writes a fixed row dictionary that
     includes columns (e.g. `logprob_comm`, `game_id`, `prev_measurements`) that must also be present in `log_columns` to
-    avoid implicit column creation or assignment errors. fileciteturn5file0
+    avoid implicit column creation or assignment errors.
   - The design intent is that `GameLayout.log_columns` includes these names; if it does not, this becomes a runtime
     mismatch.
 
@@ -298,7 +298,7 @@ Return index of the last logged row.
 ## Notes for Contributors
 
 - Keep updates safe and deterministic:
-  - `update(...)` uses `self.log.loc[len(self.log)] = row` to avoid deprecated append patterns. fileciteturn5file0
+  - `update(...)` uses `self.log.loc[len(self.log)] = row` to avoid deprecated append patterns.
 - If you change the log schema:
   - Update `GameLayout.log_columns` defaults and ensure `TournamentLog.update(...)` initialises all new columns.
 - If performance becomes a concern:
@@ -307,8 +307,7 @@ Return index of the last logged row.
 
 ## Related
 
-- See also: `Tournament` (orchestration), `Game` (single-round), `GameLayout` (defines `log_columns`). fileciteturn5file1turn5file0
-
+- See also: `Tournament` (orchestration), `Game` (single-round), `GameLayout` (defines `log_columns`). 
 ## Changelog
 
 - 2026-01-07 — Author: Rob Hendriks — Initial specification page for `TournamentLog`.

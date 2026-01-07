@@ -83,9 +83,14 @@ nav:
       - TournamentLog: game/TournamentLog.md
   - Players:
       - Players: players/Players.md
-      - PlayersA: players/PlayerA.md
-      - PlayersB: players/PlayerB.md
-      - Deterministic: players/deterministic.md
+      - PlayerA: players/PlayerA.md
+      - PlayerB: players/PlayerB.md
+      - SimplePlayers: players/SimplePlayers.md
+      - SimplePlayerA: players/SimplePlayerA.md
+      - SimplePlayerB: players/SimplePlayerB.md
+      - MajorityPlayers: players/MajorityPlayers.md
+      - MajorityPlayerA: players/MajorityPlayerA.md
+      - MajorityPlayerB: players/MajorityPlayerB.md
       - Assisted: players/assisted.md
       - Neural: players/neural.md
   - Shared randomness:

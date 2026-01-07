@@ -112,19 +112,19 @@ reset, communicate, shoot, and evaluate.
 ## Planned (design-spec)
 
 - None. The implemented orchestration sequence matches the design specification
-  for a single QSeaBattle game round. fileciteturn3file0
+  for a single QSeaBattle game round.
 
 ## Deviations
 
 - Return value ordering:
   - Design document refers to returning `(reward, field, gun, comm, shoot)`.
   - Implementation returns `(reward, field, gun, comm_noisy, int(shoot))`,
-    i.e. the *noisy* communication vector and an explicit `int` cast for `shoot`. fileciteturn3file0
+    i.e. the *noisy* communication vector and an explicit `int` cast for `shoot`.
 
 - Player reset responsibility:
   - Design implies player reset as part of game start.
   - Implementation explicitly calls `self.players.reset()` inside `play()`,
-    rather than delegating this to a higher-level controller. fileciteturn3file0
+    rather than delegating this to a higher-level controller.
 
 ## Notes for Contributors
 

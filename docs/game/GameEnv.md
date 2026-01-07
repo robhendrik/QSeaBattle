@@ -108,7 +108,7 @@ Provide inputs to the players as flattened copies of the current `field` and `gu
 
 **Errors**
 
-- Raises `RuntimeError` if the environment has not been reset yet. fileciteturn2file0
+- Raises `RuntimeError` if the environment has not been reset yet.
 
 !!! example "Example"
     ```python
@@ -134,7 +134,7 @@ Evaluate Player B’s shooting decision against the true `field` value at the on
 
 - `reward`: `float` {0.0, 1.0}, scalar.
   - `1.0` if `shoot` equals the true cell value.
-  - `0.0` otherwise. fileciteturn2file0
+  - `0.0` otherwise.
 
 **Preconditions**
 
@@ -148,8 +148,8 @@ Evaluate Player B’s shooting decision against the true `field` value at the on
 
 **Errors**
 
-- Raises `RuntimeError` if the environment has not been reset yet. fileciteturn2file0
-- Raises `RuntimeError` if `self.gun` does not contain exactly one `1`. fileciteturn2file0
+- Raises `RuntimeError` if the environment has not been reset yet.
+- Raises `RuntimeError` if `self.gun` does not contain exactly one `1`.
 
 !!! example "Example"
     ```python
@@ -184,9 +184,9 @@ Apply a binary symmetric channel to the communication vector by flipping each bi
 
 **Postconditions**
 
-- If `channel_noise <= 0.0`, returns `comm.copy()`. fileciteturn2file1
-- If `channel_noise >= 1.0`, returns `1 - comm`. fileciteturn2file1
-- Otherwise flips each bit with probability `channel_noise`. fileciteturn2file1
+- If `channel_noise <= 0.0`, returns `comm.copy()`.
+- If `channel_noise >= 1.0`, returns `1 - comm`.
+- Otherwise flips each bit with probability `channel_noise`.
 
 **Errors**
 
@@ -203,9 +203,9 @@ Apply a binary symmetric channel to the communication vector by flipping each bi
 - Attributes (public):
   - `game_layout`: `GameLayout`, scalar.
   - `field`: `np.ndarray` or None.
-    - When set: dtype `int` {0,1}, shape `(field_size, field_size)`. fileciteturn2file0
+    - When set: dtype `int` {0,1}, shape `(field_size, field_size)`.
   - `gun`: `np.ndarray` or None.
-    - When set: dtype `int` {0,1}, shape `(field_size, field_size)`, one-hot. fileciteturn2file0
+    - When set: dtype `int` {0,1}, shape `(field_size, field_size)`, one-hot.
 
 - Side effects:
   - `reset()` mutates `field` and `gun`.
@@ -216,17 +216,17 @@ Apply a binary symmetric channel to the communication vector by flipping each bi
 
 ## Planned (design-spec)
 
-- None. The class methods listed in the design are implemented: `reset`, `provide`, `evaluate`, `apply_channel_noise`. fileciteturn2file7turn2file14
+- None. The class methods listed in the design are implemented: `reset`, `provide`, `evaluate`, `apply_channel_noise`.
 
 ## Deviations
 
 - `evaluate(shoot)` input type:
-  - Design spec describes `shoot` as boolean-like (True/False). fileciteturn2file4
-  - Implementation type-hints `shoot: int` and casts via `int(shoot)` (accepting bool and numeric scalars). fileciteturn2file0
+  - Design spec describes `shoot` as boolean-like (True/False).
+  - Implementation type-hints `shoot: int` and casts via `int(shoot)` (accepting bool and numeric scalars).
 
 - Input validation:
-  - Design spec implicitly treats `comm` as length `m` and bits in `{0,1}`. fileciteturn2file14
-  - Implementation converts `comm` to `np.asarray(..., dtype=int)` and does not validate shape `(m,)` or value set `{0,1}`. fileciteturn2file1
+  - Design spec implicitly treats `comm` as length `m` and bits in `{0,1}`.eciteturn2file14
+  - Implementation converts `comm` to `np.asarray(..., dtype=int)` and does not validate shape `(m,)` or value set `{0,1}`.
 
 ## Notes for Contributors
 
@@ -239,7 +239,7 @@ Apply a binary symmetric channel to the communication vector by flipping each bi
 
 ## Related
 
-- See also: `GameLayout` (configuration), `Game` (single-round orchestration), `Tournament` (multi-round loop). fileciteturn2file8turn2file13
+- See also: `GameLayout` (configuration), `Game` (single-round orchestration), `Tournament` (multi-round loop).
 
 ## Changelog
 
