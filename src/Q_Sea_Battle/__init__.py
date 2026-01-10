@@ -24,8 +24,12 @@ from .simple_players import SimplePlayers
 from .majority_players import MajorityPlayers
 
 # Classical assisted (non-trainable)
-from .shared_randomness import SharedRandomness
-from .assisted_players import AssistedPlayers
+from .pr_assisted import PRAssisted
+from .pr_assisted_players import PRAssistedPlayers 
+from .pr_assisted_player_a import PRAssistedPlayerA
+from .pr_assisted_player_b import PRAssistedPlayerB
+from .assisted_players import AssistedPlayers # deprecated
+from .shared_randomness import SharedRandomness # deprecated
 
 # Neural net players (no shared randomness)
 from .neural_net_players import NeuralNetPlayers

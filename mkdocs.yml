@@ -91,11 +91,14 @@ nav:
       - MajorityPlayers: players/MajorityPlayers.md
       - MajorityPlayerA: players/MajorityPlayerA.md
       - MajorityPlayerB: players/MajorityPlayerB.md
-      - Assisted: players/assisted.md
-      - Neural: players/neural.md
+      - Players: players/PRAssistedPlayers.md
+      - PlayerA: players/PRAssistedPlayerA.md
+      - PlayerB: players/PRAssistedPlayerB.md
+ 
   - Shared randomness:
-      - Classical: shared_randomness/shared_randomness.md
-      - Layer: shared_randomness/layer.md
+      - Overview: shared_resources/SharedResources.md
+      - PRAssisted: shared_resources/PRAssisted.md
+      - Layer: shared_resources/layer.md
   - Models:
       - Linear: models/lin.md
       - Pyramid: models/pyr.md

@@ -1,4 +1,10 @@
-"""Classical shared randomness resource for assisted players.
+"""Classical PR-assisted resource for assisted players.
+
+This module provides the same functionality as :class:`SharedRandomness` in
+``shared_randomness.py``, but uses the updated naming convention:
+
+- Module: ``pr_assisted.py``
+- Class: :class:`PRAssisted`
 
 Author: Rob Hendriks
 Version: 0.1
@@ -8,13 +14,11 @@ from __future__ import annotations
 
 from typing import Optional
 
-import warnings
-
 import numpy as np
 
 
-class SharedRandomness:
-    """Two-party shared randomness resource with biased correlations.
+class PRAssisted:
+    """Two-party PR-assisted resource with biased correlations.
 
     This helper models a shared box queried twice per *round*:
 
@@ -26,10 +30,15 @@ class SharedRandomness:
     The box is stateful within a round (tracking whether A/B already
     measured and what the previous measurement/outcome were) but can be
     reset between rounds.
+
+    Notes:
+        This class is functionally identical to ``SharedRandomness`` in
+        ``shared_randomness.py``. Only the module/class names and
+        documentation have been updated.
     """
 
     def __init__(self, length: int, p_high: float) -> None:
-        """Initialise the shared randomness resource.
+        """Initialise the PR-assisted resource.
 
         Args:
             length: Number of bits in each measurement/outcome string.
@@ -39,43 +48,31 @@ class SharedRandomness:
             TypeError: If argument types are incorrect.
             ValueError: If ``length`` < 1 or ``p_high`` is outside [0, 1].
         """
-        warnings.warn(
-            "SharedRandomness is deprecated; use PRAssisted from Q_Sea_Battle.pr_assisted instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
         if not isinstance(length, int):
             raise TypeError("length must be an int")
         if length < 1:
             raise ValueError("length must be >= 1")
-
 
         if not isinstance(p_high, (int, float)):
             raise TypeError("p_high must be a float")
         if not (0.0 <= float(p_high) <= 1.0):
             raise ValueError("p_high must be in the interval [0.0, 1.0]")
 
-
         self.length: int = length
         self.p_high: float = float(p_high)
-
 
         # Measurement bookkeeping
         self.a_measured: bool = False
         self.b_measured: bool = False
-
 
         # Store previous measurement and outcome for the second query.
         self.prev_party: Optional[str] = None  # "a" | "b" | None
         self.prev_measurement: Optional[np.ndarray] = None
         self.prev_outcome: Optional[np.ndarray] = None
 
-
         # Random number generator; in a larger system this can be seeded
         # from a global seed for full reproducibility.
         self._rng = np.random.default_rng()
-
 
     # ------------------------------------------------------------------
     # Public API
@@ -95,19 +92,15 @@ class SharedRandomness:
         if self.a_measured:
             raise ValueError("Party A has already measured on this resource")  # noqa: TRY003
 
-
         meas = self._validate_measurement(measurement)
         self.a_measured = True
-
 
         if not self.b_measured:
             # First measurement on this box.
             return self._first_measurement("a", meas)
 
-
         # B measured first; this is the second measurement.
         return self._second_measurement("a", meas, self.prev_measurement, self.prev_outcome)
-
 
     def measurement_b(self, measurement: np.ndarray) -> np.ndarray:
         """Perform a measurement by party B.
@@ -124,19 +117,15 @@ class SharedRandomness:
         if self.b_measured:
             raise ValueError("Party B has already measured on this resource")  # noqa: TRY003
 
-
         meas = self._validate_measurement(measurement)
         self.b_measured = True
-
 
         if not self.a_measured:
             # First measurement on this box.
             return self._first_measurement("b", meas)
 
-
         # A measured first; this is the second measurement.
         return self._second_measurement("b", meas, self.prev_measurement, self.prev_outcome)
-
 
     def reset(self) -> None:
         """Reset internal measurement state for reuse of the resource."""
@@ -145,7 +134,6 @@ class SharedRandomness:
         self.prev_party = None
         self.prev_measurement = None
         self.prev_outcome = None
-
 
     # ------------------------------------------------------------------
     # Internal helpers
@@ -171,17 +159,15 @@ class SharedRandomness:
             raise ValueError("measurement must contain only 0/1 values")
         return meas
 
-
     def _random_string(self, n: int) -> np.ndarray:
         """Generate a random 0/1 string of length ``n``."""
         return self._rng.integers(0, 2, size=n, dtype=int)
-
 
     def _first_measurement(self, party: str, current_measurement: np.ndarray) -> np.ndarray:
         """Handle the first measurement on the resource.
 
         Args:
-            party: ``\"a\"`` or ``\"b\"``.
+            party: ``"a"`` or ``"b"``.
             current_measurement: 1D measurement vector of length ``length``.
 
         Returns:
@@ -189,14 +175,11 @@ class SharedRandomness:
         """
         outcome = self._random_string(self.length)
 
-
         self.prev_party = party
         self.prev_measurement = current_measurement.copy()
         self.prev_outcome = outcome.copy()
 
-
         return outcome
-
 
     def _second_measurement(
         self,
@@ -220,7 +203,7 @@ class SharedRandomness:
         All indices are treated independently.
 
         Args:
-            party: ``\"a\"`` or ``\"b\"`` (unused, kept for clarity).
+            party: ``"a"`` or ``"b"`` (unused, kept for clarity).
             current_measurement: Measurement vector for the second party.
             previous_measurement: Measurement vector from the first party.
             previous_outcome: Outcome vector from the first party.
@@ -234,10 +217,8 @@ class SharedRandomness:
         """
         del party  # symmetric behaviour; party label is for diagnostics only
 
-
         if previous_measurement is None or previous_outcome is None:
             raise RuntimeError("Second measurement called without a first measurement")  # noqa: TRY003
-
 
         if (
             previous_measurement.shape != current_measurement.shape
@@ -245,11 +226,9 @@ class SharedRandomness:
         ):
             raise ValueError("Measurement and outcome shapes must all match")  # noqa: TRY003
 
-
         prev_meas = previous_measurement
         curr_meas = current_measurement
         prev_out = previous_outcome
-
 
         # Determine per index whether we are in the high- or low-correlation
         # configuration based on (prev_meas[i], curr_meas[i]).
@@ -262,11 +241,9 @@ class SharedRandomness:
         # Low-probability case is the remaining combination (1,1).
         same_prob = np.where(high_mask, self.p_high, 1.0 - self.p_high)
 
-
         base_outcome = prev_out
         u = self._rng.random(self.length)
         keep_mask = u < same_prob
-
 
         outcome = np.where(keep_mask, base_outcome, 1 - base_outcome).astype(int)
         return outcome
