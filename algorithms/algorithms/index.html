@@ -1,0 +1,3057 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Living specification for the QSeaBattle project.">
+      
+      
+        <meta name="author" content="Rob Hendriks">
+      
+      
+      
+        <link rel="prev" href="../../background/background/">
+      
+      
+        <link rel="next" href="../majority_algorithm/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Algorithms - QSeaBattle Specification</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#qseabattle-algorithms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="QSeaBattle Specification" class="md-header__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QSeaBattle Specification
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Algorithms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="QSeaBattle Specification" class="md-nav__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QSeaBattle Specification
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Background
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../background/background/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Background
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Algorithms
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-simple-player-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Simple Player Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Simple Player Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Player A
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simple-player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Player B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-majority-player-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Majority Player Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Majority Player Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority Player A
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority Player B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-linear-trainable-assisted-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Linear Trainable Assisted Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Linear Trainable Assisted Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-concept-shared-randomness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Concept: Shared Randomness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-target-imitation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Target (Imitation Learning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Target (Imitation Learning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#model-a-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model A Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-b-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model B Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#algorithm-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Algorithm Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a-decision-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player A Decision Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b-decision-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player B Decision Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pseudocode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pseudocode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pyramid-trainable-assisted-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pyramid Trainable Assisted Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Pyramid Trainable Assisted Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iteration-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iteration Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-target-imitation-learning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Target (Imitation Learning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Target (Imitation Learning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#model-a-iteration-ell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model A - Iteration \(\ell\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-b-iteration-ell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model B - Iteration \(\ell\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#algorithm-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Algorithm Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a-full-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player A Full Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b-full-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player B Full Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyramid-example-field-size-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyramid Example (Field Size 4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majority
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Game
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../game/GameLayout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../game/GameEnv/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../game/Game/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../game/Tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tournament
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../game/TournamentLog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TournamentLog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Players
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/Players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/PlayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/PlayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/SimplePlayers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/SimplePlayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/SimplePlayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/MajorityPlayers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/MajorityPlayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/MajorityPlayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/PRAssistedPlayers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/PRAssistedPlayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/PRAssistedPlayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/TrainableAssistedPlayers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/TrainableAssistedPlayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../players/TrainableAssistedPlayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared resources
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Shared resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../shared_resources/SharedResources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../shared_resources/PRAssisted/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssisted
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../shared_resources/PRAssistedLayer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedLayer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinTrainableAssistedModelA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinTrainableAssistedModelB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinCombineLayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinCombineLayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinMeasurementLayerA/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../models/LinMeasurementLayerB/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Training
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Training
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../training/imitation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Imitation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../training/dru/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DRU / DIAL
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../training/rl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reinforcement learning
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../invariants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invariants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-simple-player-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Simple Player Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="1. Simple Player Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Player A
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#simple-player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple Player B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-majority-player-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Majority Player Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Majority Player Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-player-a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority Player A
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-player-b" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority Player B
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-linear-trainable-assisted-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Linear Trainable Assisted Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Linear Trainable Assisted Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#key-concept-shared-randomness" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Concept: Shared Randomness
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-target-imitation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Target (Imitation Learning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Target (Imitation Learning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#model-a-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model A Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-b-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model B Training
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#algorithm-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Algorithm Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a-decision-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player A Decision Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b-decision-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player B Decision Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pseudocode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pseudocode
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-pyramid-trainable-assisted-algorithm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Pyramid Trainable Assisted Algorithm
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Pyramid Trainable Assisted Algorithm">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#architecture-overview_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#iteration-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Iteration Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#training-target-imitation-learning_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Training Target (Imitation Learning)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training Target (Imitation Learning)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#model-a-iteration-ell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model A - Iteration \(\ell\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#model-b-iteration-ell" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model B - Iteration \(\ell\)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#algorithm-flow_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Algorithm Flow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Algorithm Flow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#player-a-full-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player A Full Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#player-b-full-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Player B Full Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyramid-example-field-size-4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyramid Example (Field Size 4)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="qseabattle-algorithms">QSeaBattle Algorithms<a class="headerlink" href="#qseabattle-algorithms" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>QSeaBattle is a collaborative quantum game involving two players (Player A and Player B) who work together to make optimal decisions on an <span class="arithmatex">\(n \times n\)</span> battlefield. Player A observes the field and sends a limited communication message to Player B, who must decide whether to shoot at a specific location.</p>
+<hr />
+<h2 id="1-simple-player-algorithm">1. Simple Player Algorithm<a class="headerlink" href="#1-simple-player-algorithm" title="Permanent link">&para;</a></h2>
+<p>The Simple Player algorithm represents the most basic deterministic strategy for QSeaBattle.</p>
+<h3 id="simple-player-a">Simple Player A<a class="headerlink" href="#simple-player-a" title="Permanent link">&para;</a></h3>
+<p><strong>Input:</strong> Field array (flattened <span class="arithmatex">\(n^2\)</span> cells with values in <span class="arithmatex">\({0, 1}\)</span>)</p>
+<p><strong>Output:</strong> Communication vector of length <span class="arithmatex">\(m\)</span> (where <span class="arithmatex">\(m =\)</span> <code>comms_size</code>)</p>
+<p><strong>Algorithm:</strong></p>
+<ol>
+<li>Flatten the <span class="arithmatex">\(n \times n\)</span> field into a 1D array of length <span class="arithmatex">\(n^2\)</span></li>
+<li>Extract the values of the <strong>first</strong> <span class="arithmatex">\(m\)</span> cells</li>
+<li>Return these <span class="arithmatex">\(m\)</span> values as the communication vector</li>
+</ol>
+<p><strong>Pseudocode:</strong></p>
+<div class="highlight"><pre><span></span><code>function SimplePlayerA.decide(field):
+    comm = field[0:m]  // Extract first m cells
+    return comm
+</code></pre></div>
+<h3 id="simple-player-b">Simple Player B<a class="headerlink" href="#simple-player-b" title="Permanent link">&para;</a></h3>
+<p><strong>Input:</strong></p>
+<ul>
+<li>Gun array (one-hot encoded, length <span class="arithmatex">\(n^2\)</span>)</li>
+<li>Communication vector (length <span class="arithmatex">\(m\)</span>)</li>
+</ul>
+<p><strong>Output:</strong> Shoot decision (0 or 1)</p>
+<p><strong>Algorithm:</strong></p>
+<p>Determine the gun index (position where gun = 1)
+<strong>If</strong> the gun points at one of the first <span class="arithmatex">\(m\)</span> cells:
+- Return the corresponding communication bit from that position
+<strong>Else</strong> (gun points beyond the first <span class="arithmatex">\(m\)</span> cells):
+- Ignore communication
+- Shoot with probability <code>enemy_probability</code>, don’t shoot with probability <span class="arithmatex">\(1 -\)</span> <code>enemy_probability</code></p>
+<p><strong>Pseudocode:</strong></p>
+<div class="highlight"><pre><span></span><code>function SimplePlayerB.decide(gun, comm):
+    gun_index = argmax(gun)
+
+    if gun_index &lt; m:
+        return comm[gun_index]
+    else:
+        return sample_bernoulli(enemy_probability)
+</code></pre></div>
+<p><strong>Performance:</strong> The Simple Player achieves better-than-random performance on the first <span class="arithmatex">\(m\)</span> cells but reverts to random guessing elsewhere.</p>
+<hr />
+<h2 id="2-majority-player-algorithm">2. Majority Player Algorithm<a class="headerlink" href="#2-majority-player-algorithm" title="Permanent link">&para;</a></h2>
+<p>The Majority Player algorithm improves upon the Simple Player by encoding aggregate information about field segments.</p>
+<h3 id="setup">Setup<a class="headerlink" href="#setup" title="Permanent link">&para;</a></h3>
+<p>The field is partitioned into <span class="arithmatex">\(m\)</span> <strong>equal-sized segments</strong>:</p>
+<ul>
+<li>Field size: <span class="arithmatex">\(n^2\)</span> cells</li>
+<li>Segment size: <span class="arithmatex">\(L = n^2 / m\)</span></li>
+<li>Requirement: <span class="arithmatex">\(m\)</span> must divide <span class="arithmatex">\(n^2\)</span></li>
+</ul>
+<h3 id="majority-player-a">Majority Player A<a class="headerlink" href="#majority-player-a" title="Permanent link">&para;</a></h3>
+<p><strong>Input:</strong> Field array (length <span class="arithmatex">\(n^2\)</span>)</p>
+<p><strong>Output:</strong> Communication vector (length <span class="arithmatex">\(m\)</span>)</p>
+<p><strong>Algorithm:</strong></p>
+<ol>
+<li>Divide the flattened field into <span class="arithmatex">\(m\)</span> contiguous segments of size <span class="arithmatex">\(L\)</span></li>
+<li>For each segment <span class="arithmatex">\(j\)</span> (where <span class="arithmatex">\(j = 0, 1, \ldots, m-1\)</span>):</li>
+<li>Count the number of ones: <span class="arithmatex">\(k_j = \sum_{i \in \text{segment}_j} \text{field}[i]\)</span></li>
+<li>Set <span class="arithmatex">\(\text{comm}[j] = 1\)</span> if <span class="arithmatex">\(k_j \geq L/2\)</span> (majority are ones)</li>
+<li>Set <span class="arithmatex">\(\text{comm}[j] = 0\)</span> otherwise</li>
+</ol>
+<p><strong>Pseudocode:</strong></p>
+<div class="highlight"><pre><span></span><code>function MajorityPlayerA.decide(field):
+    L = n^2 / m
+    comm = empty array of length m
+
+    for j from 0 to m-1:
+        segment = field[j*L : (j+1)*L]
+        count_ones = sum(segment)
+
+        if count_ones &gt;= L/2:
+            comm[j] = 1
+        else:
+            comm[j] = 0
+
+    return comm
+</code></pre></div>
+<h3 id="majority-player-b">Majority Player B<a class="headerlink" href="#majority-player-b" title="Permanent link">&para;</a></h3>
+<p><strong>Input:</strong></p>
+<ul>
+<li>Gun array (one-hot, length <span class="arithmatex">\(n^2\)</span>)</li>
+<li>Communication vector (length <span class="arithmatex">\(m\)</span>)</li>
+</ul>
+<p><strong>Output:</strong> Shoot decision (0 or 1)</p>
+<p><strong>Algorithm:</strong></p>
+<ol>
+<li>Determine the gun index</li>
+<li>Identify which segment contains the gun: <span class="arithmatex">\(\text{segment}_{\text{gun}} = \lfloor \text{gun index} / L \rfloor\)</span></li>
+<li>Return the majority bit for that segment: <span class="arithmatex">\(\text{comm}[\text{segment}_{\text{gun}}]\)</span></li>
+</ol>
+<p><strong>Pseudocode:</strong></p>
+<div class="highlight"><pre><span></span><code>function MajorityPlayerB.decide(gun, comm):
+    gun_index = argmax(gun)
+    L = n^2 / m
+    segment_index = floor(gun_index / L)
+
+    return comm[segment_index]
+</code></pre></div>
+<p><strong>Performance:</strong> The Majority Player provides more informative communication than the Simple Player, as each bit encodes statistical information about <span class="arithmatex">\(L\)</span> cells rather than a single cell.</p>
+<hr />
+<h2 id="3-linear-trainable-assisted-algorithm">3. Linear Trainable Assisted Algorithm<a class="headerlink" href="#3-linear-trainable-assisted-algorithm" title="Permanent link">&para;</a></h2>
+<p>The Linear Trainable Assisted algorithm uses neural networks combined with shared randomness to achieve quantum-like coordination.</p>
+<h3 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h3>
+<p>The algorithm uses a <strong>single shared randomness resource</strong> per decision and consists of four trainable components:</p>
+<ol>
+<li><strong>LinMeasurementLayerA</strong>: Maps field to measurement choices</li>
+<li><strong>LinMeasurementLayerB</strong>: Maps gun to measurement choices</li>
+<li><strong>LinCombineLayerA</strong>: Compresses outcomes to communication</li>
+<li><strong>LinCombineLayerB</strong>: Combines outcomes and communication to shoot decision</li>
+</ol>
+<h3 id="key-concept-shared-randomness">Key Concept: Shared Randomness<a class="headerlink" href="#key-concept-shared-randomness" title="Permanent link">&para;</a></h3>
+<p>A shared randomness layer produces <strong>correlated outcomes</strong> for Player A and Player B based on their measurement choices. The correlation is controlled by parameter <span class="arithmatex">\(p_{\text{high}} \in [0, 1]\)</span>.</p>
+<p><strong>Correlation Rule:</strong></p>
+<p>Let <span class="arithmatex">\(m_A\)</span> and <span class="arithmatex">\(m_B\)</span> be measurements in <span class="arithmatex">\({0, 1}\)</span>, and <span class="arithmatex">\(o_A\)</span> be A’s outcome.</p>
+<p>For B’s outcome <span class="arithmatex">\(o_B\)</span>:</p>
+<ul>
+<li>If <span class="arithmatex">\((m_A, m_B) \in {(0,0), (0,1), (1,0)}\)</span>: <span class="arithmatex">\(o_B = o_A\)</span> with probability <span class="arithmatex">\(p_{\text{high}}\)</span></li>
+<li>If <span class="arithmatex">\((m_A, m_B) = (1,1)\)</span>: <span class="arithmatex">\(o_B = o_A\)</span> with probability <span class="arithmatex">\(1 - p_{\text{high}}\)</span></li>
+</ul>
+<h3 id="training-target-imitation-learning">Training Target (Imitation Learning)<a class="headerlink" href="#training-target-imitation-learning" title="Permanent link">&para;</a></h3>
+<p>The model is trained to reproduce a specific parity-based strategy:</p>
+<h4 id="model-a-training">Model A Training<a class="headerlink" href="#model-a-training" title="Permanent link">&para;</a></h4>
+<p><strong>Step 1: Measurement Target</strong></p>
+<ul>
+<li>For each cell <span class="arithmatex">\(i\)</span>: <span class="arithmatex">\(\text{meas target}[i] = \text{field}[i]\)</span></li>
+<li>Interpretation: Measure “type 1” where field = 1, “type 0” where field = 0</li>
+</ul>
+<p><strong>Step 2: Shared Randomness</strong></p>
+<ul>
+<li>Apply shared randomness as <strong>first measurement</strong></li>
+<li>Obtain outcomes <span class="arithmatex">\(o_A\)</span> of length <span class="arithmatex">\(n^2\)</span></li>
+</ul>
+<p><strong>Step 3: Communication Target</strong></p>
+<ul>
+<li>Compute parity: <span class="arithmatex">\(p_A = \bigoplus_{i=0}^{n^2-1} o_A[i]\)</span> (XOR of all outcomes)</li>
+<li>Communication target: <span class="arithmatex">\(\text{comm target} = p_A\)</span> (for <span class="arithmatex">\(m=1\)</span>)</li>
+</ul>
+<p><strong>Loss:</strong> Binary cross-entropy between predicted and target at each stage</p>
+<h4 id="model-b-training">Model B Training<a class="headerlink" href="#model-b-training" title="Permanent link">&para;</a></h4>
+<p><strong>Step 1: Measurement Target</strong></p>
+<ul>
+<li>For each cell <span class="arithmatex">\(i\)</span>: <span class="arithmatex">\(\text{meas target}[i] = \text{gun}[i]\)</span></li>
+<li>Interpretation: Measure “type 1” only at gun position</li>
+</ul>
+<p><strong>Step 2: Shared Randomness</strong></p>
+<ul>
+<li>Apply shared randomness as <strong>second measurement</strong></li>
+<li>Use A’s previous measurement and outcome</li>
+<li>Obtain outcomes <span class="arithmatex">\(o_B\)</span> of length <span class="arithmatex">\(n^2\)</span></li>
+</ul>
+<p><strong>Step 3: Shoot Target</strong></p>
+<ul>
+<li>Compute B’s parity: <span class="arithmatex">\(p_B = \bigoplus_{i=0}^{n^2-1} o_B[i]\)</span></li>
+<li>Compute communication parity: <span class="arithmatex">\(p_C = \text{comm}\)</span> (for <span class="arithmatex">\(m=1\)</span>)</li>
+<li>Shoot target: <span class="arithmatex">\(\text{shoot_target} = p_B \oplus p_C\)</span></li>
+</ul>
+<p><strong>Loss:</strong> Binary cross-entropy at each stage</p>
+<h3 id="algorithm-flow">Algorithm Flow<a class="headerlink" href="#algorithm-flow" title="Permanent link">&para;</a></h3>
+<h4 id="player-a-decision-process">Player A Decision Process<a class="headerlink" href="#player-a-decision-process" title="Permanent link">&para;</a></h4>
+<p><strong>Input:</strong> Field array (length <span class="arithmatex">\(n^2\)</span>)</p>
+<p><strong>Output:</strong> Communication bits (length <span class="arithmatex">\(m\)</span>)</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>Measure:</strong> <span class="arithmatex">\(\text{meas probs}_A = \text{LinMeasurementLayerA}(\text{field})\)</span></li>
+<li><strong>Binarize:</strong> <span class="arithmatex">\(\text{meas bits}_A = (\text{meas probs}_A \geq 0.5)\)</span></li>
+<li><strong>Shared Randomness (First):</strong></li>
+<li><span class="arithmatex">\(\text{outcomes}_A = \text{SharedRandomnessLayer}(\text{meas bits}_A, \text{first}=\text{True})\)</span></li>
+<li>Store <span class="arithmatex">\(\text{meas bits}_A\)</span> and <span class="arithmatex">\(\text{outcomes}_A\)</span> for Player B</li>
+<li><strong>Combine:</strong> <span class="arithmatex">\(\text{comm logits} = \text{LinCombineLayerA}(\text{outcomes}_A)\)</span></li>
+<li><strong>Return:</strong> <span class="arithmatex">\(\text{comm} = (\sigma(\text{comm logits}) \geq 0.5)\)</span></li>
+</ol>
+<h4 id="player-b-decision-process">Player B Decision Process<a class="headerlink" href="#player-b-decision-process" title="Permanent link">&para;</a></h4>
+<p><strong>Input:</strong></p>
+<ul>
+<li>Gun array (length <span class="arithmatex">\(n^2\)</span>)</li>
+<li>Communication (length <span class="arithmatex">\(m\)</span>)</li>
+<li>Previous measurements from A</li>
+<li>Previous outcomes from A</li>
+</ul>
+<p><strong>Output:</strong> Shoot decision (0 or 1)</p>
+<p><strong>Steps:</strong></p>
+<ol>
+<li><strong>Measure:</strong> <span class="arithmatex">\(\text{meas probs}_B = \text{LinMeasurementLayerB}(\text{gun})\)</span></li>
+<li><strong>Binarize:</strong> <span class="arithmatex">\(\text{meas bits}_B = (\text{meas probs}_B \geq 0.5)\)</span></li>
+<li><strong>Shared Randomness (Second):</strong></li>
+<li><span class="arithmatex">\(\text{outcomes}_B = \text{SharedRandomnessLayer}(\text{meas bits}_B, \text{prev meas}_A, \text{prev out}_A)\)</span></li>
+<li><strong>Combine:</strong> <span class="arithmatex">\(\text{shoot logit} = \text{LinCombineLayerB}(\text{outcomes}_B, \text{comm})\)</span></li>
+<li><strong>Return:</strong> <span class="arithmatex">\(\text{shoot} = (\sigma(\text{shoot logit}) \geq 0.5)\)</span></li>
+</ol>
+<h3 id="pseudocode">Pseudocode<a class="headerlink" href="#pseudocode" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Model A Forward Pass</span>
+<span class="n">function</span> <span class="n">LinTrainableAssistedModelA</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+    <span class="c1"># Step 1: Measurement</span>
+    <span class="n">meas_probs</span> <span class="o">=</span> <span class="n">LinMeasurementLayerA</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+    <span class="n">meas_bits</span> <span class="o">=</span> <span class="p">(</span><span class="n">meas_probs</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: Shared Randomness (First Measurement)</span>
+    <span class="n">outcomes</span> <span class="o">=</span> <span class="n">SharedRandomnessLayer</span><span class="p">(</span>
+        <span class="n">current_measurement</span><span class="o">=</span><span class="n">meas_bits</span><span class="p">,</span>
+        <span class="n">first_measurement</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Step 3: Combine to Communication</span>
+    <span class="n">comm_logits</span> <span class="o">=</span> <span class="n">LinCombineLayerA</span><span class="p">(</span><span class="n">outcomes</span><span class="p">)</span>
+
+    <span class="c1"># Store for Player B</span>
+    <span class="n">store</span><span class="p">(</span><span class="n">meas_bits</span><span class="p">,</span> <span class="n">outcomes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">comm_logits</span><span class="p">,</span> <span class="n">meas_bits</span><span class="p">,</span> <span class="n">outcomes</span>
+
+<span class="c1"># Model B Forward Pass</span>
+<span class="n">function</span> <span class="n">LinTrainableAssistedModelB</span><span class="p">(</span><span class="n">gun</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">prev_meas</span><span class="p">,</span> <span class="n">prev_out</span><span class="p">):</span>
+    <span class="c1"># Step 1: Measurement</span>
+    <span class="n">meas_probs</span> <span class="o">=</span> <span class="n">LinMeasurementLayerB</span><span class="p">(</span><span class="n">gun</span><span class="p">)</span>
+    <span class="n">meas_bits</span> <span class="o">=</span> <span class="p">(</span><span class="n">meas_probs</span> <span class="o">&gt;=</span> <span class="mf">0.5</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+    <span class="c1"># Step 2: Shared Randomness (Second Measurement)</span>
+    <span class="n">outcomes</span> <span class="o">=</span> <span class="n">SharedRandomnessLayer</span><span class="p">(</span>
+        <span class="n">current_measurement</span><span class="o">=</span><span class="n">meas_bits</span><span class="p">,</span>
+        <span class="n">previous_measurement</span><span class="o">=</span><span class="n">prev_meas</span><span class="p">,</span>
+        <span class="n">previous_outcome</span><span class="o">=</span><span class="n">prev_out</span><span class="p">,</span>
+        <span class="n">first_measurement</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Step 3: Combine with Communication</span>
+    <span class="n">shoot_logit</span> <span class="o">=</span> <span class="n">LinCombineLayerB</span><span class="p">(</span><span class="n">outcomes</span><span class="p">,</span> <span class="n">comm</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">shoot_logit</span>
+</code></pre></div>
+<p><strong>Performance:</strong> When trained correctly, this algorithm can exceed classical information-theoretic bounds through quantum-like correlations.</p>
+<hr />
+<h2 id="4-pyramid-trainable-assisted-algorithm">4. Pyramid Trainable Assisted Algorithm<a class="headerlink" href="#4-pyramid-trainable-assisted-algorithm" title="Permanent link">&para;</a></h2>
+<p>The Pyramid algorithm extends the Linear approach by using <strong>multiple layers</strong> of shared randomness in a hierarchical structure.</p>
+<h3 id="architecture-overview_1">Architecture Overview<a class="headerlink" href="#architecture-overview_1" title="Permanent link">&para;</a></h3>
+<p>The Pyramid algorithm processes the field through <span class="arithmatex">\(K = \log_2(n^2)\)</span> iterations, halving the active length at each level.</p>
+<p><strong>Key Properties:</strong></p>
+<ul>
+<li>Field size must be a power of 2: <span class="arithmatex">\(n^2 = 2^K\)</span></li>
+<li>Each iteration uses a separate shared randomness resource</li>
+<li>State is progressively compressed from <span class="arithmatex">\(n^2\)</span> down to 1</li>
+</ul>
+<h3 id="iteration-structure">Iteration Structure<a class="headerlink" href="#iteration-structure" title="Permanent link">&para;</a></h3>
+<p>At pyramid level <span class="arithmatex">\(\ell\)</span> (where <span class="arithmatex">\(\ell = 0, 1, \ldots, K-1\)</span>):</p>
+<ul>
+<li><strong>Active length:</strong> <span class="arithmatex">\(L_\ell = n^2 / 2^\ell\)</span></li>
+<li><strong>Measurement output length:</strong> <span class="arithmatex">\(L_\ell / 2\)</span></li>
+<li><strong>Next state length:</strong> <span class="arithmatex">\(L_\ell / 2\)</span></li>
+</ul>
+<h3 id="training-target-imitation-learning_1">Training Target (Imitation Learning)<a class="headerlink" href="#training-target-imitation-learning_1" title="Permanent link">&para;</a></h3>
+<h4 id="model-a-iteration-ell">Model A - Iteration <span class="arithmatex">\(\ell\)</span><a class="headerlink" href="#model-a-iteration-ell" title="Permanent link">&para;</a></h4>
+<p><strong>Input State:</strong> Current field state of length <span class="arithmatex">\(L_\ell\)</span></p>
+<p><strong>Step 1: Measurement</strong></p>
+<ul>
+<li>Process pairs <span class="arithmatex">\((x_{2i}, x_{2i+1})\)</span> for <span class="arithmatex">\(i = 0, \ldots, L_\ell/2 - 1\)</span></li>
+<li>Measurement: <span class="arithmatex">\(m_i^{(A)} = x_{2i} \oplus x_{2i+1}\)</span></li>
+<li>Target: measure 1 if pair differs, 0 if pair matches</li>
+</ul>
+<p><strong>Step 2: Shared Randomness</strong></p>
+<ul>
+<li>First measurement on resource <span class="arithmatex">\(\ell\)</span></li>
+<li>Obtain outcomes <span class="arithmatex">\(s_i\)</span> for <span class="arithmatex">\(i = 0, \ldots, L_\ell/2 - 1\)</span></li>
+</ul>
+<p><strong>Step 3: Next State</strong></p>
+<ul>
+<li>For each pair index <span class="arithmatex">\(i\)</span>:</li>
+<li><span class="arithmatex">\(x_i’ = x_{2i} \oplus s_i\)</span></li>
+<li>New state length: <span class="arithmatex">\(L_\ell / 2\)</span></li>
+</ul>
+<p><strong>Final Output (after all iterations):</strong></p>
+<ul>
+<li>Final state has length 1</li>
+<li>Communication bit: <span class="arithmatex">\(\text{comm} = x_0’\)</span> (the final remaining bit)</li>
+</ul>
+<h4 id="model-b-iteration-ell">Model B - Iteration <span class="arithmatex">\(\ell\)</span><a class="headerlink" href="#model-b-iteration-ell" title="Permanent link">&para;</a></h4>
+<p><strong>Input State:</strong></p>
+<ul>
+<li>Current gun state <span class="arithmatex">\(g\)</span> of length <span class="arithmatex">\(L_\ell\)</span> (one-hot)</li>
+<li>Communication bit <span class="arithmatex">\(c\)</span></li>
+</ul>
+<p><strong>Step 1: Measurement</strong></p>
+<ul>
+<li>Process gun pairs <span class="arithmatex">\((g_{2i}, g_{2i+1})\)</span></li>
+<li>Measurement: <span class="arithmatex">\(m_i^{(B)} = \neg g_{2i} \land g_{2i+1}\)</span></li>
+<li>Target: measure 1 only if pair is <span class="arithmatex">\((0,1)\)</span></li>
+</ul>
+<p><strong>Step 2: Shared Randomness</strong></p>
+<ul>
+<li>Second measurement on resource <span class="arithmatex">\(\ell\)</span></li>
+<li>Use A’s measurement and outcome from same level</li>
+<li>Obtain outcomes <span class="arithmatex">\(s_i\)</span></li>
+</ul>
+<p><strong>Step 3: Next State</strong></p>
+<ul>
+<li>New gun state: <span class="arithmatex">\(g_i’ = g_{2i} \oplus g_{2i+1}\)</span> (preserves one-hot property)</li>
+<li>If gun was at pair <span class="arithmatex">\((0,1)\)</span> or <span class="arithmatex">\((1,0)\)</span>, outcome affects communication:</li>
+<li>Let <span class="arithmatex">\(j\)</span> be the index where <span class="arithmatex">\(g_j’ = 1\)</span></li>
+<li>Update communication: <span class="arithmatex">\(c’ = c \oplus s_j\)</span></li>
+</ul>
+<p><strong>Final Output (after all iterations):</strong></p>
+<ul>
+<li>Shoot decision: <span class="arithmatex">\(\text{shoot} = c’\)</span> (the final communication bit)</li>
+</ul>
+<h3 id="algorithm-flow_1">Algorithm Flow<a class="headerlink" href="#algorithm-flow_1" title="Permanent link">&para;</a></h3>
+<h4 id="player-a-full-process">Player A Full Process<a class="headerlink" href="#player-a-full-process" title="Permanent link">&para;</a></h4>
+<p><strong>Input:</strong> Field (length <span class="arithmatex">\(n^2\)</span>)</p>
+<p><strong>Output:</strong> Communication bit (for <span class="arithmatex">\(m=1\)</span>)</p>
+<div class="highlight"><pre><span></span><code><span class="n">function</span> <span class="n">PyramidPlayerA</span><span class="p">(</span><span class="n">field</span><span class="p">):</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="n">field</span>
+    <span class="n">measurements_list</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">outcomes_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="k">for</span> <span class="n">level</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">K</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Pairwise XOR measurement</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+        <span class="n">meas</span> <span class="o">=</span> <span class="n">empty</span> <span class="n">array</span> <span class="n">of</span> <span class="n">length</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">meas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="n">XOR</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Shared randomness (first measurement)</span>
+        <span class="n">outcomes</span> <span class="o">=</span> <span class="n">SharedRandomness_level</span><span class="p">(</span><span class="n">meas</span><span class="p">,</span> <span class="n">first</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Store for Player B</span>
+        <span class="n">measurements_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">meas</span><span class="p">)</span>
+        <span class="n">outcomes_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outcomes</span><span class="p">)</span>
+
+        <span class="c1"># Compute next state</span>
+        <span class="n">next_state</span> <span class="o">=</span> <span class="n">empty</span> <span class="n">array</span> <span class="n">of</span> <span class="n">length</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">next_state</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="n">XOR</span> <span class="n">outcomes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="n">state</span> <span class="o">=</span> <span class="n">next_state</span>
+
+    <span class="c1"># Final state has length 1</span>
+    <span class="n">comm</span> <span class="o">=</span> <span class="n">state</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">comm</span><span class="p">,</span> <span class="n">measurements_list</span><span class="p">,</span> <span class="n">outcomes_list</span>
+</code></pre></div>
+<h4 id="player-b-full-process">Player B Full Process<a class="headerlink" href="#player-b-full-process" title="Permanent link">&para;</a></h4>
+<p><strong>Input:</strong></p>
+<ul>
+<li>Gun (one-hot, length <span class="arithmatex">\(n^2\)</span>)</li>
+<li>Communication bit</li>
+<li>Measurements list from A (length <span class="arithmatex">\(K\)</span>)</li>
+<li>Outcomes list from A (length <span class="arithmatex">\(K\)</span>)</li>
+</ul>
+<p><strong>Output:</strong> Shoot decision</p>
+<div class="highlight"><pre><span></span><code><span class="n">function</span> <span class="n">PyramidPlayerB</span><span class="p">(</span><span class="n">gun</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">meas_list_A</span><span class="p">,</span> <span class="n">out_list_A</span><span class="p">):</span>
+    <span class="n">gun_state</span> <span class="o">=</span> <span class="n">gun</span>
+    <span class="n">comm_state</span> <span class="o">=</span> <span class="n">comm</span>
+
+    <span class="k">for</span> <span class="n">level</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">K</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="c1"># Pairwise measurement on gun</span>
+        <span class="n">L</span> <span class="o">=</span> <span class="n">length</span><span class="p">(</span><span class="n">gun_state</span><span class="p">)</span>
+        <span class="n">meas</span> <span class="o">=</span> <span class="n">empty</span> <span class="n">array</span> <span class="n">of</span> <span class="n">length</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span>
+        <span class="n">active_pair_index</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">pair</span> <span class="o">=</span> <span class="p">(</span><span class="n">gun_state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">],</span> <span class="n">gun_state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="n">pair</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">meas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="n">active_pair_index</span> <span class="o">=</span> <span class="n">i</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">meas</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="c1"># Shared randomness (second measurement)</span>
+        <span class="n">outcomes</span> <span class="o">=</span> <span class="n">SharedRandomness_level</span><span class="p">(</span>
+            <span class="n">meas</span><span class="p">,</span>
+            <span class="n">meas_list_A</span><span class="p">[</span><span class="n">level</span><span class="p">],</span>
+            <span class="n">out_list_A</span><span class="p">[</span><span class="n">level</span><span class="p">],</span>
+            <span class="n">first</span><span class="o">=</span><span class="kc">False</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update gun state</span>
+        <span class="n">next_gun</span> <span class="o">=</span> <span class="n">empty</span> <span class="n">array</span> <span class="n">of</span> <span class="n">length</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="kn">from</span><span class="w"> </span><span class="mi">0</span> <span class="n">to</span> <span class="n">L</span><span class="o">/</span><span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">next_gun</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">gun_state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span><span class="p">]</span> <span class="n">XOR</span> <span class="n">gun_state</span><span class="p">[</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Update communication if gun was active</span>
+        <span class="k">if</span> <span class="n">active_pair_index</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">comm_state</span> <span class="o">=</span> <span class="n">comm_state</span> <span class="n">XOR</span> <span class="n">outcomes</span><span class="p">[</span><span class="n">active_pair_index</span><span class="p">]</span>
+
+        <span class="n">gun_state</span> <span class="o">=</span> <span class="n">next_gun</span>
+
+    <span class="c1"># Final decision</span>
+    <span class="n">shoot</span> <span class="o">=</span> <span class="n">comm_state</span>
+
+    <span class="k">return</span> <span class="n">shoot</span>
+</code></pre></div>
+<h3 id="pyramid-example-field-size-4">Pyramid Example (Field Size 4)<a class="headerlink" href="#pyramid-example-field-size-4" title="Permanent link">&para;</a></h3>
+<p>For a field of size <span class="arithmatex">\(2 \times 2 = 4\)</span> cells, <span class="arithmatex">\(K = 2\)</span> iterations:</p>
+<p><strong>Level 0:</strong></p>
+<ul>
+<li>Input: 4 cells <span class="arithmatex">\([x_0, x_1, x_2, x_3]\)</span></li>
+<li>A measures: <span class="arithmatex">\([m_0 = x_0 \oplus x_1, m_1 = x_2 \oplus x_3]\)</span></li>
+<li>Outcomes: <span class="arithmatex">\([s_0, s_1]\)</span></li>
+<li>Next state: <span class="arithmatex">\([x_0 \oplus s_0, x_2 \oplus s_1]\)</span> (length 2)</li>
+</ul>
+<p><strong>Level 1:</strong></p>
+<ul>
+<li>Input: 2 cells from level 0</li>
+<li>A measures: <span class="arithmatex">\([m_0 = \text{state}[0] \oplus \text{state}[1]]\)</span></li>
+<li>Outcomes: <span class="arithmatex">\([s_0]\)</span></li>
+<li>Next state: <span class="arithmatex">\([\text{state}[0] \oplus s_0]\)</span> (length 1)</li>
+<li>Communication: <span class="arithmatex">\(\text{comm} = \text{state}[0]\)</span></li>
+</ul>
+<p><strong>Performance:</strong> The Pyramid algorithm provides more fine-grained control and can potentially achieve higher success rates than the Linear approach for larger fields.</p>
+<hr />
+<h2 id="comparison-summary">Comparison Summary<a class="headerlink" href="#comparison-summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Algorithm</th>
+<th>Communication Strategy</th>
+<th>Trainable</th>
+<th>Uses Shared Randomness</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Simple</td>
+<td>First <span class="arithmatex">\(m\)</span> cells directly</td>
+<td>No</td>
+<td>No</td>
+<td>O(1)</td>
+</tr>
+<tr>
+<td>Majority</td>
+<td>Segment-wise majority vote</td>
+<td>No</td>
+<td>No</td>
+<td>O(<span class="arithmatex">\(n^2\)</span>)</td>
+</tr>
+<tr>
+<td>Linear Assisted</td>
+<td>Single-layer parity with SR</td>
+<td>Yes</td>
+<td>Yes (1 resource)</td>
+<td>O(<span class="arithmatex">\(n^2\)</span>)</td>
+</tr>
+<tr>
+<td>Pyramid Assisted</td>
+<td>Multi-layer hierarchical with SR</td>
+<td>Yes</td>
+<td>Yes (<span class="arithmatex">\(\log_2(n^2)\)</span> resources)</td>
+<td>O(<span class="arithmatex">\(n^2 \log n\)</span>)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Insights:</strong></p>
+<ol>
+<li><strong>Simple Player:</strong> Minimal strategy, provides baseline performance</li>
+<li><strong>Majority Player:</strong> Better information encoding without learning</li>
+<li><strong>Linear Assisted:</strong> Quantum-inspired coordination, single shared resource</li>
+<li><strong>Pyramid Assisted:</strong> Hierarchical quantum-inspired approach, multiple resources</li>
+</ol>
+<p>All algorithms must respect the communication constraint: only <span class="arithmatex">\(m\)</span> classical bits can be transmitted from Player A to Player B.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
