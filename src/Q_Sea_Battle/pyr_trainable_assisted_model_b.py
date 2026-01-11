@@ -33,7 +33,7 @@ from typing import Any, List, Optional, Sequence
 
 from .pyr_measurement_layer_b import PyrMeasurementLayerB
 from .pyr_combine_layer_b import PyrCombineLayerB
-from .shared_randomness_layer import SharedRandomnessLayer
+from .pr_assisted_layer import PRAssistedLayer
 from .pyr_trainable_assisted_model_a import _infer_n2_and_m, _validate_power_of_two
 
 
@@ -73,12 +73,13 @@ class PyrTrainableAssistedModelB(tf.keras.Model):
         self.measure_layer = self.measure_layers[0]
         self.combine_layer = self.combine_layers[0]
 
-        self.sr_layers: List[SharedRandomnessLayer] = []
+        self.sr_layers: List[PRAssistedLayer] = []
+        # sr_* naming is kept for backward compatibility: SR = shared resource.
         active = self.n2
         for level in range(self.depth):
             length = active // 2
             self.sr_layers.append(
-                SharedRandomnessLayer(length=length, p_high=p_high, mode=sr_mode, resource_index=level)
+                PRAssistedLayer(length=length, p_high=p_high, mode=sr_mode, resource_index=level)
             )
             active //= 2
 

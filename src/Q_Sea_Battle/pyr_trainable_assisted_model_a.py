@@ -26,7 +26,7 @@ This module intentionally uses a *hard* (non-trainable) conversion from the fina
 bit to a logit, because Step-2 focuses on interface and contract testing rather
 than learning.
 
-For gameplay, the SharedRandomnessLayer must be used in ``mode="sample"`` as per
+For gameplay, the PRAssistedLayer must be used in ``mode="sample"`` as per
 the v2 spec.
 """
 
@@ -39,7 +39,7 @@ import tensorflow as tf
 
 from .pyr_measurement_layer_a import PyrMeasurementLayerA
 from .pyr_combine_layer_a import PyrCombineLayerA
-from .shared_randomness_layer import SharedRandomnessLayer
+from .pr_assisted_layer import PRAssistedLayer
 
 
 def _infer_n2_and_m(game_layout: Any) -> tuple[int, int]:
@@ -83,7 +83,7 @@ class PyrTrainableAssistedModelA(tf.keras.Model):
         game_layout:
             GameLayout-like object with ``field_size`` (or ``n2``) and ``comms_size``.
         p_high:
-            Correlation parameter forwarded to each SharedRandomnessLayer.
+            Correlation parameter forwarded to each PRAssistedLayer.
         sr_mode:
             "sample" for gameplay / dataset generation (required), or "expected" for analysis.
         measure_layers:
@@ -118,13 +118,13 @@ class PyrTrainableAssistedModelA(tf.keras.Model):
         self.measure_layer = self.measure_layers[0]
         self.combine_layer = self.combine_layers[0]
 
-        # --- Shared randomness (one resource per level) ---
-        self.sr_layers: List[SharedRandomnessLayer] = []
+        # --- Shared resource (one resource per level) ---
+        self.sr_layers: List[PRAssistedLayer] = []
         active = self.n2
         for level in range(self.depth):
             length = active // 2
             self.sr_layers.append(
-                SharedRandomnessLayer(length=length, p_high=p_high, mode=sr_mode, resource_index=level)
+                PRAssistedLayer(length=length, p_high=p_high, mode=sr_mode, resource_index=level)
             )
             active //= 2
 
@@ -152,7 +152,7 @@ class PyrTrainableAssistedModelA(tf.keras.Model):
 
             meas = meas_layer(state)  # (B, L/2)
 
-            # First measurement for the SR layer: previous_* are ignored, but we pass zeros.
+            # First measurement for the shared-resource layer: previous_* are ignored, but we pass zeros.
             zeros = tf.zeros_like(meas)
             first_flag = tf.ones((tf.shape(meas)[0], 1), dtype=tf.float32)
             out = sr(

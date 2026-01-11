@@ -24,7 +24,6 @@ from .simple_players import SimplePlayers
 from .majority_players import MajorityPlayers
 
 # Classical assisted (non-trainable)
-from .pr_assisted import PRAssisted
 from .pr_assisted_players import PRAssistedPlayers 
 from .pr_assisted_player_a import PRAssistedPlayerA
 from .pr_assisted_player_b import PRAssistedPlayerB
@@ -36,8 +35,12 @@ from .neural_net_players import NeuralNetPlayers
 from .neural_net_player_a import NeuralNetPlayerA
 from .neural_net_player_b import NeuralNetPlayerB
 
-# Shared randomness (Keras layer)
-from .shared_randomness_layer import SharedRandomnessLayer
+# Shared resources / layers
+from .pr_assisted import PRAssisted
+from .pr_assisted_layer import PRAssistedLayer
+
+# Shared randomness (Keras layer) #deprecated
+from .shared_randomness_layer import SharedRandomnessLayer #deprecated
 
 # Trainable assisted container + players
 from .trainable_assisted_players import TrainableAssistedPlayers

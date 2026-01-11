@@ -67,11 +67,13 @@ class TrainableAssistedPlayers(Players):
 
         # Build default models if needed.
         # Note: p_high/num_iterations/hidden_dim/L_meas are included for forward compatibility
-        # with future architectures; the Lin models currently use field_size/comms_size + SR settings.
+        # with future architectures; the Lin models currently use field_size/comms_size + shared-resource (SR) settings.
         if model_a is None:
             self.model_a = LinTrainableAssistedModelA(
                 field_size=int(getattr(game_layout, "field_size")),
                 comms_size=int(getattr(game_layout, "comms_size")),
+                # sr_mode: SR = shared resource (not \"shared randomness\").
+
                 sr_mode="sample",
                 seed=123,
             )

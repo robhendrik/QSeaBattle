@@ -91,17 +91,26 @@ nav:
       - MajorityPlayers: players/MajorityPlayers.md
       - MajorityPlayerA: players/MajorityPlayerA.md
       - MajorityPlayerB: players/MajorityPlayerB.md
-      - Players: players/PRAssistedPlayers.md
-      - PlayerA: players/PRAssistedPlayerA.md
-      - PlayerB: players/PRAssistedPlayerB.md
+      - PRAssistedPlayers: players/PRAssistedPlayers.md
+      - PRAssistedPlayerA: players/PRAssistedPlayerA.md
+      - PRAssistedPlayerB: players/PRAssistedPlayerB.md
+      - TrainableAssistedPlayers: players/TrainableAssistedPlayers.md
+      - TrainableAssistedPlayerA: players/TrainableAssistedPlayerA.md
+      - TrainableAssistedPlayerB: players/TrainableAssistedPlayerB.md
  
-  - Shared randomness:
+  - Shared resources:
       - Overview: shared_resources/SharedResources.md
       - PRAssisted: shared_resources/PRAssisted.md
-      - Layer: shared_resources/layer.md
+      - PRAssistedLayer: shared_resources/PRAssistedLayer.md
+      
   - Models:
-      - Linear: models/lin.md
-      - Pyramid: models/pyr.md
+      - LinTrainableAssistedModelA: models/LinTrainableAssistedModelA.md
+      - LinTrainableAssistedModelB: models/LinTrainableAssistedModelB.md
+      - LinCombineLayerA: models/LinCombineLayerA.md
+      - LinCombineLayerB: models/LinCombineLayerB.md
+      - LinMeasurementLayerA: models/LinMeasurementLayerA.md
+      - LinMeasurementLayerB: models/LinMeasurementLayerB.md
+
   - Training:
       - Imitation: training/imitation.md
       - DRU / DIAL: training/dru.md
