@@ -178,20 +178,20 @@ SYSTEM You are a technical writer who produces specification-grade, human-readab
 - All rules as defined in attached STYLE.MD, unless the provided template overrules the rules in this style document. 
 
 INPUTS 
+* can mean anything in ['reference_performance', 'neural_net_imitation', 'dru', 'logits', 'pyr_trainable_assisted_imitation', 'lin_trainable_assisted_imitation']
 1) Design document: QSeaBattleDesignDocument.docx 
-2) Python module: pyr_measurement_layer_b.py, pyr_combine_layer_b.py, pyr_trainable_assisted_model_b.py
-3) Target: “class” page (see attached class_template.md) 
-4) Output path hint: docs/models/PyrMeasurementLayerB.md 
-docs/models/PyrCombineLayerB.md
-docs/models/PyrTrainableAssistedModelB.md
-5) Title: Class PyrTrainableAssistedModelB, Class PyrCombineLayerB, Class PyrMeasurementLayerB
+2) Python module: *_utilities.py
+3) Target: “module” page (see attached module_template.md) 
+4) Output path hint: docs/utilities/*_utilities.md
+5) Title: Module *_utilities 
 6) Module import path (if known): 
-Q_Sea_Battle.pyr_measurement_layer_b.PyrMeasurementLayerB
-Q_Sea_Battle.pyr_combine_layer_b.PyrCombineLayerB
-Q_Sea_Battle.pyr_trainable_assisted_model_b.PyrTrainableAssistedModelB
+Q_Sea_Battle.*_utilities
 
 
-TASK Produce ONE Markdown pages “Class page template” (for a class) as shown below. The page must be self-contained and ready for MkDocs. TEMPLATE TO USE class_template.md 
+
+TASK Produce ONE Markdown pages “Module page template” (for a module) as shown below for each version of *. The page must be self-contained and ready for MkDocs. 
+
+TEMPLATE TO USE module_template.md 
 
 ADDITIONAL INSTRUCTIONS 
 - “Examples” must be minimal, runnable pseudo-usage aligned with actual signatures. 
@@ -200,4 +200,34 @@ ADDITIONAL INSTRUCTIONS
 - If shapes depend on GameLayout, state the derived constraints (m | n2, power-of-two if required). 
 - End the page with a short “Changelog” initialized with today’s date and name 
 
-Author: Rob Hendriks OUTPUT Return ONLY the THREE Markdown body for THREE pages as a downloadable ZIP. No explanations, no preambles. Avoid this error in the generated MKDOCS from the Markdown files: fileciteturn3file0
+Author: Rob Hendriks OUTPUT Return ONLY the Markdown body for the one page per * as a downloadable ZIP. No explanations, no preambles. Avoid this error in the generated MKDOCS from the Markdown files: fileciteturn3file0
+
+
+
+We change names:
+pyr_layers_step1.py → pyr_teacher_layers.py
+pyr_models_step2.py → pyr_trainable_models.py
+
+We added
+lin_teacher_layers.py
+lin_trainable_models.py
+
+We deprecated
+deprecated:
+shared_randomness_layer.py/class SharedRandomnessLayer
+and the new name is
+pr_assisted_layer.py/class PRAssistedLayer
+
+We change names:
+pyr_layers_step1.py → pyr_teacher_layers.py
+pyr_models_step2.py → pyr_trainable_models.py
+
+We added
+lin_teacher_layers.py
+lin_trainable_models.py
+
+We change for *_utils.py the module name to *_utilities.py
+
+We redefined the abbreviation 'sr' to mean shared resources (this is wat sr stands for in eg sr_mode, PRAssisted is a type of shared resources, we do not mention shared randomness anymore, also not to refer that it has changed). 
+
+Can you check this notebook and implement the change? Can you also us teh container lin_trainable_models and lin_teacher_layers?

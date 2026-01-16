@@ -1,514 +1,349 @@
-﻿# QSeaBattle Algorithms
+﻿# Algorithms
 
-## Overview
+## Purpose
 
-QSeaBattle is a collaborative quantum game involving two players (Player A and Player B) who work together to make optimal decisions on an $n \times n$ battlefield. Player A observes the field and sends a limited communication message to Player B, who must decide whether to shoot at a specific location.
+This page defines the **normative** algorithms for QSeaBattle player families and the shared resource (SR) interface. The goal is to make the reference behavior independently re-implementable without reading Python source.
 
------
+!!! note
+If any behavior in code contradicts this page, the code is considered incorrect.
 
-## 1. Simple Player Algorithm
+## Scope
 
-The Simple Player algorithm represents the most basic deterministic strategy for QSeaBattle.
+This page specifies:
 
-### Simple Player A
+* Core game-level semantics needed by algorithms.
+* Deterministic classical baselines (Simple, Majority).
+* Assisted algorithms using **SR (shared resource)**.
+* Trainable assisted algorithms (Lin and Pyr) as constrained implementations of the same information flow.
+* SR semantics and sampling modes.
 
-**Input:** Field array (flattened $n^2$ cells with values in ${0, 1}$)
+This page does not specify:
 
-**Output:** Communication vector of length $m$ (where $m =$ `comms_size`)
+* Training procedures (see Training pages).
+* Implementation details of TensorFlow/Keras layers.
+* Logging, tournaments, or visualization.
 
-**Algorithm:**
+## Notation and symbols
 
-1. Flatten the $n \times n$ field into a 1D array of length $n^2$
-2. Extract the values of the **first** $m$ cells
-3. Return these $m$ values as the communication vector
+* `field_size`: integer $n \ge 1$.
+* `n2`: integer $n^2$.
+* `comms_size`: integer $m$ with $1 \le m \le n2$.
+* `field`: binary vector of length `n2`, flattened in a fixed order.
+* `gun`: one-hot vector of length `n2` indicating the queried cell index.
+* `comm`: communicated message from Player A to Player B, binary vector of length `m` (Lin) or a single bit (Pyr).
+* `sr`: shared resource value(s) available to both players without signaling.
 
-**Pseudocode:**
+Shapes used throughout:
 
-```
-function SimplePlayerA.decide(field):
-    comm = field[0:m]  // Extract first m cells
-    return comm
-```
+* `field`: `np.ndarray, dtype int {0,1}, shape (n2,)` or `tf.Tensor, dtype float32, shape (B, n2)`.
+* `gun`: `np.ndarray, dtype int {0,1}, shape (n2,)` one-hot or `tf.Tensor, dtype float32, shape (B, n2)` one-hot.
+* `comm`: `np.ndarray, dtype int {0,1}, shape (m,)` or `tf.Tensor, dtype float32, shape (B, m)`.
+* `shoot`: scalar decision bit `np.ndarray, dtype int {0,1}, shape (1,)` or `tf.Tensor, dtype float32, shape (B, 1)`.
 
-### Simple Player B
+!!! warning
+All math symbols MUST be interpreted using the variable names above. Do not mix different meanings of `m`, `n2`, `field_size`.
 
-**Input:**
+## Shared resource (SR)
 
-- Gun array (one-hot encoded, length $n^2$)
-- Communication vector (length $m$)
+### Definition
 
-**Output:** Shoot decision (0 or 1)
+**SR (shared resource)** is any pre-established auxiliary resource accessible to both Player A and Player B without communication and without signaling. SR may be classical, post-quantum, or simulated.
 
-**Algorithm:**
+`PRAssistedLayer` is one concrete SR mechanism that provides structured correlations.
 
-Determine the gun index (position where gun = 1)
-**If** the gun points at one of the first $m$ cells:
-- Return the corresponding communication bit from that position
-**Else** (gun points beyond the first $m$ cells):
-- Ignore communication
-- Shoot with probability `enemy_probability`, don’t shoot with probability $1 -$ `enemy_probability`
+### SR interface contract
 
-**Pseudocode:**
+SR MUST satisfy:
 
-```
-function SimplePlayerB.decide(gun, comm):
-    gun_index = argmax(gun)
-    
-    if gun_index < m:
-        return comm[gun_index]
-    else:
-        return sample_bernoulli(enemy_probability)
-```
+* **No signaling**: Player B MUST NOT obtain information about `field` except via `comm` and SR that is independent of `field` given the chosen SR mode.
+* **Symmetry**: Player A and Player B MUST interpret SR values in the same indexing convention.
+* **Mode control**: Any `sr_mode` parameter MUST be defined as a choice of shared resource mechanism, not "randomness".
 
-**Performance:** The Simple Player achieves better-than-random performance on the first $m$ cells but reverts to random guessing elsewhere.
+SR MAY be used in one of two modes:
 
------
+* **Expected-mode**: SR outcomes are replaced by their expectation under the SR distribution (deterministic, differentiable).
+* **Sample-mode**: SR outcomes are sampled (stochastic).
 
-## 2. Majority Player Algorithm
+Preconditions:
 
-The Majority Player algorithm improves upon the Simple Player by encoding aggregate information about field segments.
+* SR configuration is fixed before a game begins.
+* SR does not depend on runtime observations (`field`, `gun`) except through allowed conditional selection rules described below.
 
-### Setup
+Postconditions:
 
-The field is partitioned into $m$ **equal-sized segments**:
+* SR usage preserves the information flow constraints described in Invariants.
 
-- Field size: $n^2$ cells
-- Segment size: $L = n^2 / m$
-- Requirement: $m$ must divide $n^2$
+Errors:
 
-### Majority Player A
+* Any SR mechanism that can encode `field` into SR outcomes is invalid.
 
-**Input:** Field array (length $n^2$)
+## Core game semantics used by all algorithms
 
-**Output:** Communication vector (length $m$)
+### Game inputs and outputs
 
-**Algorithm:**
+For each game instance:
 
-1. Divide the flattened field into $m$ contiguous segments of size $L$
-2. For each segment $j$ (where $j = 0, 1, \ldots, m-1$):
-- Count the number of ones: $k_j = \sum_{i \in \text{segment}_j} \text{field}[i]$
-- Set $\text{comm}[j] = 1$ if $k_j \geq L/2$ (majority are ones)
-- Set $\text{comm}[j] = 0$ otherwise
+* Player A receives `field`.
+* Player B receives `gun`.
+* Player A sends `comm` to Player B.
+* Player B outputs `shoot` as a guess of the battlefield value at the gun index.
 
-**Pseudocode:**
+Success condition (conceptual):
 
-```
-function MajorityPlayerA.decide(field):
-    L = n^2 / m
-    comm = empty array of length m
-    
-    for j from 0 to m-1:
-        segment = field[j*L : (j+1)*L]
-        count_ones = sum(segment)
-        
-        if count_ones >= L/2:
-            comm[j] = 1
-        else:
-            comm[j] = 0
-    
-    return comm
-```
+* Let `k = argmax(gun)` for one-hot `gun`.
+* The game is won if `shoot == field[k]`.
 
-### Majority Player B
+!!! note
+Algorithms below specify how `comm` and `shoot` are computed; the environment defines win/loss bookkeeping.
 
-**Input:**
+## Deterministic baseline algorithms
 
-- Gun array (one-hot, length $n^2$)
-- Communication vector (length $m$)
+### Simple (coverage) strategy
 
-**Output:** Shoot decision (0 or 1)
+Intent: communicate `m` cells directly and guess randomly outside coverage.
 
-**Algorithm:**
+Algorithm:
 
-1. Determine the gun index
-2. Identify which segment contains the gun: $\text{segment}_{\text{gun}} = \lfloor \text{gun index} / L \rfloor$
-3. Return the majority bit for that segment: $\text{comm}[\text{segment}_{\text{gun}}]$
+* Partition indices into a fixed agreed set `C` of size `m` and its complement.
+* Player A sets `comm[j] = field[C[j]]` for $j = 0..m-1$.
+* Player B computes `k = argmax(gun)`.
+* If `k` is in `C`, Player B outputs the matching communicated bit.
+* Else Player B outputs `0` or `1` using a fixed baseline rule (for example, always `0`, or a fixed prior).
 
-**Pseudocode:**
+Preconditions:
 
-```
-function MajorityPlayerB.decide(gun, comm):
-    gun_index = argmax(gun)
-    L = n^2 / m
-    segment_index = floor(gun_index / L)
-    
-    return comm[segment_index]
-```
+* `1 <= m <= n2`.
+* Both players share the same ordered index set `C`.
 
-**Performance:** The Majority Player provides more informative communication than the Simple Player, as each bit encodes statistical information about $L$ cells rather than a single cell.
+Postconditions:
 
------
+* If `k` is in coverage, `shoot` matches `field[k]` in noiseless communication.
 
-## 3. Linear Trainable Assisted Algorithm
+Errors:
 
-The Linear Trainable Assisted algorithm uses neural networks combined with shared randomness to achieve quantum-like coordination.
+* `ValueError` if `m` invalid or coverage mapping inconsistent.
 
-### Architecture Overview
+### Majority (segment-majority) strategy
 
-The algorithm uses a **single shared randomness resource** per decision and consists of four trainable components:
+Intent: communicate one bit per segment of the field.
 
-1. **LinMeasurementLayerA**: Maps field to measurement choices
-2. **LinMeasurementLayerB**: Maps gun to measurement choices
-3. **LinCombineLayerA**: Compresses outcomes to communication
-4. **LinCombineLayerB**: Combines outcomes and communication to shoot decision
+Algorithm:
 
-### Key Concept: Shared Randomness
+* Partition the flattened field indices into `m` contiguous segments of equal length `L = n2 / m` (requires `m | n2`).
+* Player A computes, for each segment, the majority bit (ties map to `1`).
+* Player A sends these `m` bits as `comm`.
+* Player B computes `k = argmax(gun)` and determines which segment contains `k`.
+* Player B outputs the corresponding segment bit.
 
-A shared randomness layer produces **correlated outcomes** for Player A and Player B based on their measurement choices. The correlation is controlled by parameter $p_{\text{high}} \in [0, 1]$.
+Preconditions:
 
-**Correlation Rule:**
+* `field_size >= 1`.
+* `1 <= m <= n2`.
+* `m | n2`.
 
-Let $m_A$ and $m_B$ be measurements in ${0, 1}$, and $o_A$ be A’s outcome.
+Postconditions:
 
-For B’s outcome $o_B$:
+* `comm` is deterministic given `field`.
+* `shoot` depends only on `comm` and `gun`.
 
-- If $(m_A, m_B) \in {(0,0), (0,1), (1,0)}$: $o_B = o_A$ with probability $p_{\text{high}}$
-- If $(m_A, m_B) = (1,1)$: $o_B = o_A$ with probability $1 - p_{\text{high}}$
+Errors:
 
-### Training Target (Imitation Learning)
+* `ValueError` if `m` does not divide `n2`.
 
-The model is trained to reproduce a specific parity-based strategy:
+## Assisted algorithms with SR
 
-#### Model A Training
+This section specifies algorithms that may outperform purely classical deterministic baselines by using SR correlations while respecting no-signaling constraints.
 
-**Step 1: Measurement Target**
+### Assisted (Lin) algorithm family
 
-- For each cell $i$: $\text{meas target}[i] = \text{field}[i]$
-- Interpretation: Measure “type 1” where field = 1, “type 0” where field = 0
+This family uses `m`-bit communication with linear-style primitives.
 
-**Step 2: Shared Randomness**
+#### Lin teacher primitives
 
-- Apply shared randomness as **first measurement**
-- Obtain outcomes $o_A$ of length $n^2$
+Teacher layers define reference transformations:
 
-**Step 3: Communication Target**
+* Measurement-A: produces `meas_a` from `field`.
+* Combine-A: produces `comm` from `meas_a` and SR outcomes.
+* Measurement-B: produces `meas_b` from `gun`.
+* Combine-B: produces `shoot` from `meas_b`, SR outcomes, and `comm`.
 
-- Compute parity: $p_A = \bigoplus_{i=0}^{n^2-1} o_A[i]$ (XOR of all outcomes)
-- Communication target: $\text{comm target} = p_A$ (for $m=1$)
+Types and shapes (batch form):
 
-**Loss:** Binary cross-entropy between predicted and target at each stage
+* `field`: `tf.Tensor, dtype float32, shape (B, n2)`.
+* `gun`: `tf.Tensor, dtype float32, shape (B, n2)` one-hot.
+* `meas_a`: `tf.Tensor, dtype float32, shape (B, n2)` (Lin design default).
+* `meas_b`: `tf.Tensor, dtype float32, shape (B, n2)` (Lin design default).
+* `comm`: `tf.Tensor, dtype float32, shape (B, m)`.
+* `shoot`: `tf.Tensor, dtype float32, shape (B, 1)`.
 
-#### Model B Training
+!!! note
+Lin exact measurement/combine semantics depend on the selected Lin reference strategy (for example, parity prototype). The teacher primitives MUST be the single source of truth for these semantics.
 
-**Step 1: Measurement Target**
+#### Lin end-to-end reference flow
 
-- For each cell $i$: $\text{meas target}[i] = \text{gun}[i]$
-- Interpretation: Measure “type 1” only at gun position
+Algorithm (single sample):
 
-**Step 2: Shared Randomness**
+* Player A:
 
-- Apply shared randomness as **second measurement**
-- Use A’s previous measurement and outcome
-- Obtain outcomes $o_B$ of length $n^2$
+  * Compute `meas_a = MeasureA(field)`.
+  * Obtain SR outcomes required by Combine-A according to `sr_mode`.
+  * Compute `comm = CombineA(meas_a, sr_outcomes_a)`.
+* Player B:
 
-**Step 3: Shoot Target**
+  * Compute `meas_b = MeasureB(gun)`.
+  * Obtain SR outcomes required by Combine-B according to `sr_mode`.
+  * Compute `shoot = CombineB(meas_b, sr_outcomes_b, comm)`.
 
-- Compute B’s parity: $p_B = \bigoplus_{i=0}^{n^2-1} o_B[i]$
-- Compute communication parity: $p_C = \text{comm}$ (for $m=1$)
-- Shoot target: $\text{shoot_target} = p_B \oplus p_C$
+Preconditions:
 
-**Loss:** Binary cross-entropy at each stage
+* `field_size >= 1`.
+* `1 <= m <= n2`.
+* SR configuration is compatible with the Combine rules.
 
-### Algorithm Flow
+Postconditions:
 
-#### Player A Decision Process
+* `comm` depends on `field` only through MeasureA and CombineA.
+* `shoot` depends on `field` only through `comm` and SR outcomes.
 
-**Input:** Field array (length $n^2$)
+Errors:
 
-**Output:** Communication bits (length $m$)
+* `ValueError` on shape mismatch or invalid SR configuration.
 
-**Steps:**
+### Assisted (Pyr) algorithm family
 
-1. **Measure:** $\text{meas probs}_A = \text{LinMeasurementLayerA}(\text{field})$
-2. **Binarize:** $\text{meas bits}_A = (\text{meas probs}_A \geq 0.5)$
-3. **Shared Randomness (First):**
-- $\text{outcomes}_A = \text{SharedRandomnessLayer}(\text{meas bits}_A, \text{first}=\text{True})$
-- Store $\text{meas bits}_A$ and $\text{outcomes}_A$ for Player B
-1. **Combine:** $\text{comm logits} = \text{LinCombineLayerA}(\text{outcomes}_A)$
-2. **Return:** $\text{comm} = (\sigma(\text{comm logits}) \geq 0.5)$
+This family uses a pyramid reduction structure and typically enforces `comms_size = 1`.
 
-#### Player B Decision Process
+#### Pyramid structural constraints
 
-**Input:**
+* `n2 = field_size^2` MUST be a power of two.
+* `comms_size` MUST equal `1`.
+* The pyramid has `K = log2(n2)` levels.
+* Level $l$ has active length $L_l = n2 / 2^l$ for $l = 0..K-1$.
+* Each level maps length $L$ to $L/2$.
 
-- Gun array (length $n^2$)
-- Communication (length $m$)
-- Previous measurements from A
-- Previous outcomes from A
+Preconditions:
 
-**Output:** Shoot decision (0 or 1)
+* `field_size >= 1`.
+* `n2` is a power of two.
+* `m = 1`.
 
-**Steps:**
+Errors:
 
-1. **Measure:** $\text{meas probs}_B = \text{LinMeasurementLayerB}(\text{gun})$
-2. **Binarize:** $\text{meas bits}_B = (\text{meas probs}_B \geq 0.5)$
-3. **Shared Randomness (Second):**
-- $\text{outcomes}_B = \text{SharedRandomnessLayer}(\text{meas bits}_B, \text{prev meas}_A, \text{prev out}_A)$
-1. **Combine:** $\text{shoot logit} = \text{LinCombineLayerB}(\text{outcomes}_B, \text{comm})$
-2. **Return:** $\text{shoot} = (\sigma(\text{shoot logit}) \geq 0.5)$
+* `ValueError` if `n2` not power of two or `m != 1`.
 
-### Pseudocode
+#### Pyr teacher primitives
 
-```python
-# Model A Forward Pass
-function LinTrainableAssistedModelA(field):
-    # Step 1: Measurement
-    meas_probs = LinMeasurementLayerA(field)
-    meas_bits = (meas_probs >= 0.5).astype(int)
-    
-    # Step 2: Shared Randomness (First Measurement)
-    outcomes = SharedRandomnessLayer(
-        current_measurement=meas_bits,
-        first_measurement=True
-    )
-    
-    # Step 3: Combine to Communication
-    comm_logits = LinCombineLayerA(outcomes)
-    
-    # Store for Player B
-    store(meas_bits, outcomes)
-    
-    return comm_logits, meas_bits, outcomes
+At each level:
 
-# Model B Forward Pass
-function LinTrainableAssistedModelB(gun, comm, prev_meas, prev_out):
-    # Step 1: Measurement
-    meas_probs = LinMeasurementLayerB(gun)
-    meas_bits = (meas_probs >= 0.5).astype(int)
-    
-    # Step 2: Shared Randomness (Second Measurement)
-    outcomes = SharedRandomnessLayer(
-        current_measurement=meas_bits,
-        previous_measurement=prev_meas,
-        previous_outcome=prev_out,
-        first_measurement=False
-    )
-    
-    # Step 3: Combine with Communication
-    shoot_logit = LinCombineLayerB(outcomes, comm)
-    
-    return shoot_logit
-```
+* Measurement-A: `meas_a_l = MeasureA_l(field_l)` where `field_l` has length $L$ and output has length $L/2$.
+* Combine-A: `field_{l+1} = CombineA_l(field_l, sr_outcome_l)` output length $L/2$.
+* Measurement-B: `meas_b_l = MeasureB_l(gun_l)` input length $L$, output length $L/2$.
+* Combine-B: `(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)` where `comm_l` is a single bit.
 
-**Performance:** When trained correctly, this algorithm can exceed classical information-theoretic bounds through quantum-like correlations.
+Types and shapes (single sample):
 
------
+* `field_l`: `np.ndarray, dtype int {0,1}, shape (L,)`.
+* `gun_l`: `np.ndarray, dtype int {0,1}, shape (L,)` one-hot.
+* `sr_outcome_l`: `np.ndarray, dtype int {0,1}, shape (L/2,)`.
+* `comm_l`: `np.ndarray, dtype int {0,1}, shape (1,)`.
 
-## 4. Pyramid Trainable Assisted Algorithm
+#### Pyr end-to-end reference flow
 
-The Pyramid algorithm extends the Linear approach by using **multiple layers** of shared randomness in a hierarchical structure.
+Algorithm (single sample):
 
-### Architecture Overview
+* Initialize:
 
-The Pyramid algorithm processes the field through $K = \log_2(n^2)$ iterations, halving the active length at each level.
+  * `field_0 = field` reshaped/flattened to length `n2`.
+  * `gun_0 = gun` one-hot length `n2`.
+  * `comm_0` is a single bit initialized by Player A at level 0 (teacher-defined rule).
+* For each level $l = 0..K-1$:
 
-**Key Properties:**
+  * Player A:
 
-- Field size must be a power of 2: $n^2 = 2^K$
-- Each iteration uses a separate shared randomness resource
-- State is progressively compressed from $n^2$ down to 1
+    * Compute `meas_a_l = MeasureA_l(field_l)`.
+    * Obtain SR outcomes `sr_outcome_l` for this level.
+    * Compute `field_{l+1} = CombineA_l(field_l, sr_outcome_l)`.
+    * Update `comm_l` according to the Pyr-A teacher rule and send the current `comm_l` (or final `comm_K`) to Player B depending on the protocol definition.
+  * Player B:
 
-### Iteration Structure
+    * Compute `meas_b_l = MeasureB_l(gun_l)`.
+    * Obtain SR outcomes `sr_outcome_l` for this level.
+    * Compute `(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)`.
+* Output:
 
-At pyramid level $\ell$ (where $\ell = 0, 1, \ldots, K-1$):
+  * Player B outputs `shoot = comm_K` or the protocol-defined final bit.
 
-- **Active length:** $L_\ell = n^2 / 2^\ell$
-- **Measurement output length:** $L_\ell / 2$
-- **Next state length:** $L_\ell / 2$
+!!! warning
+The exact rule for how `comm` is initialized and when it is transmitted MUST match the Pyr teacher implementation used for dataset generation.
 
-### Training Target (Imitation Learning)
+## Trainable assisted models as constrained implementations
 
-#### Model A - Iteration $\ell$
+### Teacher vs trainable relationship
 
-**Input State:** Current field state of length $L_\ell$
+For both Lin and Pyr:
 
-**Step 1: Measurement**
+* Teacher primitives define the **reference mapping** used to generate supervised targets.
+* Trainable models MUST be architectures that cannot violate the information flow constraints and are trained to approximate the teacher mapping.
 
-- Process pairs $(x_{2i}, x_{2i+1})$ for $i = 0, \ldots, L_\ell/2 - 1$
-- Measurement: $m_i^{(A)} = x_{2i} \oplus x_{2i+1}$
-- Target: measure 1 if pair differs, 0 if pair matches
+Normative requirement:
 
-**Step 2: Shared Randomness**
+* A trainable assisted model MUST NOT have any input path that bypasses:
 
-- First measurement on resource $\ell$
-- Obtain outcomes $s_i$ for $i = 0, \ldots, L_\ell/2 - 1$
+  * `field -> comm` only through Player A,
+  * `comm + gun -> shoot` only through Player B,
+  * SR usage only through SR interfaces.
 
-**Step 3: Next State**
+### Equivalence targets
 
-- For each pair index $i$:
-  - $x_i’ = x_{2i} \oplus s_i$
-- New state length: $L_\ell / 2$
+When trained on the corresponding imitation datasets:
 
-**Final Output (after all iterations):**
+* `LinTrainableAssistedModelA` SHOULD approximate `Lin teacher A` mapping: `field -> comm`.
+* `LinTrainableAssistedModelB` SHOULD approximate `Lin teacher B` mapping: `(gun, comm) -> shoot`.
+* `PyrTrainableAssistedModelA` SHOULD approximate `Pyr teacher A` per-level mappings.
+* `PyrTrainableAssistedModelB` SHOULD approximate `Pyr teacher B` per-level mappings.
 
-- Final state has length 1
-- Communication bit: $\text{comm} = x_0’$ (the final remaining bit)
+!!! note
+This page does not claim optimality of learned models. It specifies the intended target behavior and constraints.
 
-#### Model B - Iteration $\ell$
+## Preconditions, postconditions, errors summary
 
-**Input State:**
+### Global preconditions
 
-- Current gun state $g$ of length $L_\ell$ (one-hot)
-- Communication bit $c$
+* `field_size >= 1`.
+* `n2 = field_size^2`.
+* `1 <= comms_size <= n2` unless specified otherwise.
+* For Pyr: `n2` power of two and `comms_size = 1`.
+* All bit-vectors are binary in `{0,1}` (or float32 equivalents `{0.0,1.0}` for TF).
 
-**Step 1: Measurement**
+### Global postconditions
 
-- Process gun pairs $(g_{2i}, g_{2i+1})$
-- Measurement: $m_i^{(B)} = \neg g_{2i} \land g_{2i+1}$
-- Target: measure 1 only if pair is $(0,1)$
+* Player B output `shoot` is a single bit.
+* Player B uses only `gun`, received `comm`, and SR outcomes.
+* SR does not violate no-signaling constraints.
 
-**Step 2: Shared Randomness**
+### Global errors
 
-- Second measurement on resource $\ell$
-- Use A’s measurement and outcome from same level
-- Obtain outcomes $s_i$
+* `ValueError` for invalid shapes, invalid parameter domains, or violated structural constraints.
+* `RuntimeError` for detected internal inconsistency (for example, mismatched level lists between Player A and Player B).
 
-**Step 3: Next State**
+## Testing hooks
 
-- New gun state: $g_i’ = g_{2i} \oplus g_{2i+1}$ (preserves one-hot property)
-- If gun was at pair $(0,1)$ or $(1,0)$, outcome affects communication:
-  - Let $j$ be the index where $g_j’ = 1$
-  - Update communication: $c’ = c \oplus s_j$
+Suggested invariants to test algorithm correctness without training:
 
-**Final Output (after all iterations):**
+* Majority segmentation covers `[0, n2)` with no overlaps and total length `n2`.
+* For Pyr: level sizes are `[n2, n2/2, ..., 2]` and count is `log2(n2)`.
+* For Pyr: each level halves the active length for both field and gun representations.
+* For Lin: `comm` has shape `(m,)` and `shoot` has shape `(1,)` for single-sample execution.
+* No-signaling smoke test: holding `comm` fixed, varying `field` MUST NOT change Player B output distribution in expected-mode SR.
 
-- Shoot decision: $\text{shoot} = c’$ (the final communication bit)
+## Planned (design-spec)
 
-### Algorithm Flow
+* A fully explicit pseudocode listing for each teacher primitive (Measure/Combine for Lin and Pyr) may be added if the reference teachers are updated or extended.
 
-#### Player A Full Process
+## Deviations
 
-**Input:** Field (length $n^2$)
+* None.
 
-**Output:** Communication bit (for $m=1$)
+## Changelog
 
-```python
-function PyramidPlayerA(field):
-    state = field
-    measurements_list = []
-    outcomes_list = []
-    
-    for level from 0 to K-1:
-        # Pairwise XOR measurement
-        L = length(state)
-        meas = empty array of length L/2
-        
-        for i from 0 to L/2 - 1:
-            meas[i] = state[2*i] XOR state[2*i + 1]
-        
-        # Shared randomness (first measurement)
-        outcomes = SharedRandomness_level(meas, first=True)
-        
-        # Store for Player B
-        measurements_list.append(meas)
-        outcomes_list.append(outcomes)
-        
-        # Compute next state
-        next_state = empty array of length L/2
-        for i from 0 to L/2 - 1:
-            next_state[i] = state[2*i] XOR outcomes[i]
-        
-        state = next_state
-    
-    # Final state has length 1
-    comm = state[0]
-    
-    return comm, measurements_list, outcomes_list
-```
-
-#### Player B Full Process
-
-**Input:**
-
-- Gun (one-hot, length $n^2$)
-- Communication bit
-- Measurements list from A (length $K$)
-- Outcomes list from A (length $K$)
-
-**Output:** Shoot decision
-
-```python
-function PyramidPlayerB(gun, comm, meas_list_A, out_list_A):
-    gun_state = gun
-    comm_state = comm
-    
-    for level from 0 to K-1:
-        # Pairwise measurement on gun
-        L = length(gun_state)
-        meas = empty array of length L/2
-        active_pair_index = None
-        
-        for i from 0 to L/2 - 1:
-            pair = (gun_state[2*i], gun_state[2*i + 1])
-            
-            if pair == (0, 1):
-                meas[i] = 1
-                active_pair_index = i
-            else:
-                meas[i] = 0
-        
-        # Shared randomness (second measurement)
-        outcomes = SharedRandomness_level(
-            meas,
-            meas_list_A[level],
-            out_list_A[level],
-            first=False
-        )
-        
-        # Update gun state
-        next_gun = empty array of length L/2
-        for i from 0 to L/2 - 1:
-            next_gun[i] = gun_state[2*i] XOR gun_state[2*i + 1]
-        
-        # Update communication if gun was active
-        if active_pair_index is not None:
-            comm_state = comm_state XOR outcomes[active_pair_index]
-        
-        gun_state = next_gun
-    
-    # Final decision
-    shoot = comm_state
-    
-    return shoot
-```
-
-### Pyramid Example (Field Size 4)
-
-For a field of size $2 \times 2 = 4$ cells, $K = 2$ iterations:
-
-**Level 0:**
-
-- Input: 4 cells $[x_0, x_1, x_2, x_3]$
-- A measures: $[m_0 = x_0 \oplus x_1, m_1 = x_2 \oplus x_3]$
-- Outcomes: $[s_0, s_1]$
-- Next state: $[x_0 \oplus s_0, x_2 \oplus s_1]$ (length 2)
-
-**Level 1:**
-
-- Input: 2 cells from level 0
-- A measures: $[m_0 = \text{state}[0] \oplus \text{state}[1]]$
-- Outcomes: $[s_0]$
-- Next state: $[\text{state}[0] \oplus s_0]$ (length 1)
-- Communication: $\text{comm} = \text{state}[0]$
-
-**Performance:** The Pyramid algorithm provides more fine-grained control and can potentially achieve higher success rates than the Linear approach for larger fields.
-
------
-
-## Comparison Summary
-
-|Algorithm       |Communication Strategy          |Trainable|Uses Shared Randomness       |Complexity     |
-|----------------|--------------------------------|---------|-----------------------------|---------------|
-|Simple          |First $m$ cells directly        |No       |No                           |O(1)           |
-|Majority        |Segment-wise majority vote      |No       |No                           |O($n^2$)       |
-|Linear Assisted |Single-layer parity with SR     |Yes      |Yes (1 resource)             |O($n^2$)       |
-|Pyramid Assisted|Multi-layer hierarchical with SR|Yes      |Yes ($\log_2(n^2)$ resources)|O($n^2 \log n$)|
-
-**Key Insights:**
-
-1. **Simple Player:** Minimal strategy, provides baseline performance
-2. **Majority Player:** Better information encoding without learning
-3. **Linear Assisted:** Quantum-inspired coordination, single shared resource
-4. **Pyramid Assisted:** Hierarchical quantum-inspired approach, multiple resources
-
-All algorithms must respect the communication constraint: only $m$ classical bits can be transmitted from Player A to Player B.
+* 2026-01-16 (Rob Hendriks): Initial `algorithms.md` drafted as normative baseline for assisted and trainable-assisted algorithm families.

@@ -13,7 +13,7 @@ import tensorflow as tf
 
 from .game_layout import GameLayout
 from .players_base import PlayerA
-from .logit_utils import logit_to_prob, logit_to_logprob
+from .logit_utilities import logit_to_prob, logit_to_logprob
 
 
 def _scale_field(field: np.ndarray) -> np.ndarray:

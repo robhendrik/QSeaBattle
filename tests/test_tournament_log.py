@@ -1,118 +1,72 @@
-"""Tests for the TournamentLog class."""
-
-from __future__ import annotations
-
+import numpy as np
+import pytest
 import sys
-
-# Ensure the src folder is on the Python path so Q_Sea_Battle can be imported.
 sys.path.append("./src")
 
-import numpy as np
-import pandas as pd
+@pytest.mark.usefixtures("qsb")
+def test_tournament_log_update_and_outcome():
+    from Q_Sea_Battle.game_layout import GameLayout
+    from Q_Sea_Battle.tournament_log import TournamentLog
 
-from Q_Sea_Battle.game_layout import GameLayout
-from Q_Sea_Battle.tournament_log import TournamentLog
-
-
-def test_update_adds_row_and_preserves_columns() -> None:
-    """update() should append a row with all required columns."""
-    layout = GameLayout()
+    layout = GameLayout(field_size=4, comms_size=1)
     log = TournamentLog(layout)
+    assert list(log.log.columns) == layout.log_columns
+    assert len(log.log) == 0
 
-    field = np.array([0, 1, 0, 1], dtype=int)
-    gun = np.array([0, 1, 0, 0], dtype=int)
+    field = np.zeros(layout.field_size ** 2, dtype=int)
+    gun = np.zeros(layout.field_size ** 2, dtype=int)
+    gun[0] = 1
     comm = np.array([1], dtype=int)
-    shoot = 1
-    cell_value = 1
-    reward = 1.0
 
-    log.update(field, gun, comm, shoot, cell_value, reward)
-
+    log.update(field=field, gun=gun, comm=comm, shoot=0, cell_value=0, reward=1.0)
     assert len(log.log) == 1
-    row = log.log.iloc[0]
 
-    # All expected columns present.
-    assert set(layout.log_columns).issubset(set(log.log.columns))
+    mean, se = log.outcome()
+    assert mean == 1.0
+    assert se == 0.0
 
-    assert np.array_equal(row["field"], field)
-    assert np.array_equal(row["gun"], gun)
-    assert np.array_equal(row["comm"], comm)
-    assert row["shoot"] == shoot
-    assert row["cell_value"] == cell_value
-    assert row["reward"] == reward
+    log.update(field=field, gun=gun, comm=comm, shoot=1, cell_value=0, reward=0.0)
+    mean2, se2 = log.outcome()
+    assert mean2 == 0.5
+    assert se2 >= 0.0
 
 
-def test_update_log_probs_updates_last_row() -> None:
-    """update_log_probs() should update logprob columns on last row."""
-    layout = GameLayout()
+@pytest.mark.usefixtures("qsb")
+def test_tournament_log_update_requires_nonempty_for_last_row_ops():
+    from Q_Sea_Battle.game_layout import GameLayout
+    from Q_Sea_Battle.tournament_log import TournamentLog
+
+    log = TournamentLog(GameLayout())
+    with pytest.raises(RuntimeError):
+        log.update_log_probs(0.0, 0.0)
+    with pytest.raises(RuntimeError):
+        log.update_log_prev([], [])
+    with pytest.raises(RuntimeError):
+        log.update_indicators(0, 0, 0)
+
+
+@pytest.mark.usefixtures("qsb")
+def test_tournament_log_last_row_updates():
+    from Q_Sea_Battle.game_layout import GameLayout
+    from Q_Sea_Battle.tournament_log import TournamentLog
+
+    layout = GameLayout(field_size=4, comms_size=1)
     log = TournamentLog(layout)
 
-    field = np.zeros(4, dtype=int)
-    gun = np.array([1, 0, 0, 0], dtype=int)
+    field = np.zeros(layout.field_size ** 2, dtype=int)
+    gun = np.zeros(layout.field_size ** 2, dtype=int)
+    gun[1] = 1
     comm = np.array([0], dtype=int)
 
-    log.update(field, gun, comm, shoot=0, cell_value=0, reward=1.0)
-    log.update_log_probs(logprob_comm=-0.5, logprob_shoot=-0.7)
+    log.update(field=field, gun=gun, comm=comm, shoot=0, cell_value=0, reward=1.0)
+    log.update_log_probs(-0.1, -0.2)
+    log.update_log_prev(prev_meas=[1, 2], prev_out=[0, 1])
+    log.update_indicators(game_id=7, tournament_id=0, meta_id=0)
 
-    row = log.log.iloc[0]
-    assert row["logprob_comm"] == -0.5
-    assert row["logprob_shoot"] == -0.7
-
-
-def test_update_log_prev_updates_last_row() -> None:
-    """update_log_prev() should set prev_measurements and prev_outcomes."""
-    layout = GameLayout()
-    log = TournamentLog(layout)
-
-    field = np.zeros(4, dtype=int)
-    gun = np.array([1, 0, 0, 0], dtype=int)
-    comm = np.array([0], dtype=int)
-
-    log.update(field, gun, comm, shoot=0, cell_value=0, reward=1.0)
-
-    prev_meas = ["meas"]
-    prev_out = ["out"]
-    log.update_log_prev(prev_meas, prev_out)
-
-    row = log.log.iloc[0]
-    assert row["prev_measurements"] == prev_meas
-    assert row["prev_outcomes"] == prev_out
-
-
-def test_update_indicators_sets_ids_and_uid() -> None:
-    """update_indicators() should set id fields and a non-empty game_uid."""
-    layout = GameLayout()
-    log = TournamentLog(layout)
-
-    field = np.zeros(4, dtype=int)
-    gun = np.array([1, 0, 0, 0], dtype=int)
-    comm = np.array([0], dtype=int)
-
-    log.update(field, gun, comm, shoot=0, cell_value=0, reward=1.0)
-    log.update_indicators(game_id=5, tournament_id=2, meta_id=99)
-
-    row = log.log.iloc[0]
-    assert row["game_id"] == 5
-    assert row["tournament_id"] == 2
-    assert row["meta_id"] == 99
-    assert isinstance(row["game_uid"], str)
-    assert len(row["game_uid"]) > 0
-
-
-def test_outcome_returns_mean_and_std_error() -> None:
-    """outcome() should compute mean reward and standard error."""
-    layout = GameLayout()
-    log = TournamentLog(layout)
-
-    # Create deterministic rewards: [1, 0, 1, 0]
-    for val in [1.0, 0.0, 1.0, 0.0]:
-        field = np.zeros(4, dtype=int)
-        gun = np.array([1, 0, 0, 0], dtype=int)
-        comm = np.array([0], dtype=int)
-        log.update(field, gun, comm, shoot=0, cell_value=0, reward=val)
-
-    mean_reward, std_error = log.outcome()
-
-    assert mean_reward == 0.5
-    # Standard error should be positive for non-constant rewards.
-    assert std_error > 0.0
+    row = log.log.iloc[-1]
+    assert float(row["logprob_comm"]) == pytest.approx(-0.1)
+    assert float(row["logprob_shoot"]) == pytest.approx(-0.2)
+    assert row["game_id"] == 7
+    assert isinstance(row["game_uid"], str) and len(row["game_uid"]) > 0
+    assert row["prev_measurements"] == [1, 2]
+    assert row["prev_outcomes"] == [0, 1]

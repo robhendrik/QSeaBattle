@@ -13,7 +13,7 @@ import tensorflow as tf
 
 from .game_layout import GameLayout
 from .players_base import PlayerB
-from .logit_utils import logit_to_prob, logit_to_logprob
+from .logit_utilities import logit_to_prob, logit_to_logprob
 
 
 def _gun_one_hot_to_index(gun: np.ndarray) -> np.ndarray:

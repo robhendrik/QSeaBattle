@@ -13,8 +13,11 @@ Two cooperative players must make a correct decision about a hidden battlefield,
 - The other sees **almost nothing**
 - Only **a few classical bits** may be communicated
 
-The framework explores when and how **shared randomness and quantum-inspired correlations** allow agents to outperform purely classical strategies — *without requiring quantum hardware*.
+The framework explores when and how **(post)quantum-inspired correlations** allow agents to outperform purely classical strategies.
 
+Throughout QSeaBattle, coordination beyond direct communication is modeled via shared resources (SR): abstract, pre-established correlations available to both players without signaling.
+Specific mechanisms—such as classical correlation, quantum entanglement, or Popescu-Rohrlich type correlations—are concrete realizations of shared resources.
+The framework deliberately avoids treating shared randomness as a primitive; all assisted strategies are expressed uniformly in terms of SR under strict information-flow constraints.
 ---
 
 ## The Core Challenge
@@ -42,18 +45,18 @@ This setup connects directly to foundational questions in:
 
 QSeaBattle sits at the intersection of **theory, simulation, and learning**.
 
-### 🔬 Research
+### Theory
 - Test information-theoretic limits such as *Information Causality*
 - Study quantum-like advantages using classical simulations
 - Explore Bell-type correlations and CHSH-style behaviors
 
-### 🤖 Multi-Agent Learning
+### Multi-Agent Learning
 - Emergent communication under bandwidth constraints
 - Imitation learning from optimal classical strategies
 - Reinforcement learning with discrete communication
 - Differentiable inter-agent communication (DIAL / DRU)
 
-### 🧠 Neural + Symbolic Methods
+### Neural + Symbolic Methods
 - Combine known algorithms with trainable neural components
 - Inject inductive bias via structured architectures
 - Study when learning can rediscover known quantum-inspired protocols
@@ -71,7 +74,7 @@ QSeaBattle is organized as a **progressive stack**, from simple baselines to adv
    Hand-crafted classical strategies for verification and comparison
 
 3. **Classical Neural Players**  
-   Trainable agents without shared randomness
+   Trainable agents without shared resources
 
 4. **Assisted (Quantum-Inspired) Players**  
    Classical simulation of quantum correlations using shared randomness
@@ -83,7 +86,7 @@ QSeaBattle is organized as a **progressive stack**, from simple baselines to adv
 
 ## What Makes QSeaBattle Different?
 
-- No quantum hardware required  
+- Easy to install and use
 - Exact reproducibility  
 - Clean separation of theory and learning  
 - Designed for experimentation and analysis  

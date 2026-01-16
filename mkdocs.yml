@@ -69,12 +69,11 @@ extra_javascript:
 
 nav:
   - Introduction: index.md
-  - Background: 
-      - Background: background/background.md
+  - Conventions: conventions.md
+  - Invariants: invariants.md
   - Algorithms:
       - Algorithms: algorithms/algorithms.md
       - Majority: algorithms/majority_algorithm.md
-  - Conventions: conventions.md
   - Game:
       - GameLayout: game/GameLayout.md
       - GameEnv: game/GameEnv.md
@@ -110,9 +109,23 @@ nav:
       - LinCombineLayerB: models/LinCombineLayerB.md
       - LinMeasurementLayerA: models/LinMeasurementLayerA.md
       - LinMeasurementLayerB: models/LinMeasurementLayerB.md
+      - lin_teacher_layers: models/lin_teacher_layers.md
+      - lin_trainable_layers: models/lin_trainable_layers.md
+      - PyrTrainableAssistedModelA: models/PyrTrainableAssistedModelA.md
+      - PyrTrainableAssistedModelB: models/PyrTrainableAssistedModelB.md
+      - PyrCombineLayerA: models/PyrCombineLayerA.md
+      - PyrCombineLayerB: models/PyrCombineLayerB.md
+      - PyrMeasurementLayerA: models/PyrMeasurementLayerA.md
+      - PyrMeasurementLayerB: models/PyrMeasurementLayerB.md
+      - pyr_teacher_layers: models/pyr_teacher_layers.md
+      - pyr_trainable_layers: models/pyr_trainable_layers.md
 
-  - Training:
-      - Imitation: training/imitation.md
-      - DRU / DIAL: training/dru.md
-      - Reinforcement learning: training/rl.md
-  - Invariants: invariants.md
+  - Utilities:
+      - reference_performance_utilities: utilities/reference_performance_utilities.md
+      - neural_net_imitation_utilities: utilities/neural_net_imitation_utilities.md
+      - dru_utilities: utilities/dru_utilities.md
+      - logits_utilities: utilities/logits_utilities.md
+      - lin_trainable_assisted_imitation_utilities: utilities/lin_trainable_assisted_imitation_utilities.md
+      - pyr_trainable_assisted_imitation_utilities: utilities/pyr_trainable_assisted_imitation_utilities.md
+
+

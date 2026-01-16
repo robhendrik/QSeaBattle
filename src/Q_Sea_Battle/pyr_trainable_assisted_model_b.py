@@ -3,27 +3,8 @@
 This module defines :class:`~Q_Sea_Battle.pyr_trainable_assisted_model_b.PyrTrainableAssistedModelB`,
 the Player-B model for the pyramid (Pyr) assisted architecture.
 
-Update (per-level layers)
--------------------------
-This version supports **per-level trained layers** (Option 2A: train each level separately)
-by storing measurement/combine layers as lists:
-
-- ``measure_layers[level]`` consumes length ``L`` and outputs ``L/2``.
-- ``combine_layers[level]`` consumes ``(state, sr_outcome, comm)`` and outputs
-  ``(next_state, next_comm)``.
-
-If no custom layers are supplied, the model instantiates the deterministic Step-1
-pyramid primitives at each level, preserving Step-2 behavior and tests.
-
-Backward compatibility
-----------------------
-For legacy code that expects ``model.measure_layer`` / ``model.combine_layer``, we
-keep these attributes as aliases to the first level's layers. The forward pass uses
-the per-level lists.
-
-v2 contract
------------
-The list structure must be preserved exactly: do not flatten.
+(This file is a small robustness patch over the existing version: it accepts
+the Keras `training` kwarg in `call` and passes it through to sublayers when possible.)
 """
 
 from __future__ import annotations
@@ -38,7 +19,7 @@ from .pyr_trainable_assisted_model_a import _infer_n2_and_m, _validate_power_of_
 
 
 class PyrTrainableAssistedModelB(tf.keras.Model):
-    """Player-B pyramid assisted model (Step 2, per-level layers)."""
+    """Player-B pyramid assisted model (per-level layers)."""
 
     def __init__(
         self,
@@ -74,7 +55,6 @@ class PyrTrainableAssistedModelB(tf.keras.Model):
         self.combine_layer = self.combine_layers[0]
 
         self.sr_layers: List[PRAssistedLayer] = []
-        # sr_* naming is kept for backward compatibility: SR = shared resource.
         active = self.n2
         for level in range(self.depth):
             length = active // 2
@@ -83,18 +63,14 @@ class PyrTrainableAssistedModelB(tf.keras.Model):
             )
             active //= 2
 
-    def call(self, inputs: list) -> tf.Tensor:
+    def call(self, inputs: list, training: bool = False, **kwargs: Any) -> tf.Tensor:
         """Forward pass.
 
-        Parameters
-        ----------
         inputs:
-            ``[gun_batch, comm_batch, prev_measurements, prev_outcomes]``.
+            [gun_batch, comm_batch, prev_measurements, prev_outcomes]
 
-        Returns
-        -------
-        shoot_logit:
-            Tensor of shape (B, 1).
+        Returns:
+            shoot_logit: Tensor (B, 1)
         """
         if not isinstance(inputs, (list, tuple)) or len(inputs) != 4:
             raise ValueError(
@@ -126,7 +102,11 @@ class PyrTrainableAssistedModelB(tf.keras.Model):
             meas_layer = self.measure_layers[level]
             comb_layer = self.combine_layers[level]
 
-            meas_b = tf.cast(meas_layer(state), tf.float32)  # (B, L/2)
+            # measurement layer may or may not accept training kwarg
+            try:
+                meas_b = tf.cast(meas_layer(state, training=training), tf.float32)
+            except TypeError:
+                meas_b = tf.cast(meas_layer(state), tf.float32)
 
             prev_meas = tf.cast(tf.convert_to_tensor(prev_measurements[level]), tf.float32)
             prev_out = tf.cast(tf.convert_to_tensor(prev_outcomes[level]), tf.float32)
@@ -149,7 +129,11 @@ class PyrTrainableAssistedModelB(tf.keras.Model):
                 }
             )
 
-            state, c = comb_layer(state, out_b, c)
+            # combine layer may or may not accept training kwarg
+            try:
+                state, c = comb_layer(state, out_b, c, training=training)
+            except TypeError:
+                state, c = comb_layer(state, out_b, c)
 
         c = tf.clip_by_value(c, 0.0, 1.0)
         shoot_logit = (c * 2.0 - 1.0) * 10.0
