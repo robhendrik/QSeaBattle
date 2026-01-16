@@ -10,11 +10,11 @@ Check out the project web-page (continuously updated during development) https:/
 
 ## Features
 
-- 🎮 Classic Battleship gameplay mechanics
-- 🔬 Quantum-enhanced game algorithms
-- 🤖 Machine learning-powered AI opponents
-- 📊 Advanced analytics and visualization
-- 📝 Comprehensive documentation and tutorials
+- Classic Battleship gameplay mechanics
+- Quantum-enhanced game algorithms
+- Machine learning-powered AI opponents
+- Advanced analytics and visualization
+- Comprehensive documentation and tutorials
 
 ## Project Structure
 
@@ -146,12 +146,12 @@ See `requirements.txt` for the complete list of dependencies.
 
 ## Roadmap
 
-- [ ] Implement core game mechanics
-- [ ] Add quantum algorithm integration
-- [ ] Develop ML-based AI opponents
-- [ ] Create comprehensive test suite
-- [ ] Build interactive visualization dashboard
-- [ ] Add multiplayer support
+- [x] Implement core game mechanics
+- [x] Implement deterministic algorithms
+- [x] Implement trainable models (Keras)
+- [x] Add quantum algorithms
+- [x] Implement self learning for classical players
+- [ ] Implement self learning for quantum players
 
 ## License
 
