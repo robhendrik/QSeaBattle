@@ -161,7 +161,12 @@ Check if the new naming leads to any change in docstrings or comments. Check is 
 First create new modules with PR, then in a second prompt we write the .md documentation and then in step 3 we change the orginal assisted to still exist, but refer to the new modules with a user warning (.... will be deprated, use ....) finally in step 4 we write new tests for the new name. So, everything sould continue working with backward compatibility and i get a warning is a notebook or script still uses the old interface. Can you implement step 3: change the orginal assisted to still exist, but refer to the new modules with a user warning (.... will be deprated, use ....). This should continue to work without changing downstream notebooks or scripts, jus the warning is added and the actual execution is move to the new module!
 
 
-
+  * pr_assisted_player_a.py
+    * class PRAssistedPlayerA
+  * pr_assisted_player_b.py
+    * class PRAssistedPlayerB
+  * pr_assisted_players.py
+    * class PRAssistedPlayers
 
 SYSTEM You are a technical writer who produces specification-grade, human-readable Markdown for MkDocs (Material). Output must be VALID MARKDOWN ONLY. CONSTRAINTS 
 - Follow the exact style rules below and in the project STYLE.md (no deviations). - No HTML, no code in tables, no tabs/accordions. 
@@ -178,14 +183,14 @@ SYSTEM You are a technical writer who produces specification-grade, human-readab
 - All rules as defined in attached STYLE.MD, unless the provided template overrules the rules in this style document. 
 
 INPUTS 
-* can mean anything in ['reference_performance', 'neural_net_imitation', 'dru', 'logits', 'pyr_trainable_assisted_imitation', 'lin_trainable_assisted_imitation']
+
 1) Design document: QSeaBattleDesignDocument.docx 
-2) Python module: *_utilities.py
-3) Target: “module” page (see attached module_template.md) 
-4) Output path hint: docs/utilities/*_utilities.md
-5) Title: Module *_utilities 
+2) Python module: pr_assisted_player_a.py
+3) Target: “Class” page (see attached class_template.md) 
+4) Output path hint: docs/players/PRAssistedPlayerA.md
+5) Title: Class PRAssistedPlayerA
 6) Module import path (if known): 
-Q_Sea_Battle.*_utilities
+Q_Sea_Battle.pr_assisted_player_a
 
 
 

@@ -1,214 +1,196 @@
 # Class PRAssistedPlayers
 
-**Module import path**: `Q_Sea_Battle.pr_assisted_players.PRAssistedPlayers`
+> **Role**: Factory and owner of PR-assisted resources that provides paired Player A and Player B instances for PR-assisted play.
 
-> Factory that owns a hierarchy of PR-assisted resources (`PRAssisted`) and serves a cached
-> `(PRAssistedPlayerA, PRAssistedPlayerB)` pair.
+**Module path**: `Q_Sea_Battle.pr_assisted_players`
+**Status**: stable · **Version**: 0.2 · **Owner**: Rob Hendriks
 
-!!! note "Derived constraints from GameLayout"
-    Let `field_size = n` and `n2 = n**2`. Let `comms_size = m`.
+## Purpose & Scope
 
-    - `m == 1` (this factory enforces `comms_size == 1`).
-    - `n2` is a power of two.
-    - Therefore `m | n2` holds trivially.
+* **Goal**: Construct and manage the hierarchy of PR-assisted resources required by the PR-assisted protocol and expose paired players that consume them.
+* **Non-goals**: Learning, batching, or dynamic resizing of PR-assisted resources during a game.
 
-## Overview
+## Public Interface (Summary)
 
-`PRAssistedPlayers` is a `Players`-style factory that:
+* **Classes**: `PRAssistedPlayers`
+* **Key methods**: `players()`, `reset()`, `pr_assisted(index)`
+* **External contracts**: Depends on `GameLayout`, `Players`, `PRAssisted`, `PRAssistedPlayerA`, and `PRAssistedPlayerB`.
 
-- Validates that the layout is compatible with PR-assisted players.
-- Creates `n = log2(n2)` PR-assisted resources with decreasing lengths.
-- Hands out `PRAssistedPlayerA` and `PRAssistedPlayerB` instances that query those resources.
+## Types & Shapes
 
-!!! note "Terminology"
-    The factory method name is `shared_randomness(...)`, but the returned objects are
-    `PRAssisted` resources (not `SharedRandomness`).
+* Let `field_size` be the linear field dimension.
+* Let `n2 = field_size^2`.
+* Let `m = comms_size`.
 
-## Constructor
+Constraints derived from `GameLayout` and the PR-assisted protocol:
 
-### Signature
+* `m = 1`
+* `n2` must be a power of two.
+* Arrays used internally by PR-assisted resources are NumPy `np.ndarray`, dtype `int {0,1}`.
 
-- `PRAssistedPlayers(game_layout: GameLayout, p_high: float) -> PRAssistedPlayers`
+## Class: PRAssistedPlayers
 
-### Arguments
+### Constructor
 
-- `game_layout`: `GameLayout`, scalar.
-- `p_high`: `float`, scalar.
-  - Correlation parameter forwarded to each `PRAssisted(length=L, p_high=p_high)`.
+`PRAssistedPlayers(game_layout, p_high)`
 
-### Returns
+**Parameters**
 
-- `PRAssistedPlayers`, scalar.
+* `game_layout` — `GameLayout`
+  Game configuration; must satisfy `comms_size = 1` and `n2 = field_size^2` power-of-two.
+* `p_high` — `float`
+  Correlation parameter passed to all PR-assisted resources.
 
-### Preconditions
+**Preconditions**
 
-- `game_layout` is a valid `GameLayout`, scalar.
-- `game_layout.comms_size == 1`.
-- `n2 = game_layout.field_size**2` is a power of two.
+* `game_layout.comms_size = 1`
+* `n2 = field_size^2 > 0`
+* `n2` is a power of two.
 
-### Postconditions
+**Postconditions**
 
-- `self.game_layout` references the provided layout.
-- `self.p_high` is set.
-- `self._shared_randomness_array` is created with length `log2(n2)`:
-  - `list[PRAssisted]`, length `n`, where `n = log2(n2)`.
-- Cached players are initialised to `None`.
+* A hierarchy of PR-assisted resources is created and stored internally.
+* No player instances are created until `players()` is called.
 
-### Errors
+**Errors**
 
-- Raises `ValueError` if `game_layout.comms_size != 1`.
-- Raises `ValueError` if `n2` is not a power of two.
+* `ValueError` if `comms_size != 1`.
+* `ValueError` if `field_size <= 0`.
+* `ValueError` if `n2` is not a power of two.
 
 ## Public Methods
 
-### players
+### `players()`
 
-#### Signature
+**Purpose**: Create or return the cached pair of PR-assisted players.
 
-- `players() -> tuple[PlayerA, PlayerB]`
+**Args**
 
-#### Arguments
+* None.
 
-- None.
+**Returns**
 
-#### Returns
+* `Tuple[PlayerA, PlayerB]`
+  A tuple `(player_a, player_b)` where:
 
-- `(player_a, player_b)` where:
-  - `player_a`: `PRAssistedPlayerA`, scalar.
-  - `player_b`: `PRAssistedPlayerB`, scalar.
+  * `player_a` is an instance of `PRAssistedPlayerA`.
+  * `player_b` is an instance of `PRAssistedPlayerB`.
 
-#### Preconditions
+**Preconditions**
 
-- Factory instance is constructed successfully.
+* Constructor preconditions hold.
 
-#### Postconditions
+**Postconditions**
 
-- Creates the cached player instances on first call and returns them.
-- Subsequent calls return the cached instances.
+* Exactly one instance of each player type is cached and reused on subsequent calls.
 
-#### Errors
+**Errors**
 
-- Propagates exceptions from player construction.
+* None raised directly.
 
 !!! example "Minimal usage"
-    ```python
-    from Q_Sea_Battle.game_layout import GameLayout
-    from Q_Sea_Battle.pr_assisted_players import PRAssistedPlayers
+```python
+from Q_Sea_Battle.pr_assisted_players import PRAssistedPlayers
+from Q_Sea_Battle.game_layout import GameLayout
 
-    layout = GameLayout(field_size=4, comms_size=1)
-    factory = PRAssistedPlayers(game_layout=layout, p_high=0.8)
+````
+layout = GameLayout(field_size=4, comms_size=1)
+players = PRAssistedPlayers(layout, p_high=1.0)
+player_a, player_b = players.players()
+```
+````
 
-    player_a, player_b = factory.players()
-    ```
+### `reset()`
 
-### reset
+**Purpose**: Reset internal PR-assisted resources between games.
 
-#### Signature
+**Args**
 
-- `reset() -> None`
+* None.
 
-#### Arguments
+**Returns**
 
-- None.
+* `None`.
 
-#### Returns
+**Postconditions**
 
-- `None`.
+* All PR-assisted resources are re-created.
+* Cached player instances remain valid but will query fresh resources.
 
-#### Preconditions
+**Errors**
 
-- None.
+* None raised directly.
 
-#### Postconditions
+### `pr_assisted(index)`
 
-- Recreates `self._shared_randomness_array` with fresh PR-assisted resources.
+**Purpose**: Access a PR-assisted resource at a given protocol level.
 
-#### Errors
+**Args**
 
-- Propagates exceptions from `_create_shared_randomness_array()` (e.g. invalid `n2`).
+* `index` — `int`
+  Level index into the PR-assisted resource hierarchy.
 
-### shared_randomness
+**Returns**
 
-#### Signature
+* `PRAssisted`
+  PR-assisted resource corresponding to the given level.
 
-- `shared_randomness(index: int) -> PRAssisted`
+**Errors**
 
-#### Arguments
+* `IndexError` if `index` is out of bounds.
 
-- `index`: `int`, scalar.
-  - Level index into the internal resource hierarchy.
+### `shared_randomness(index)`
 
-#### Returns
+**Purpose**: Deprecated compatibility alias for `pr_assisted(index)`.
 
-- `resource`: `PRAssisted`, scalar.
+**Args**
 
-#### Preconditions
+* `index` — `int`
+  Level index into the PR-assisted resource hierarchy.
 
-- `0 <= index < len(self._shared_randomness_array)`.
+**Returns**
 
-#### Postconditions
+* `PRAssisted`
+  Same object as returned by `pr_assisted(index)`.
 
-- No mutation.
+**Errors**
 
-#### Errors
+* `IndexError` if `index` is out of bounds.
 
-- Raises `IndexError` if `index` is out of bounds.
-
-## Internal Methods
-
-### _create_shared_randomness_array
-
-#### Signature
-
-- `_create_shared_randomness_array() -> list[PRAssisted]`
-
-#### Arguments
-
-- None.
-
-#### Returns
-
-- `resources`: `list[PRAssisted]`, length `n`, where `n = log2(n2)`.
-
-#### Preconditions
-
-- `n2 = field_size**2` is an exact power of two.
-
-#### Postconditions
-
-- Returns resources with lengths:
-  - `2**(n-1), 2**(n-2), ..., 2**1, 2**0`.
-
-#### Errors
-
-- Raises `ValueError` if `n2` is not an exact power of two.
+!!! warning
+This method is deprecated and retained only for backward compatibility. Use `pr_assisted()` instead.
 
 ## Data & State
 
-- `p_high`: `float`, scalar.
-- `_shared_randomness_array`: `list[PRAssisted]`, length `log2(n2)`.
-- `_playerA`: `PRAssistedPlayerA` or `None`, scalar.
-- `_playerB`: `PRAssistedPlayerB` or `None`, scalar.
+* Attributes (internal):
 
-## Planned (design-spec)
+  * `_pr_assisted_array` — `list[PRAssisted]` — ordered by decreasing length.
+  * `_playerA` — `PRAssistedPlayerA | None` — cached instance.
+  * `_playerB` — `PRAssistedPlayerB | None` — cached instance.
+* Side effects: None beyond object construction.
+* Thread-safety: Not thread-safe; intended for single-game, single-thread usage.
 
-- None identified from the provided implementation.
+## Testing Hooks
 
-## Deviations
-
-- Naming:
-  - Some docstrings still use the phrase "shared randomness" for historical reasons,
-    but the concrete resource type is `PRAssisted`.
+* Invariant: `len(_pr_assisted_array) = log2(n2)`.
+* Invariant: Lengths of PR-assisted resources follow `2**(k)` with strictly decreasing powers of two.
+* Invariant: `players()` returns the same object instances on repeated calls.
+* Property test: After `reset()`, new PR-assisted resources are distinct objects.
 
 ## Notes for Contributors
 
-- Keep the hierarchy size consistent with the field length:
-  - `len(_shared_randomness_array) == log2(field_size**2)`.
-- If you change the resource API (`PRAssisted.measurement_a/measurement_b/reset`),
-  update both player implementations.
-- Prefer leaving `shared_randomness(...)` as-is to avoid breaking external code;
-  introduce a new alias method only with a clearly defined migration plan.
+* Do not change the ordering or number of PR-assisted resources; Player A and B rely on strict level alignment.
+* Avoid introducing side effects in `pr_assisted()`; it must remain a pure accessor.
+* The deprecated `shared_randomness()` should eventually be removed only with a major version bump.
+
+## Deviations
+
+* The design document refers generically to shared resources; the implementation names these explicitly as PR-assisted resources with a compatibility alias.
+
+## Planned (design-spec)
+
+* Support for alternative assisted resource types selectable via configuration is discussed in the design but not implemented here.
 
 ## Changelog
 
-- 2026-01-10 — Author: Rob Hendriks
+* 2026-01-16 — Rob Hendriks — Initial specification-grade documentation for `PRAssistedPlayers`.
