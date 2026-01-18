@@ -82,9 +82,9 @@ nav:
       - Tournament: tournament.md
       - TournamentLog: tournament_log.md
   - Players:
-      - Players: players.md
-      - PlayerA: player_a.md
-      - PlayerB: player_b.md
+      - Players: players_base.md
+      - PlayerA: player_base_a.md
+      - PlayerB: player_base_b.md
       - SimplePlayers: simple_players.md
       - SimplePlayerA: simple_player_a.md
       - SimplePlayerB: simple_player_b.md
