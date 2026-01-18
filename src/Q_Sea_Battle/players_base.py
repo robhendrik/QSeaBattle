@@ -21,8 +21,8 @@ from typing import TYPE_CHECKING, Any, Optional, Tuple
 import warnings
 
 from .game_layout import GameLayout
-from .players_base_a import PlayerA as _PlayerA
-from .players_base_b import PlayerB as _PlayerB
+from .player_base_a import PlayerA as _PlayerA
+from .player_base_b import PlayerB as _PlayerB
 
 
 _DEPRECATION_MSG = (

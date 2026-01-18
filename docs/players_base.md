@@ -1,33 +1,33 @@
 # Players
 
-> Role: Factory and container for a pair of QSeaBattle players that share a common `GameLayout`.
+> Role: Factory and container for a pair of QSeaBattle players.
 Location: `Q_Sea_Battle.players_base.Players`
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_layout | Optional[GameLayout], constraints: may be None, shape: scalar object | Optional shared configuration. If None, a default `GameLayout` is created. |
+| game_layout | Optional[GameLayout], constraint: None or instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: scalar | Optional shared configuration; if None, a default `GameLayout` is created. |
 
 Preconditions
 
-- None specified.
+- Not specified.
 
 Postconditions
 
-- `self.game_layout` is set to the provided `game_layout`, or to a newly created default `GameLayout` if `game_layout` is None.
+- `self.game_layout` is set to the provided `game_layout` if not None, otherwise to a newly created `GameLayout`.
 
 Errors
 
-- None specified.
+- Not specified.
 
 Example
 
 ```python
 from Q_Sea_Battle.players_base import Players
 
-players_factory = Players()
-player_a, player_b = players_factory.players()
+players_facade = Players()
+player_a, player_b = players_facade.players()
 ```
 
 ## Public Methods
@@ -36,9 +36,13 @@ player_a, player_b = players_factory.players()
 
 Create the concrete Player A and Player B instances using the shared `GameLayout`.
 
+Parameters
+
+- None.
+
 Returns
 
-- Tuple["PlayerA", "PlayerB"], constraints: length 2 tuple, shape: (2,) of objects: A tuple `(player_a, player_b)` created as `_PlayerA(self.game_layout)` and `_PlayerB(self.game_layout)`.
+- Tuple["PlayerA", "PlayerB"], constraint: 2-tuple of player instances, shape: (2,).
 
 Errors
 
@@ -49,17 +53,21 @@ Example
 ```python
 from Q_Sea_Battle.players_base import Players
 
-players_factory = Players()
-player_a, player_b = players_factory.players()
+p = Players()
+player_a, player_b = p.players()
 ```
 
 ### reset
 
 Reset any internal state across both players.
 
+Parameters
+
+- None.
+
 Returns
 
-- None, constraints: always None, shape: scalar.
+- None, constraint: always `None`, shape: scalar.
 
 Errors
 
@@ -70,13 +78,13 @@ Example
 ```python
 from Q_Sea_Battle.players_base import Players
 
-players_factory = Players()
-players_factory.reset()
+p = Players()
+p.reset()
 ```
 
 ## Data & State
 
-- `game_layout`: GameLayout, constraints: non-None after construction, shape: scalar object; shared configuration used by both players.
+- game_layout: GameLayout, constraint: instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: scalar; shared configuration used by both players.
 
 ## Planned (design-spec)
 
@@ -84,19 +92,18 @@ players_factory.reset()
 
 ## Deviations
 
-- The module exposes deprecated attribute names `PlayerA` and `PlayerB` via `__getattr__` for backward compatibility, but this class specification documents only `Players` as the single top-level public class as required.
+- Not specified.
 
 ## Notes for Contributors
 
-- `Players.players()` currently instantiates `_PlayerA` and `_PlayerB` imported from `Q_Sea_Battle.players_base_a` and `Q_Sea_Battle.players_base_b`; subclasses may override `players()` to supply alternative implementations while reusing `self.game_layout`.
-- `reset()` is intentionally a no-op in the base implementation to support compatibility with subclasses that maintain state.
+- This module also provides deprecated attribute access for `PlayerA` and `PlayerB` via module-level `__getattr__`, emitting `DeprecationWarning` and caching the resolved symbols in `globals()`.
 
 ## Related
 
-- `Q_Sea_Battle.players_base_a.PlayerA` (concrete baseline implementation, preferred import path)
-- `Q_Sea_Battle.players_base_b.PlayerB` (concrete baseline implementation, preferred import path)
+- `Q_Sea_Battle.player_base_a.PlayerA` (concrete baseline implementation imported as `_PlayerA` internally)
+- `Q_Sea_Battle.player_base_b.PlayerB` (concrete baseline implementation imported as `_PlayerB` internally)
 - `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- 0.2: `Players` provided as the stable public facade for constructing a pair of players sharing a `GameLayout`; `PlayerA`/`PlayerB` names retained in the module via deprecation mechanism.
+- Not specified.
