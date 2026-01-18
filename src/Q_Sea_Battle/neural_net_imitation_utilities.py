@@ -5,6 +5,7 @@ NeuralNetPlayers.model_a and NeuralNetPlayers.model_b based on the
 majority player strategy.
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

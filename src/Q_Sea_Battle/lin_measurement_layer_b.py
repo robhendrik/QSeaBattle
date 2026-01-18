@@ -10,6 +10,10 @@ Contract:
 
 This is a low-level primitive: it is intentionally a `tf.keras.layers.Layer`
 so it can be composed into larger trainable models.
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

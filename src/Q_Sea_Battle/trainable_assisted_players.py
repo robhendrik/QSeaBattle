@@ -9,7 +9,8 @@ The contract for `previous` is:
     previous == (measurements_per_layer, outcomes_per_layer)
 where both entries are Python lists of tensors, each tensor shaped (B, n2).
 
-Author: QSeabattle (generated)
+Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 from __future__ import annotations

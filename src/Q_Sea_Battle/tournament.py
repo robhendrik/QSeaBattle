@@ -1,6 +1,7 @@
 """Tournament orchestration for QSeaBattle.
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

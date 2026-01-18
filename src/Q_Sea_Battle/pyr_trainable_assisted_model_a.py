@@ -26,8 +26,11 @@ This module intentionally uses a *hard* (non-trainable) conversion from the fina
 bit to a logit, because Step-2 focuses on interface and contract testing rather
 than learning.
 
-For gameplay, the PRAssistedLayer must be used in ``mode="sample"`` as per
-the v2 spec.
+For gameplay, the PRAssistedLayer must be used in ``mode="sample"`` 
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

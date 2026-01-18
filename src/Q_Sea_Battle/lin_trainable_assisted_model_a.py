@@ -9,6 +9,10 @@ Pipeline:
 Public API:
     call(field_batch) -> comm_logits
     compute_with_internal(field_batch) -> (comm_logits, [meas], [out])
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

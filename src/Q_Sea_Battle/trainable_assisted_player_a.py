@@ -5,7 +5,11 @@ Player A computes communication bits from the field using a trainable model.
 It also stores intermediate "previous" tensors on its parent (TrainableAssistedPlayers)
 so Player B can consume them.
 
-See design document for the exact decide/log-prob/previous contract. fileciteturn3file2
+See design document for the exact decide/log-prob/previous contract.
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 from __future__ import annotations
 

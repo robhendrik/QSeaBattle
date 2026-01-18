@@ -4,7 +4,11 @@
 Player B consumes the "previous" tensors stored by Player A on the parent,
 and combines these with its own gun measurement + received comm bits to decide shoot.
 
-See design document for the exact decide/log-prob/previous contract. fileciteturn3file10
+See design document for the exact decide/log-prob/previous contract. 
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 from __future__ import annotations
 

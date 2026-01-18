@@ -27,6 +27,9 @@ Terminology
 - SR (shared resource): pre-shared auxiliary resource available to both players without communication.
 - PRAssistedLayer is a specific type of SR.
 
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

@@ -14,6 +14,10 @@ Pipeline:
 Spec (Step 5):
 - call([gun, comm, prev_meas_list, prev_out_list]) -> (B, 1)
 - Must use PR-assisted resource with ``first_measurement=0`` and consume prev tensors.
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

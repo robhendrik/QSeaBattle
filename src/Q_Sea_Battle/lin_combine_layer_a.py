@@ -7,6 +7,10 @@ Design agreements (per project spec):
 - Input: outcomes of shape (B, n2) or (n2,)
 - Output: comm_logits of shape (B, m) or (m,)
 - Output are *logits* (not squashed); downstream code applies sigmoid/DRU/etc.
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

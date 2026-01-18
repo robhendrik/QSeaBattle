@@ -15,6 +15,8 @@ Exports
 - PyrCombineLayerB
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from .pyr_measurement_layer_a import PyrMeasurementLayerA

@@ -9,7 +9,8 @@ Naming update:
   breaking older code paths immediately.
 
 Author: Rob Hendriks
-Version: 0.2
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

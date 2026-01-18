@@ -19,6 +19,10 @@ Notes
 - The exported linear primitives are implemented as ``tf.keras.layers.Layer``.
   Some of them are learnable; the word "teacher" here refers to their role as
   low-level primitives in the reference pipeline and dataset specifications.
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from .lin_measurement_layer_a import LinMeasurementLayerA

@@ -13,6 +13,7 @@ layer that can operate in either:
   deterministically via stateless RNG given a seed.
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

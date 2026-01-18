@@ -5,6 +5,10 @@ the Player-B model for the pyramid (Pyr) assisted architecture.
 
 (This file is a small robustness patch over the existing version: it accepts
 the Keras `training` kwarg in `call` and passes it through to sublayers when possible.)
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

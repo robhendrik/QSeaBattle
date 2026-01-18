@@ -10,7 +10,8 @@ The implementation follows the specification in the QSeaBattle design
 document and is intentionally free of trainable parameters: the DRU is a
 fixed, deterministic transformation given the logits and noise settings.
 
-Author: Rob Hendriks (specification), ChatGPT (implementation)
+Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

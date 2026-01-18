@@ -1,7 +1,8 @@
 """Neural network-based Player B implementation.
 
 Author: Rob Hendriks
-Version: 0.3
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

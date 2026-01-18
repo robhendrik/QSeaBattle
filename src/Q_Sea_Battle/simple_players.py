@@ -1,6 +1,7 @@
 """Factory for SimplePlayers pair.
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

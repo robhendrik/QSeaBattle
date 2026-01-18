@@ -12,6 +12,10 @@ Terminology
 Exports
 - LinTrainableAssistedModelA
 - LinTrainableAssistedModelB
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from .lin_trainable_assisted_model_a import LinTrainableAssistedModelA

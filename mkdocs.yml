@@ -72,60 +72,61 @@ nav:
   - Conventions: conventions.md
   - Invariants: invariants.md
   - Algorithms:
-      - Algorithms: algorithms/algorithms.md
-      - Majority: algorithms/majority_algorithm.md
+      - Algorithms: algorithms.md
+      - Simple: simple_algorithm.md
+      - Majority: majority_algorithm.md
   - Game:
-      - GameLayout: game/GameLayout.md
-      - GameEnv: game/GameEnv.md
-      - Game: game/Game.md
-      - Tournament: game/Tournament.md
-      - TournamentLog: game/TournamentLog.md
+      - GameLayout: game_layout.md
+      - GameEnv: game_env.md
+      - Game: game.md
+      - Tournament: tournament.md
+      - TournamentLog: tournament_log.md
   - Players:
-      - Players: players/Players.md
-      - PlayerA: players/PlayerA.md
-      - PlayerB: players/PlayerB.md
-      - SimplePlayers: players/SimplePlayers.md
-      - SimplePlayerA: players/SimplePlayerA.md
-      - SimplePlayerB: players/SimplePlayerB.md
-      - MajorityPlayers: players/MajorityPlayers.md
-      - MajorityPlayerA: players/MajorityPlayerA.md
-      - MajorityPlayerB: players/MajorityPlayerB.md
-      - PRAssistedPlayers: players/PRAssistedPlayers.md
-      - PRAssistedPlayerA: players/PRAssistedPlayerA.md
-      - PRAssistedPlayerB: players/PRAssistedPlayerB.md
-      - TrainableAssistedPlayers: players/TrainableAssistedPlayers.md
-      - TrainableAssistedPlayerA: players/TrainableAssistedPlayerA.md
-      - TrainableAssistedPlayerB: players/TrainableAssistedPlayerB.md
+      - Players: players.md
+      - PlayerA: player_a.md
+      - PlayerB: player_b.md
+      - SimplePlayers: simple_players.md
+      - SimplePlayerA: simple_player_a.md
+      - SimplePlayerB: simple_player_b.md
+      - MajorityPlayers: majority_players.md
+      - MajorityPlayerA: majority_player_a.md
+      - MajorityPlayerB: majority_player_b.md
+      - PRAssistedPlayers: pr_assisted_players.md
+      - PRAssistedPlayerA: pr_assisted_player_a.md
+      - PRAssistedPlayerB: pr_assisted_player_b.md
+      - TrainableAssistedPlayers: trainable_assisted_players.md
+      - TrainableAssistedPlayerA: trainable_assisted_player_a.md
+      - TrainableAssistedPlayerB: trainable_assisted_player_b.md
  
   - Shared resources:
-      - Overview: shared_resources/SharedResources.md
-      - PRAssisted: shared_resources/PRAssisted.md
-      - PRAssistedLayer: shared_resources/PRAssistedLayer.md
+      - Overview: shared_resources.md
+      - PRAssisted: pr_assisted.md
+      - PRAssistedLayer: pr_assisted_layer.md
       
   - Models:
-      - LinTrainableAssistedModelA: models/LinTrainableAssistedModelA.md
-      - LinTrainableAssistedModelB: models/LinTrainableAssistedModelB.md
-      - LinCombineLayerA: models/LinCombineLayerA.md
-      - LinCombineLayerB: models/LinCombineLayerB.md
-      - LinMeasurementLayerA: models/LinMeasurementLayerA.md
-      - LinMeasurementLayerB: models/LinMeasurementLayerB.md
-      - lin_teacher_layers: models/lin_teacher_layers.md
-      - lin_trainable_layers: models/lin_trainable_layers.md
-      - PyrTrainableAssistedModelA: models/PyrTrainableAssistedModelA.md
-      - PyrTrainableAssistedModelB: models/PyrTrainableAssistedModelB.md
-      - PyrCombineLayerA: models/PyrCombineLayerA.md
-      - PyrCombineLayerB: models/PyrCombineLayerB.md
-      - PyrMeasurementLayerA: models/PyrMeasurementLayerA.md
-      - PyrMeasurementLayerB: models/PyrMeasurementLayerB.md
-      - pyr_teacher_layers: models/pyr_teacher_layers.md
-      - pyr_trainable_layers: models/pyr_trainable_layers.md
+      - LinTrainableAssistedModelA: lin_trainable_assisted_model_a.md
+      - LinTrainableAssistedModelB: lin_trainable_assisted_model_b.md
+      - LinCombineLayerA: lin_combine_layer_a.md
+      - LinCombineLayerB: lin_combine_layer_b.md
+      - LinMeasurementLayerA: lin_measurement_layer_a.md
+      - LinMeasurementLayerB: lin_measurement_layer_b.md
+      - lin_teacher_layers: lin_teacher_layers.md
+      - lin_trainable_layers: lin_trainable_layers.md
+      - PyrTrainableAssistedModelA: pyr_trainable_assisted_model_a.md
+      - PyrTrainableAssistedModelB: pyr_trainable_assisted_model_b.md
+      - PyrCombineLayerA: pyr_combine_layer_a.md
+      - PyrCombineLayerB: pyr_combine_layer_b.md
+      - PyrMeasurementLayerA: pyr_measurement_layer_a.md
+      - PyrMeasurementLayerB: pyr_measurement_layer_b.md
+      - pyr_teacher_layers: pyr_teacher_layers.md
+      - pyr_trainable_layers: pyr_trainable_layers.md
 
   - Utilities:
-      - reference_performance_utilities: utilities/reference_performance_utilities.md
-      - neural_net_imitation_utilities: utilities/neural_net_imitation_utilities.md
-      - dru_utilities: utilities/dru_utilities.md
-      - logits_utilities: utilities/logits_utilities.md
-      - lin_trainable_assisted_imitation_utilities: utilities/lin_trainable_assisted_imitation_utilities.md
-      - pyr_trainable_assisted_imitation_utilities: utilities/pyr_trainable_assisted_imitation_utilities.md
+      - reference_performance_utilities: reference_performance_utilities.md
+      - neural_net_imitation_utilities: neural_net_imitation_utilities.md
+      - dru_utilities: dru_utilities.md
+      - logits_utilities: logits_utilities.md
+      - lin_trainable_assisted_imitation_utilities: lin_trainable_assisted_imitation_utilities.md
+      - pyr_trainable_assisted_imitation_utilities: pyr_trainable_assisted_imitation_utilities.md
 
 

@@ -2,6 +2,7 @@
 """Utilities for stable conversions between logits, probabilities and log-probabilities.
 
 Author: Rob Hendriks
+Package: Q_Sea_Battle
 Version: 0.1
 """
 

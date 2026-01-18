@@ -10,6 +10,10 @@ Design agreements (per project spec):
 - Output:
     shoot_logit: shape (B, 1) or (1,)
 - Output is a *logit* (not squashed).
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations

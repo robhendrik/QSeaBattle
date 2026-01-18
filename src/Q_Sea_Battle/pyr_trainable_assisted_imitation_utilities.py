@@ -33,6 +33,10 @@ Public API
 - :func:`train_layer`
 - :func:`transfer_pyr_model_a_layer_weights`
 - :func:`transfer_pyr_model_b_layer_weights`
+
+Author: Rob Hendriks
+Package: Q_Sea_Battle
+Version: 0.1
 """
 
 from __future__ import annotations
