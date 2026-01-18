@@ -1,17 +1,36 @@
 """Base player interfaces for QSeaBattle.
 
+This module is the stable public facade for the core player types:
+- :class:`~Q_Sea_Battle.players_base.Players`
+- :class:`~Q_Sea_Battle.players_base.PlayerA` (deprecated import path)
+- :class:`~Q_Sea_Battle.players_base.PlayerB` (deprecated import path)
+
+Implementation note:
+The concrete baseline implementations for PlayerA and PlayerB were moved to
+:mod:`Q_Sea_Battle.players_base_a` and :mod:`Q_Sea_Battle.players_base_b`.
+The names remain available here for backward compatibility.
+
 Author: Rob Hendriks
 Package: Q_Sea_Battle
-Version: 0.1
+Version: 0.2
 """
 
 from __future__ import annotations
 
-from typing import Any, Optional, Tuple
-
-import numpy as np
+from typing import TYPE_CHECKING, Any, Optional, Tuple
+import warnings
 
 from .game_layout import GameLayout
+from .players_base_a import PlayerA as _PlayerA
+from .players_base_b import PlayerB as _PlayerB
+
+
+_DEPRECATION_MSG = (
+    "Importing PlayerA/PlayerB from 'Q_Sea_Battle.players_base' is deprecated. "
+    "Import from 'Q_Sea_Battle.players_base_a' (PlayerA) and "
+    "'Q_Sea_Battle.players_base_b' (PlayerB) instead. "
+    "The old import path will be removed in a future major release."
+)
 
 
 class Players:
@@ -43,8 +62,8 @@ class Players:
         Returns:
             A tuple (player_a, player_b).
         """
-        player_a = PlayerA(self.game_layout)
-        player_b = PlayerB(self.game_layout)
+        player_a = _PlayerA(self.game_layout)
+        player_b = _PlayerB(self.game_layout)
         return player_a, player_b
 
     def reset(self) -> None:
@@ -58,79 +77,42 @@ class Players:
         return None
 
 
-class PlayerA:
-    """Base class for Player A in QSeaBattle.
+def __getattr__(name: str) -> Any:
+    """Resolve deprecated attribute access for PlayerA/PlayerB.
 
-    The default behaviour is a random communication strategy: given a
-    field, Player A returns a random binary communication vector of
-    length m = comms_size.
+    This hook supports legacy imports like:
+        from Q_Sea_Battle.players_base import PlayerA, PlayerB
 
-    Attributes:
-        game_layout: Shared configuration from the Players factory.
+    A DeprecationWarning is emitted once per interpreter process for each symbol.
+
+    Args:
+        name: Attribute name being accessed.
+
+    Returns:
+        The requested symbol.
+
+    Raises:
+        AttributeError: If the attribute is not provided by this module.
     """
-
-    def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise Player A.
-
-        Args:
-            game_layout: Game configuration for this player.
-        """
-        self.game_layout = game_layout
-
-    def decide(self, field: np.ndarray, supp: Optional[Any] = None) -> np.ndarray:
-        """Decide on a communication vector given the field.
-
-        The base implementation ignores the inputs and returns a random
-        binary vector of length m = comms_size.
-
-        Args:
-            field: Flattened field array containing 0/1 values. The base
-                implementation does not depend on its content.
-            supp: Optional supporting information (unused in base class).
-
-        Returns:
-            A one-dimensional communication array of length m with
-            entries in {0, 1}.
-        """
-        m = self.game_layout.comms_size
-        # Random 0/1 vector as minimal baseline behaviour.
-        return np.random.randint(0, 2, size=m, dtype=int)
+    if name == "PlayerA":
+        warnings.warn(_DEPRECATION_MSG, DeprecationWarning, stacklevel=2)
+        globals()[name] = _PlayerA
+        return _PlayerA
+    if name == "PlayerB":
+        warnings.warn(_DEPRECATION_MSG, DeprecationWarning, stacklevel=2)
+        globals()[name] = _PlayerB
+        return _PlayerB
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-class PlayerB:
-    """Base class for Player B in QSeaBattle.
+if TYPE_CHECKING:
+    # Make type checkers aware of the deprecated names without importing via __getattr__.
+    from .players_base_a import PlayerA
+    from .players_base_b import PlayerB
 
-    The default behaviour is a random shooting strategy: given a gun
-    position and communication vector, Player B returns a random binary
-    decision.
 
-    Attributes:
-        game_layout: Shared configuration from the Players factory.
-    """
-
-    def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise Player B.
-
-        Args:
-            game_layout: Game configuration for this player.
-        """
-        self.game_layout = game_layout
-
-    def decide(
-        self, gun: np.ndarray, comm: np.ndarray, supp: Optional[Any] = None
-    ) -> int:
-        """Decide whether to shoot based on gun position and message.
-
-        The base implementation ignores the inputs and returns a random
-        decision in {0, 1}.
-
-        Args:
-            gun: Flattened one-hot gun array. The base implementation
-                does not depend on its content.
-            comm: Communication vector from Player A. Ignored here.
-            supp: Optional supporting information (unused in base class).
-
-        Returns:
-            An integer 0 (do not shoot) or 1 (shoot).
-        """
-        return int(np.random.randint(0, 2))
+__all__ = [
+    "Players",
+    "PlayerA",
+    "PlayerB",
+]

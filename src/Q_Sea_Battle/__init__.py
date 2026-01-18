@@ -21,7 +21,9 @@ from typing import Any, Dict, Tuple
 # -----------------------------------------------------------------------------
 from .game_layout import GameLayout
 from .game_env import GameEnv
-from .players_base import Players, PlayerA, PlayerB
+from .players_base import Players
+from .players_base_a import PlayerA
+from .players_base_b import PlayerB
 from .game import Game
 from .tournament import Tournament
 from .tournament_log import TournamentLog
