@@ -75,6 +75,9 @@ nav:
       - Algorithms: algorithms.md
       - Simple: simple_algorithm.md
       - Majority: majority_algorithm.md
+      - Linear: linear_algorithm.md
+      - Pyramid: pyramidal_algorithm.md
+      
   - Game:
       - GameLayout: game_layout.md
       - GameEnv: game_env.md
