@@ -26,7 +26,7 @@ In the language of van Dam, Alice and Bob share a distributed system $\Phi_{AB}$
 
 ### Alice side (Model A)
 
-![Linear algorithm at Alice's side](images/LinAlgoAlice.jpg)
+![Linear algorithm at Alice's side](images/LinAlgoAlice.JPG)
 
 #### Measurement A (identity measurement)
 
@@ -58,7 +58,7 @@ $$
 
 ### Bob side (Model B)
 
-![Linear algorithm at Bob's side](images/LinAlgoBob.jpg)
+![Linear algorithm at Bob's side](images/LinAlgoBob.JPG)
 
 #### Measurement B (identity measurement on the gun)
 

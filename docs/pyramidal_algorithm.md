@@ -23,7 +23,7 @@ At each pyramid level, we reduce the effective field size by pairing indices and
 
 #### 1) Alice measurement $m_i(A)$ from the input field
 
-![Algorithm at Alice's side](images/PyrAlgoAlice.jpg)
+![Algorithm at Alice's side](images/PyrAlgoAlice.JPG)
 
 For each pair $(x_{2i}, x_{2i+1})$, Alice produces a measurement bit:
 $$
@@ -48,7 +48,7 @@ Interpretation in the implementation:
 
 #### 3) Bob measurement $m_i(B)$ from the gun pair
 
-![Algorithm at Alice's side](images/PyrAlgoBob.jpg)
+![Algorithm at Alice's side](images/PyrAlgoBob.JPG)
 
 Bob's measurement (as implemented) is driven by the current one-hot gun state $g$. For each gun pair $(g_{2i}, g_{2i+1})$, define:
 $$
