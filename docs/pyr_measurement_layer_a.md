@@ -1,69 +1,129 @@
 # PyrMeasurementLayerA
 
-> Role: Non-trainable Keras layer that computes Player A’s per-level measurement vector via pairwise XOR over a binary field state batch.
+> Role: Trainable Keras layer that maps a rank-2 field batch to rank-2 measurement probabilities with output dimension $L/2$.
 
 Location: `Q_Sea_Battle.pyr_measurement_layer_a.PyrMeasurementLayerA`
+
+## Derived constraints
+
+- Let $L$ be the last dimension of `field_batch`; $L$ must be statically known at build time and must be even.
+- Output last dimension is $L/2$; output values are in $[0, 1]$ due to a sigmoid activation.
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| name | Optional[str], constraint: None or non-empty string, shape: scalar | Optional Keras layer name. |
+| hidden_units | int, constraint $\ge 1$, scalar | Number of units in the hidden Dense layer. |
+| name | str \| None, scalar | Layer name passed to `tf.keras.layers.Layer`. |
+| dtype | tf.dtypes.DType \| None, scalar | Dtype for the layer and its sublayers; if `None`, call-time conversion defaults to `tf.float32`. |
+| **kwargs | Any, variadic mapping | Forwarded to `tf.keras.layers.Layer` constructor. |
 
-Preconditions
+### Preconditions
 
-- Not specified.
+- `hidden_units >= 1`.
 
-Postconditions
+### Postconditions
 
-- The layer is created with `trainable=False`.
+- The instance is created with `trainable=True`.
+- The sublayers are not created until `build()` is called; internal sublayer references are initialized to `None`.
 
-Errors
+### Errors
 
-- Not specified.
+- `ValueError`: if `hidden_units < 1`.
 
-!!! example "Example"
+### Example
+
+!!! example "Constructing the layer"
     ```python
     import tensorflow as tf
     from Q_Sea_Battle.pyr_measurement_layer_a import PyrMeasurementLayerA
 
-    layer = PyrMeasurementLayerA(name="pyr_meas_a")
-    field_batch = tf.constant([[0, 1, 1, 1],
-                               [1, 0, 0, 0]], dtype=tf.float32)  # shape (B=2, L=4)
-    meas = layer(field_batch)  # shape (2, 2)
-    print(meas.numpy())
+    layer = PyrMeasurementLayerA(hidden_units=64, dtype=tf.float32)
+
+    x = tf.zeros([8, 10], dtype=tf.float32)  # B=8, L=10 (even)
+    y = layer(x, training=False)
+    print(y.shape)  # (8, 5)
     ```
 
 ## Public Methods
 
-### call(field_batch)
+### build
 
-Compute pairwise XOR measurements.
+- Signature: `build(input_shape: Any) -> None`
 
-Parameters
+Parameters:
 
-- field_batch: tf.Tensor, dtype convertible to float32, constraint: values in {0, 1}, shape (B, L) where B is batch size and L is active state length and L mod 2 = 0.
+- `input_shape`: Any, constraint: convertible to `tf.TensorShape`, shape: not specified; expected to describe an input with statically known last dimension $L$.
 
-Returns
+Returns:
 
-- tf.Tensor, dtype float32, constraint: values in {0, 1}, shape (B, L/2).
+- `None`.
 
-Preconditions
+Preconditions:
 
-- `field_batch` last dimension length L must be even.
+- The last dimension $L$ of `input_shape` is statically known (`shape[-1] is not None`).
+- $L$ is even.
 
-Postconditions
+Postconditions:
 
-- Output equals pairwise XOR computed as $(a + b) \bmod 2$ over adjacent pairs along the last dimension.
+- Creates two sublayers:
+  - `Dense(hidden_units, activation="relu", name="dense_hidden")`
+  - `Dense(L/2, activation="sigmoid", name="dense_out")`
+- Records `_built_for_L = L`.
 
-Errors
+Errors:
 
-- Raises an assertion failure via `tf.debugging.assert_equal` if $L \bmod 2 \ne 0$ with message `"Active length L must be even."`.
+- `ValueError`: if the last dimension is unknown at build time.
+- `ValueError`: if $L$ is not even.
+
+### call
+
+- Signature: `call(field_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
+
+Parameters:
+
+- `field_batch`: tf.Tensor, dtype float32 (or `self.dtype` if set), shape (B, L); constraint: rank must be 2 and $L$ must be even.
+- `training`: bool, scalar; forwarded to the Dense sublayers.
+- `**kwargs`: Any, variadic mapping; accepted but not used by this implementation.
+
+Returns:
+
+- `meas_a`: tf.Tensor, dtype float32 (or `self.dtype` if set), shape (B, L/2); constraint: values in $[0, 1]$ (sigmoid output).
+
+Preconditions:
+
+- `field_batch` must be rank-2.
+- The last dimension $L$ must be even.
+- The layer must have been built such that internal sublayers exist.
+
+Postconditions:
+
+- Produces measurement probabilities via an MLP: hidden ReLU Dense followed by sigmoid Dense.
+
+Errors:
+
+- `ValueError`: if `field_batch` has a statically known rank that is not 2.
+- `tf.errors.InvalidArgumentError` (or framework equivalent): if `tf.shape(field_batch)[-1] % 2 != 0` at runtime due to `tf.debugging.assert_equal`.
+- `RuntimeError`: if internal sublayers are missing (layer not built correctly).
+
+### get_config
+
+- Signature: `get_config() -> Dict[str, Any]`
+
+Parameters:
+
+- None.
+
+Returns:
+
+- `Dict[str, Any]`, mapping containing the base Keras layer config plus `{"hidden_units": int}`.
 
 ## Data & State
 
-- Trainable state: None; constructor sets `trainable=False`.
-- Internal variables/weights: None specified/created by this layer.
+- `hidden_units`: int, constraint $\ge 1$, scalar; stored constructor hyperparameter.
+- `_dense_hidden`: tf.keras.layers.Dense \| None; created in `build()`, otherwise `None`.
+- `_dense_out`: tf.keras.layers.Dense \| None; created in `build()`, otherwise `None`.
+- `_built_for_L`: int \| None; the input last dimension $L$ the layer was built for, set in `build()`.
 
 ## Planned (design-spec)
 
@@ -75,13 +135,16 @@ Errors
 
 ## Notes for Contributors
 
-- The implementation converts inputs via `tf.convert_to_tensor(..., dtype=tf.float32)` and uses `tf.math.floormod(even + odd, 2.0)` to implement XOR over {0,1}; keep this consistent with the teacher/measurement rule.
-- The runtime check for even L is enforced with `tf.debugging.assert_equal`; ensure tests cover both valid even L and invalid odd L cases.
+- Sublayers must be created in `build()` (not in `call()`), and `call()` must not create state.
+- The output is probabilities (sigmoid), not logits, to satisfy downstream validation of outcomes in $[0, 1]$.
+- The contract requires `field_batch` shape (B, L) and output shape (B, L/2); ensure any future changes preserve this public API.
 
 ## Related
 
-- TensorFlow: `tf.keras.layers.Layer`
+- `tf.keras.layers.Layer`
+- `tf.keras.layers.Dense`
+- `tf.debugging.assert_equal`
 
 ## Changelog
 
-- 0.1: Initial implementation of non-trainable pairwise XOR measurement layer for Player A.
+- Not specified.

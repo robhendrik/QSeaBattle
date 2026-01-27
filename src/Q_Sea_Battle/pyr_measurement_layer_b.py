@@ -1,68 +1,110 @@
-"""Pyramid measurement layer for Player B.
+"""Trainable PyrMeasurementLayerB (gun -> measurement probabilities).
 
-This module defines :class:`~Q_Sea_Battle.PyrMeasurementLayerB`, a Keras layer
+This module defines :class:`PyrMeasurementLayerB`, a small trainable Keras layer
 used in the Pyramid (Pyr) assisted architecture.
 
-The Step 1 implementation encodes the teacher measurement rule described in the
-QSeaBattle specification: pairwise "¬even AND odd".
+Keras 3 build note:
+All sublayers are created in `build()` based on the input gun dimension L.
+No state is created in `call()`.
+
+IMPORTANT (SR compatibility):
+PRAssistedLayer validates that measurements/outcomes are in [0, 1]. Therefore this
+layer outputs *probabilities* via a sigmoid output head (not raw logits).
+
+Contract (public API must remain unchanged):
+- call(gun_batch) -> meas_b
+- gun_batch: tf.Tensor, shape (B, L)
+- meas_b: tf.Tensor, shape (B, L/2), values in [0, 1]
+
+Implementation (MLP):
+- Dense(hidden_units, activation="relu")
+- Dense(L/2, activation="sigmoid")  # probabilities
+
+No rule-based / teacher mapping (e.g., "¬even AND odd") is implemented here.
 
 Author: Rob Hendriks
 Package: Q_Sea_Battle
-Version: 0.1
 """
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Any, Dict, Optional
 
 import tensorflow as tf
 
 
+def _ensure_rank2(x: tf.Tensor, name: str) -> None:
+    if x.shape.rank is not None and x.shape.rank != 2:
+        raise ValueError(f"{name} must be rank-2 (B, D). Got rank={x.shape.rank}, shape={x.shape}.")
+
+
+def _require_known_last_dim(shape: tf.TensorShape, name: str) -> int:
+    d = shape[-1]
+    if d is None:
+        raise ValueError(f"{name} last dimension must be statically known. Got shape={shape}.")
+    return int(d)
+
+
 class PyrMeasurementLayerB(tf.keras.layers.Layer):
-    """Compute Player B's per-level measurement vector.
+    """Trainable layer mapping gun state -> measurement probabilities."""
 
-    Purpose:
-        Given a binary gun state ``G^ℓ`` of length ``L`` (even), produce the
-        measurement vector ``M_B^ℓ`` of length ``L/2`` defined per pair:
+    def __init__(
+        self,
+        hidden_units: int = 64,
+        name: Optional[str] = None,
+        dtype: Optional[tf.dtypes.DType] = None,
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(name=name, dtype=dtype, trainable=True, **kwargs)
+        if hidden_units < 1:
+            raise ValueError("hidden_units must be >= 1.")
+        self.hidden_units = int(hidden_units)
 
-            M_B^ℓ[i] = (NOT G^ℓ[2*i]) AND G^ℓ[2*i + 1].
+        # Created in build().
+        self._dense_hidden: Optional[tf.keras.layers.Dense] = None
+        self._dense_out: Optional[tf.keras.layers.Dense] = None
+        self._built_for_L: Optional[int] = None
 
-        This matches the "¬even AND odd" rule in the Pyr dataset spec.
+    def build(self, input_shape: Any) -> None:
+        gun_shape = tf.TensorShape(input_shape)
+        L = _require_known_last_dim(gun_shape, "gun_batch")
+        if L % 2 != 0:
+            raise ValueError(f"gun_batch last dimension L must be even so that L/2 is integer. Got L={L}.")
+        out_dim = L // 2
 
-        This layer is intentionally *non-trainable* for Step 1: it encodes the
-        reference/teacher rule so dataset generation and early integration
-        tests can be validated.
+        self._dense_hidden = tf.keras.layers.Dense(
+            self.hidden_units,
+            activation="relu",
+            name="dense_hidden",
+            dtype=self.dtype,
+        )
+        self._dense_out = tf.keras.layers.Dense(
+            out_dim,
+            activation="sigmoid",
+            name="dense_out",
+            dtype=self.dtype,
+        )
+        self._built_for_L = L
+        super().build(input_shape)
 
-    Args:
-        name: Optional Keras layer name.
+    def call(self, gun_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor:
+        x = tf.convert_to_tensor(gun_batch, dtype=self.dtype or tf.float32)
+        _ensure_rank2(x, "gun_batch")
 
-    Call Args:
-        gun_batch: Tensor of shape ``(B, L)`` with values in ``{0, 1}``.
-            ``L`` must be even.
+        tf.debugging.assert_equal(
+            tf.shape(x)[-1] % 2,
+            0,
+            message="gun_batch last dimension L must be even so that L/2 is integer.",
+        )
 
-    Returns:
-        Tensor of shape ``(B, L/2)`` with values in ``{0, 1}`` (dtype float32).
-    """
+        if self._dense_hidden is None or self._dense_out is None:
+            raise RuntimeError("PyrMeasurementLayerB is not built correctly (missing sublayers).")
 
-    def __init__(self, name: Optional[str] = None) -> None:
-        super().__init__(name=name, trainable=False)
+        h = self._dense_hidden(x, training=training)
+        meas_b = self._dense_out(h, training=training)
+        return meas_b
 
-    def call(self, gun_batch: tf.Tensor) -> tf.Tensor:
-        """Compute pairwise "¬even AND odd" measurements.
-
-        Args:
-            gun_batch: Tensor of shape ``(B, L)`` with values in ``{0, 1}``.
-
-        Returns:
-            Tensor of shape ``(B, L/2)`` in ``{0, 1}``.
-        """
-        g = tf.convert_to_tensor(gun_batch, dtype=tf.float32)
-        L = tf.shape(g)[-1]
-        tf.debugging.assert_equal(L % 2, 0, message="Active length L must be even.")
-        pairs = tf.reshape(g, tf.concat([tf.shape(g)[:-1], [L // 2, 2]], axis=0))
-        even = pairs[..., 0]
-        odd = pairs[..., 1]
-        meas = (1.0 - even) * odd
-        # Ensure {0,1} (in case inputs weren't strictly binary floats)
-        meas = tf.clip_by_value(meas, 0.0, 1.0)
-        return meas
+    def get_config(self) -> Dict[str, Any]:
+        cfg = super().get_config()
+        cfg.update({"hidden_units": self.hidden_units})
+        return cfg

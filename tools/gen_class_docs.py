@@ -325,9 +325,9 @@ def rel_module_path(py_file: Path, src_dir: Path, package_prefix: str) -> str:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--src", default="src/Q_Sea_Battle", type=Path, help="Folder containing .py modules")
+    ap.add_argument("--src", default="docs_temp", type=Path, help="Folder containing .py modules")
     ap.add_argument("--package", default="Q_Sea_Battle", help="Python import prefix, e.g. Q_Sea_Battle.players")
-    ap.add_argument("--out", default="docs", type=Path, help="Docs output folder")
+    ap.add_argument("--out", default="docs_temp", type=Path, help="Docs output folder")
     ap.add_argument("--model", default="gpt-5.2")
     ap.add_argument("--design-notes", default="", help="Optional design notes text (applied to all modules)")
     ap.add_argument("--overwrite", action="store_true")

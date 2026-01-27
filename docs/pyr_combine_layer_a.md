@@ -1,25 +1,36 @@
 # PyrCombineLayerA
 
-> Role: Non-trainable Keras layer that computes Player A’s next pyramid-level binary field state by XOR-combining even-indexed bits with a PR-assisted outcome.
+> Role: Trainable Keras layer mapping `(field_batch, sr_outcome_batch)` to `next_field` logits for the next field.
+
 Location: `Q_Sea_Battle.pyr_combine_layer_a.PyrCombineLayerA`
+
+## Derived constraints
+
+- Let $L$ be the last dimension of `field_batch`; $L$ must be statically known at build time and must be even, so that $L/2$ is an integer.
+- Let $B$ be the batch dimension.
+- At runtime, the last dimension of `sr_outcome_batch` must equal $L/2$.
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| name | Optional[str], optional, default None, constraints: any valid Keras layer name, shape: scalar | Optional Keras layer name passed to the base `tf.keras.layers.Layer`. |
+| hidden_units | int, constraint $\ge 1$, scalar | Number of hidden units in the internal Dense(ReLU) layer. |
+| name | Optional[str], scalar | Keras layer name; may be `None`. |
+| dtype | Optional[tf.dtypes.DType], scalar | Layer dtype; may be `None` (defaults are applied by Keras and `call()` conversions). |
+| **kwargs | Any, variadic | Forwarded to `tf.keras.layers.Layer` constructor. |
 
 Preconditions
 
-- None specified.
+- `hidden_units` is an `int` with value $\ge 1$.
 
 Postconditions
 
-- The layer is created with `trainable=False`.
+- `self.hidden_units` is set to `int(hidden_units)`.
+- Sub-layers (`_dense_hidden`, `_dense_out`) are not created until `build()`.
 
 Errors
 
-- None raised directly by the constructor.
+- Raises `ValueError` if `hidden_units < 1`.
 
 Example
 
@@ -27,37 +38,79 @@ Example
 import tensorflow as tf
 from Q_Sea_Battle.pyr_combine_layer_a import PyrCombineLayerA
 
-layer = PyrCombineLayerA(name="pyr_combine_a")
+layer = PyrCombineLayerA(hidden_units=64, dtype=tf.float32)
 ```
 
 ## Public Methods
 
-### call(field_batch, sr_outcome_batch)
+### build
 
-Combine the current field with the PR-assisted outcome by taking even-indexed field bits and computing elementwise XOR via $(a + b) \bmod 2$.
+Signature: `build(input_shape: Any) -> None`
 
 Parameters
 
-- field_batch: tf.Tensor, dtype float32 (converted internally), constraints: values in {0,1} expected, shape (B, L)
-- sr_outcome_batch: tf.Tensor, dtype float32 (converted internally), constraints: values in {0,1} expected, shape (B, L/2)
+- `input_shape`: Any, constraint "shape-like accepted by Keras", scalar or nested; expected to describe `field_batch` as `(B, L)` and may also include a second shape for `sr_outcome_batch` that is ignored for building.
 
 Returns
 
-- tf.Tensor, dtype float32, constraints: values in {0,1} produced by floormod, shape (B, L/2)
+- `None`.
+
+Behavior
+
+- Infers $L$ from the last dimension of the field shape and computes `out_dim = L // 2`.
+- Creates two Dense sublayers: a hidden Dense with `hidden_units` and ReLU activation, and an output Dense with `out_dim` and linear activation.
+- Records `self._built_for_L = L`.
 
 Preconditions
 
-- L (the last dimension of `field_batch`) must be even.
-- `sr_outcome_batch` last dimension must equal L/2.
+- The last dimension $L$ of the field shape is statically known (not `None`).
+- $L$ is even.
 
 Postconditions
 
-- Output equals `floormod(field_batch[..., ::2] + sr_outcome_batch, 2.0)`.
+- `self._dense_hidden` and `self._dense_out` are non-`None` instances of `tf.keras.layers.Dense`.
+- `self._built_for_L` is set to `int(L)`.
 
 Errors
 
-- Raises via TensorFlow runtime assertions: `tf.debugging.assert_equal(L % 2, 0, ...)` if L is not even.
-- Raises via TensorFlow runtime assertions: `tf.debugging.assert_equal(tf.shape(field[..., ::2])[-1], tf.shape(sr_outcome_batch)[-1], ...)` if `sr_outcome_batch` length does not equal L/2.
+- Raises `ValueError` if the field shape last dimension is not statically known.
+- Raises `ValueError` if $L$ is not even.
+
+### call
+
+Signature: `call(field_batch: tf.Tensor, sr_outcome_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
+
+Parameters
+
+- `field_batch`: tf.Tensor, dtype convertible to `self.dtype` (or `tf.float32` if `self.dtype is None`), shape $(B, L)$, rank 2.
+- `sr_outcome_batch`: tf.Tensor, dtype convertible to `self.dtype` (or `tf.float32` if `self.dtype is None`), shape $(B, L/2)$, rank 2.
+- `training`: bool, scalar; forwarded to Dense sublayers.
+- `**kwargs`: Any, variadic; accepted but not used.
+
+Returns
+
+- `next_field`: tf.Tensor, dtype `self.dtype` if set else `tf.float32`, shape $(B, L/2)$.
+
+Behavior
+
+- Converts inputs to tensors with dtype `self.dtype` (or `tf.float32` if unset).
+- Validates both inputs are rank-2.
+- Asserts at runtime that `sr_outcome_batch.shape[-1] == field_batch.shape[-1] // 2`.
+- Concatenates inputs along the last axis to form shape $(B, 3L/2)$, applies hidden Dense(ReLU), then output Dense(linear) to produce logits.
+
+Preconditions
+
+- Layer has been built so that `_dense_hidden` and `_dense_out` exist.
+
+Postconditions
+
+- No state is created during the call.
+
+Errors
+
+- Raises `ValueError` if either input is not rank-2 (when rank is statically known and not equal to 2).
+- Raises a TensorFlow assertion error at runtime if `sr_outcome_batch` last dimension does not equal `field_batch` last dimension divided by 2.
+- Raises `RuntimeError` if sublayers are missing (layer not built correctly).
 
 Example
 
@@ -65,22 +118,37 @@ Example
 import tensorflow as tf
 from Q_Sea_Battle.pyr_combine_layer_a import PyrCombineLayerA
 
-layer = PyrCombineLayerA()
+B, L = 4, 10
+field = tf.random.uniform((B, L), dtype=tf.float32)
+sr = tf.random.uniform((B, L // 2), dtype=tf.float32)
 
-field_batch = tf.constant([[1, 0, 1, 1],
-                           [0, 1, 0, 1]], dtype=tf.float32)   # shape (B=2, L=4)
-sr_outcome_batch = tf.constant([[0, 1],
-                                [1, 1]], dtype=tf.float32)    # shape (2, 2)
-
-# even bits are [1,1] and [0,0]; XOR with sr_outcome_batch via mod-2 add
-next_field = layer(field_batch, sr_outcome_batch)             # shape (2, 2)
+layer = PyrCombineLayerA(hidden_units=32, dtype=tf.float32)
+logits = layer(field, sr, training=True)
+assert logits.shape == (B, L // 2)
 ```
+
+### get_config
+
+Signature: `get_config() -> Dict[str, Any]`
+
+Parameters
+
+- None.
+
+Returns
+
+- `config`: Dict[str, Any], mapping; includes base layer config plus key `"hidden_units"` with value `int`.
+
+Behavior
+
+- Extends `tf.keras.layers.Layer.get_config()` with `{"hidden_units": self.hidden_units}`.
 
 ## Data & State
 
-- Inherits from `tf.keras.layers.Layer`.
-- Trainable state: None (layer is constructed with `trainable=False`).
-- Internal state: None specified.
+- `hidden_units`: int, constraint $\ge 1$, scalar; persisted in config.
+- `_dense_hidden`: Optional[tf.keras.layers.Dense], scalar; created in `build()`, otherwise `None`.
+- `_dense_out`: Optional[tf.keras.layers.Dense], scalar; created in `build()`, otherwise `None`.
+- `_built_for_L`: Optional[int], scalar; set to $L$ in `build()`, otherwise `None`.
 
 ## Planned (design-spec)
 
@@ -88,17 +156,18 @@ next_field = layer(field_batch, sr_outcome_batch)             # shape (2, 2)
 
 ## Deviations
 
-- Not specified.
+- The module docstring describes a contract that `sr_outcome_batch` has shape `(B, L/2)` and that `build()` can use only the field shape; the implementation matches this, but `build()` accepts multiple possible `input_shape` encodings and ignores SR shape even when provided.
 
 ## Notes for Contributors
 
-- This layer converts inputs to `tf.float32` and uses `tf.math.floormod(even + sr, 2.0)` to implement XOR; changing dtype or the XOR implementation may affect downstream assumptions about output dtype and value set.
-- Input value constraints ({0,1}) are documented but not explicitly asserted beyond shape checks; consider adding value-range assertions only if required by performance and correctness constraints.
+- Keras may call `build()` with only the first input shape for multi-input layers; this implementation intentionally creates all state in `build()` from the field shape alone and validates SR shape at runtime in `call()`.
+- Avoid creating new variables or sublayers in `call()`; sublayers are expected to be created in `build()`.
 
 ## Related
 
-- TensorFlow: `tf.keras.layers.Layer`, `tf.convert_to_tensor`, `tf.debugging.assert_equal`, `tf.math.floormod`.
+- TensorFlow: `tf.keras.layers.Layer`, `tf.keras.layers.Dense`
+- Tensor ops: `tf.concat`, `tf.convert_to_tensor`, `tf.debugging.assert_equal`
 
 ## Changelog
 
-- 0.1: Initial Step 1 implementation encoding the teacher rule: next field is even-indexed bits XOR PR-assisted outcome.
+- Not specified.
