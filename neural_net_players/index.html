@@ -1,0 +1,2633 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Living specification for the QSeaBattle project.">
+      
+      
+        <meta name="author" content="Rob Hendriks">
+      
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>NeuralNetPlayers - QSeaBattle Specification</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#neuralnetplayers" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="QSeaBattle Specification" class="md-header__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QSeaBattle Specification
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              NeuralNetPlayers
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="QSeaBattle Specification" class="md-nav__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QSeaBattle Specification
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invariants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invariants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Algorithms
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simple
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majority
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linear_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyramidal_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyramid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Game
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tournament
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TournamentLog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Players
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared resources
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Shared resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared_resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssisted
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedLayer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_performance_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    reference_performance_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../neural_net_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    neural_net_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dru_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dru_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logits_utilities.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logits_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#constructor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constructor
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Methods
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public Methods">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#players" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        players()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reset()
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#set_exploreflag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        set_explore(flag)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#store_modelsfilenamea-filenameb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        store_models(filenameA, filenameB)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#load_modelsfilenamea-filenameb" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_models(filenameA, filenameB)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#traindataset-training_settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        train(dataset, training_settings)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train_model_adataset-training_settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        train_model_a(dataset, training_settings)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train_model_bdataset-training_settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        train_model_b(dataset, training_settings)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data &amp; State
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-design-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned (design-spec)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-for-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes for Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="neuralnetplayers">NeuralNetPlayers<a class="headerlink" href="#neuralnetplayers" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Role: Factory and manager for a shared pair of neural-network-based Sea Battle players (Player A for communication, Player B for shooting), including model persistence and separate training entry points.</p>
+</blockquote>
+<p>Location: <code>Q_Sea_Battle.neural_net_players.NeuralNetPlayers</code></p>
+<h2 id="constructor">Constructor<a class="headerlink" href="#constructor" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>game_layout</td>
+<td>GameLayout or None, default None, constraint: if None then a default <code>GameLayout()</code> is constructed</td>
+<td>Game configuration used to derive dimensions such as field_size and comms_size.</td>
+</tr>
+<tr>
+<td>model_a</td>
+<td>tf.keras.Model or None, default None</td>
+<td>Optional pre-constructed communication model for Player A; if None, built lazily on first use.</td>
+</tr>
+<tr>
+<td>model_b</td>
+<td>tf.keras.Model or None, default None</td>
+<td>Optional pre-constructed shoot model for Player B; if None, built lazily on first use.</td>
+</tr>
+<tr>
+<td>explore</td>
+<td>bool, default False</td>
+<td>Exploration flag propagated to created child players; True enables stochastic behavior, False deterministic thresholding.</td>
+</tr>
+</tbody>
+</table>
+<p>Preconditions</p>
+<ul>
+<li><code>game_layout</code> is either None or a <code>GameLayout</code> instance.</li>
+<li>If provided, <code>model_a</code> and <code>model_b</code> are compatible with the input/output shapes implied by the current <code>game_layout</code> (compatibility is not validated here).</li>
+</ul>
+<p>Postconditions</p>
+<ul>
+<li><code>self.game_layout: GameLayout</code> is set (constructed if <code>game_layout is None</code>).</li>
+<li><code>self.model_a: tf.keras.Model or None</code> and <code>self.model_b: tf.keras.Model or None</code> are stored without modification.</li>
+<li>Internal cached players <code>self._playerA</code> and <code>self._playerB</code> are initialized to None.</li>
+<li><code>self.explore: bool</code> is set.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; downstream errors may be raised by <code>GameLayout()</code> construction or by incompatible model usage later.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.neural_net_players</span><span class="w"> </span><span class="kn">import</span> <span class="n">NeuralNetPlayers</span>
+
+<span class="n">factory</span> <span class="o">=</span> <span class="n">NeuralNetPlayers</span><span class="p">(</span><span class="n">explore</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">player_a</span><span class="p">,</span> <span class="n">player_b</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">players</span><span class="p">()</span>
+</code></pre></div>
+<h2 id="public-methods">Public Methods<a class="headerlink" href="#public-methods" title="Permanent link">&para;</a></h2>
+<h3 id="players">players()<a class="headerlink" href="#players" title="Permanent link">&para;</a></h3>
+<p>Create or return a neural Player A/B pair, lazily constructing default models and caching created players.</p>
+<p>Returns</p>
+<ul>
+<li>Tuple[PlayerA, PlayerB], shape (2,), constraints: <code>(player_a, player_b)</code> where instances are cached and reused across calls.</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>If <code>self.model_a is None</code>, assigns <code>self.model_a = self._build_model_a()</code>.</li>
+<li>If <code>self.model_b is None</code>, assigns <code>self.model_b = self._build_model_b()</code>.</li>
+<li>If cached players are missing, constructs <code>NeuralNetPlayerA</code> and/or <code>NeuralNetPlayerB</code> with <code>game_layout=self.game_layout</code>, the relevant model, and <code>explore=self.explore</code>.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; may raise errors from TensorFlow/Keras model construction or player constructors.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">player_a</span><span class="p">,</span> <span class="n">player_b</span> <span class="o">=</span> <span class="n">factory</span><span class="o">.</span><span class="n">players</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="reset">reset()<a class="headerlink" href="#reset" title="Permanent link">&para;</a></h3>
+<p>Reset internal state of the neural players (clears per-game log-probabilities) without modifying the underlying Keras models.</p>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>Calls <code>self._playerA.reset()</code> if <code>self._playerA is not None</code>.</li>
+<li>Calls <code>self._playerB.reset()</code> if <code>self._playerB is not None</code>.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">factory</span><span class="o">.</span><span class="n">reset</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="set_exploreflag">set_explore(flag)<a class="headerlink" href="#set_exploreflag" title="Permanent link">&para;</a></h3>
+<p>Set exploration behavior for both cached players (if they exist) and update the factory flag used for newly created players.</p>
+<p>Parameters</p>
+<ul>
+<li>flag: bool, constraints: {True, False}</li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>Sets <code>self.explore = flag</code>.</li>
+<li>If cached players exist, sets <code>self._playerA.explore = flag</code> and <code>self._playerB.explore = flag</code>.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">factory</span><span class="o">.</span><span class="n">set_explore</span><span class="p">(</span><span class="kc">False</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="store_modelsfilenamea-filenameb">store_models(filenameA, filenameB)<a class="headerlink" href="#store_modelsfilenamea-filenameb" title="Permanent link">&para;</a></h3>
+<p>Store the underlying Keras models to disk, lazily building them first if needed.</p>
+<p>Parameters</p>
+<ul>
+<li>filenameA: str, constraints: path-like string accepted by <code>tf.keras.Model.save</code></li>
+<li>filenameB: str, constraints: path-like string accepted by <code>tf.keras.Model.save</code></li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>Ensures <code>self.model_a</code> and <code>self.model_b</code> are non-None by building defaults if needed.</li>
+<li>Calls <code>self.model_a.save(filenameA)</code> and <code>self.model_b.save(filenameB)</code>.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; may raise I/O errors or TensorFlow/Keras serialization errors.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">factory</span><span class="o">.</span><span class="n">store_models</span><span class="p">(</span><span class="s2">&quot;model_a.keras&quot;</span><span class="p">,</span> <span class="s2">&quot;model_b.keras&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="load_modelsfilenamea-filenameb">load_models(filenameA, filenameB)<a class="headerlink" href="#load_modelsfilenamea-filenameb" title="Permanent link">&para;</a></h3>
+<p>Load Keras models from disk, attach them to this factory, and update existing cached players to reference the loaded models.</p>
+<p>Parameters</p>
+<ul>
+<li>filenameA: str, constraints: path-like string accepted by <code>tf.keras.models.load_model</code></li>
+<li>filenameB: str, constraints: path-like string accepted by <code>tf.keras.models.load_model</code></li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>Sets <code>self.model_a = tf.keras.models.load_model(filenameA)</code>.</li>
+<li>Sets <code>self.model_b = tf.keras.models.load_model(filenameB)</code>.</li>
+<li>If cached players exist, updates <code>self._playerA.model_a</code> and/or <code>self._playerB.model_b</code> to point to the newly loaded models.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; may raise I/O errors or TensorFlow/Keras deserialization errors.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">factory</span><span class="o">.</span><span class="n">load_models</span><span class="p">(</span><span class="s2">&quot;model_a.keras&quot;</span><span class="p">,</span> <span class="s2">&quot;model_b.keras&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="traindataset-training_settings">train(dataset, training_settings)<a class="headerlink" href="#traindataset-training_settings" title="Permanent link">&para;</a></h3>
+<p>Legacy training API; currently a no-op that emits a deprecation warning.</p>
+<p>Parameters</p>
+<ul>
+<li>dataset: Unknown, constraints: Not specified</li>
+<li>training_settings: Unknown, constraints: Not specified</li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None, constraints: always returns without training</li>
+</ul>
+<p>Side effects</p>
+<ul>
+<li>Emits <code>UserWarning</code> via <code>warnings.warn(...)</code>.</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">factory</span><span class="o">.</span><span class="n">train</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">training_settings</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="train_model_adataset-training_settings">train_model_a(dataset, training_settings)<a class="headerlink" href="#train_model_adataset-training_settings" title="Permanent link">&para;</a></h3>
+<p>Train the communication model (model_a) on a dataset.</p>
+<p>Parameters</p>
+<ul>
+<li>dataset: pandas.DataFrame, constraints: must contain column <code>"field"</code> with array-like per-row entries and column <code>"comm"</code> with array-like per-row entries; optional column <code>"sample_weight"</code> if enabled; shapes: <code>"field"</code> entries reshape to (n2,) and <code>"comm"</code> entries reshape to (m,)</li>
+<li>training_settings: dict-like, constraints: supports keys <code>"use_sample_weight"</code> (bool-like), <code>"epochs"</code> (int-like), <code>"batch_size"</code> (int-like), <code>"learning_rate"</code> (float-like), <code>"verbose"</code> (int-like)</li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Behavior</p>
+<ul>
+<li>Defines <span class="arithmatex">\(n2 = \mathrm{field\_size}^2\)</span> and <span class="arithmatex">\(m = \mathrm{comms\_size}\)</span> from <code>self.game_layout</code>.</li>
+<li>Builds <code>self.model_a</code> via <code>_build_model_a()</code> if it is None.</li>
+<li>Constructs training inputs: <code>fields_scaled</code> is produced by stacking <code>dataset["field"]</code>, reshaping to <code>(-1, n2)</code>, converting to float32, and applying <code>_scale_field(...)</code>.</li>
+<li>Constructs targets: <code>comms_teacher</code> by stacking <code>dataset["comm"]</code>, reshaping to <code>(-1, m)</code>, converting to float32.</li>
+<li>Optionally uses <code>sample_weight</code> if <code>training_settings["use_sample_weight"]</code> is truthy and <code>"sample_weight"</code> exists in <code>dataset.columns</code>.</li>
+<li>Compiles <code>self.model_a</code> with <code>Adam(learning_rate)</code>, <code>BinaryCrossentropy(from_logits=True)</code>, and metric <code>"accuracy"</code>.</li>
+<li>Calls <code>.fit(...)</code> with <code>epochs</code>, <code>batch_size</code>, and <code>verbose</code> from <code>training_settings</code> (defaults: 3, 32, 1e-3, 0).</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; may raise KeyError for missing required columns, NumPy reshape/stack errors for inconsistent shapes, and TensorFlow/Keras training errors.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">training_settings</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;epochs&quot;</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">}</span>
+<span class="n">factory</span><span class="o">.</span><span class="n">train_model_a</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">training_settings</span><span class="o">=</span><span class="n">training_settings</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="train_model_bdataset-training_settings">train_model_b(dataset, training_settings)<a class="headerlink" href="#train_model_bdataset-training_settings" title="Permanent link">&para;</a></h3>
+<p>Train the shoot model (model_b) on a dataset.</p>
+<p>Parameters</p>
+<ul>
+<li>dataset: pandas.DataFrame, constraints: must contain column <code>"gun"</code> with array-like per-row entries, column <code>"comm"</code> with array-like per-row entries, and column <code>"shoot"</code> with scalar/array-like per-row entries; optional column <code>"sample_weight"</code> if enabled; shapes: <code>"gun"</code> entries reshape to (n2,), <code>"comm"</code> entries reshape to (m,), <code>"shoot"</code> reshapes to (1,)</li>
+<li>training_settings: dict-like, constraints: supports keys <code>"use_sample_weight"</code> (bool-like), <code>"epochs"</code> (int-like), <code>"batch_size"</code> (int-like), <code>"learning_rate"</code> (float-like), <code>"verbose"</code> (int-like)</li>
+</ul>
+<p>Returns</p>
+<ul>
+<li>None</li>
+</ul>
+<p>Behavior</p>
+<ul>
+<li>Defines <span class="arithmatex">\(n2 = \mathrm{field\_size}^2\)</span> and <span class="arithmatex">\(m = \mathrm{comms\_size}\)</span> from <code>self.game_layout</code>.</li>
+<li>Builds <code>self.model_b</code> via <code>_build_model_b()</code> if it is None.</li>
+<li>Constructs gun index feature: stacks <code>dataset["gun"]</code>, reshapes to <code>(-1, n2)</code>, converts to float32, then calls <code>_gun_one_hot_to_index(guns)</code> to obtain <code>gun_idx_norm</code>, documented in code as shape <code>(N, 1)</code>.</li>
+<li>Constructs communication feature: stacks <code>dataset["comm"]</code>, reshapes to <code>(-1, m)</code>, converts to float32.</li>
+<li>Concatenates features: <code>x = np.concatenate([gun_idx_norm, comms], axis=1)</code>, yielding shape <code>(N, 1 + m)</code>.</li>
+<li>Constructs targets: <code>shoots = dataset["shoot"].to_numpy().astype("float32").reshape((-1, 1))</code>.</li>
+<li>Optionally uses <code>sample_weight</code> if <code>training_settings["use_sample_weight"]</code> is truthy and <code>"sample_weight"</code> exists in <code>dataset.columns</code>.</li>
+<li>Compiles <code>self.model_b</code> with <code>Adam(learning_rate)</code>, <code>BinaryCrossentropy(from_logits=True)</code>, and metric <code>"accuracy"</code>.</li>
+<li>Calls <code>.fit(...)</code> with <code>epochs</code>, <code>batch_size</code>, and <code>verbose</code> from <code>training_settings</code> (defaults: 3, 32, 1e-3, 0).</li>
+</ul>
+<p>Errors</p>
+<ul>
+<li>Not specified; may raise KeyError for missing required columns, NumPy shape/concat errors, and TensorFlow/Keras training errors.</li>
+</ul>
+<p>Example</p>
+<div class="highlight"><pre><span></span><code><span class="n">training_settings</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;epochs&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;batch_size&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="s2">&quot;verbose&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">}</span>
+<span class="n">factory</span><span class="o">.</span><span class="n">train_model_b</span><span class="p">(</span><span class="n">dataset</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">training_settings</span><span class="o">=</span><span class="n">training_settings</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="data-state">Data &amp; State<a class="headerlink" href="#data-state" title="Permanent link">&para;</a></h2>
+<ul>
+<li>has_log_probs: bool, constraints: always True in this implementation; indicates Tournament should attempt to read log-probabilities via <code>get_log_prob</code> from underlying players.</li>
+<li>game_layout: GameLayout, constraints: non-None after construction; used to derive <code>field_size</code> and <code>comms_size</code>.</li>
+<li>explore: bool, constraints: {True, False}; propagated to created/cached players and used when creating new ones.</li>
+<li>model_a: tf.keras.Model or None, constraints: if non-None should map input shape (n2,) to output shape (m,) with logits semantics (trained with <code>BinaryCrossentropy(from_logits=True)</code>).</li>
+<li>model_b: tf.keras.Model or None, constraints: if non-None should map input shape (1 + m,) to output shape (1,) with logits semantics (trained with <code>BinaryCrossentropy(from_logits=True)</code>).</li>
+<li>_playerA: NeuralNetPlayerA or None, constraints: cached instance; created lazily by <code>players()</code>.</li>
+<li>_playerB: NeuralNetPlayerB or None, constraints: cached instance; created lazily by <code>players()</code>.</li>
+</ul>
+<h2 id="planned-design-spec">Planned (design-spec)<a class="headerlink" href="#planned-design-spec" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Not specified.</li>
+</ul>
+<h2 id="deviations">Deviations<a class="headerlink" href="#deviations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Not specified.</li>
+</ul>
+<h2 id="notes-for-contributors">Notes for Contributors<a class="headerlink" href="#notes-for-contributors" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Dimension symbols used throughout training are derived from <code>self.game_layout</code>: <span class="arithmatex">\(n2 = \mathrm{field\_size}^2\)</span> and <span class="arithmatex">\(m = \mathrm{comms\_size}\)</span>.</li>
+<li>Default model architectures are constructed lazily; changes to <code>game_layout</code> after instantiation may desynchronize expected shapes from previously built models (no validation is performed here).</li>
+<li><code>train()</code> is retained only for backward compatibility and intentionally performs no training; callers should be migrated to <code>train_model_a()</code> and <code>train_model_b()</code>.</li>
+</ul>
+<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>Q_Sea_Battle.players_base.Players</code> (base factory interface)</li>
+<li><code>Q_Sea_Battle.neural_net_player_a.NeuralNetPlayerA</code> and <code>_scale_field</code></li>
+<li><code>Q_Sea_Battle.neural_net_player_b.NeuralNetPlayerB</code> and <code>_gun_one_hot_to_index</code></li>
+<li><code>Q_Sea_Battle.game_layout.GameLayout</code></li>
+</ul>
+<h2 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h2>
+<ul>
+<li>0.1: Initial version in module header; <code>train_model_a</code> and <code>train_model_b</code> present alongside deprecated no-op <code>train()</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

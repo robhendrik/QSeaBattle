@@ -1,0 +1,3129 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Living specification for the QSeaBattle project.">
+      
+      
+        <meta name="author" content="Rob Hendriks">
+      
+      
+      
+        <link rel="prev" href="../dru_utilities/">
+      
+      
+        <link rel="next" href="../pyr_trainable_assisted_imitation_utilities/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>lin_trainable_assisted_imitation_utilities - QSeaBattle Specification</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lin_trainable_assisted_imitation_utilities" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="QSeaBattle Specification" class="md-header__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QSeaBattle Specification
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              lin_trainable_assisted_imitation_utilities
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="QSeaBattle Specification" class="md-nav__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QSeaBattle Specification
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invariants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invariants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Algorithms
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simple
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majority
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linear_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyramidal_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyramid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Game
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tournament
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TournamentLog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Players
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared resources
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Shared resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared_resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssisted
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedLayer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_9" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_performance_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    reference_performance_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../neural_net_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    neural_net_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dru_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dru_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logits_utilities.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logits_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_rngseed-optionalint-nprandomgenerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _rng(seed: Optional[int]) -&gt; np.random.Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_n2_from_layoutlayout-any-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _n2_from_layout(layout: Any) -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_m_from_layoutlayout-any-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _m_from_layout(layout: Any) -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_as_float01x-npndarray-npndarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _as_float01(x: np.ndarray) -&gt; np.ndarray
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_parity_bitsx01-npndarray-npndarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _parity_bits(x01: np.ndarray) -&gt; np.ndarray
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_layer_is_builtlayer-tfkeraslayerslayer-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _layer_is_built(layer: tf.keras.layers.Layer) -&gt; bool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_measurement_dataset_alayout-any-num_samples-int-p_one-float-05-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_measurement_dataset_a(layout: Any, num_samples: int, p_one: float = 0.5, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_measurement_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_measurement_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_combine_dataset_alayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_combine_dataset_a(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_combine_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_combine_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_tf_datasetdataset-unionarraydict-sequencemappingstr-any-x_keys-sequencestr-y_key-str-batch_size-int-32-shuffle-bool-true-seed-optionalint-none-tfdatadataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_tf_dataset(dataset: Union[ArrayDict, Sequence[Mapping[str, Any]]], x_keys: Sequence[str], y_key: str, batch_size: int = 32, shuffle: bool = True, seed: Optional[int] = None) -&gt; tf.data.Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_layer_weightssource_layer-tfkeraslayerslayer-target_layer-tfkeraslayerslayer-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_layer_weights(source_layer: tf.keras.layers.Layer, target_layer: tf.keras.layers.Layer) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_assisted_model_a_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_a-any-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_assisted_model_a_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_a: Any) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_assisted_model_b_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_b-any-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_assisted_model_b_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_b: Any) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train_layerlayer-ds-loss-epochs-int-metricsnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        train_layer(layer, ds, loss, epochs: int, metrics=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constants
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-design-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned (design-spec)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-for-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes for Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public API
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public API">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Functions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Functions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_rngseed-optionalint-nprandomgenerator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _rng(seed: Optional[int]) -&gt; np.random.Generator
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_n2_from_layoutlayout-any-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _n2_from_layout(layout: Any) -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_m_from_layoutlayout-any-int" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _m_from_layout(layout: Any) -&gt; int
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_as_float01x-npndarray-npndarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _as_float01(x: np.ndarray) -&gt; np.ndarray
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_parity_bitsx01-npndarray-npndarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _parity_bits(x01: np.ndarray) -&gt; np.ndarray
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_layer_is_builtlayer-tfkeraslayerslayer-bool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        _layer_is_built(layer: tf.keras.layers.Layer) -&gt; bool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_measurement_dataset_alayout-any-num_samples-int-p_one-float-05-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_measurement_dataset_a(layout: Any, num_samples: int, p_one: float = 0.5, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_measurement_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_measurement_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_combine_dataset_alayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_combine_dataset_a(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generate_combine_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate_combine_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#to_tf_datasetdataset-unionarraydict-sequencemappingstr-any-x_keys-sequencestr-y_key-str-batch_size-int-32-shuffle-bool-true-seed-optionalint-none-tfdatadataset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to_tf_dataset(dataset: Union[ArrayDict, Sequence[Mapping[str, Any]]], x_keys: Sequence[str], y_key: str, batch_size: int = 32, shuffle: bool = True, seed: Optional[int] = None) -&gt; tf.data.Dataset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_layer_weightssource_layer-tfkeraslayerslayer-target_layer-tfkeraslayerslayer-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_layer_weights(source_layer: tf.keras.layers.Layer, target_layer: tf.keras.layers.Layer) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_assisted_model_a_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_a-any-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_assisted_model_a_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_a: Any) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#transfer_assisted_model_b_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_b-any-none" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        transfer_assisted_model_b_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_b: Any) -&gt; None
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#train_layerlayer-ds-loss-epochs-int-metricsnone" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        train_layer(layer, ds, loss, epochs: int, metrics=None)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constants
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-design-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned (design-spec)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes-for-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notes for Contributors
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="lin_trainable_assisted_imitation_utilities">lin_trainable_assisted_imitation_utilities<a class="headerlink" href="#lin_trainable_assisted_imitation_utilities" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p>Role: Generate reproducible synthetic supervised imitation datasets (parity-prototype targets), convert them to <code>tf.data.Dataset</code>, and provide minimal Keras weight-transfer + single-layer training helpers for linear trainable assisted layers in QSeaBattle.
+Location: <code>Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</code></p>
+</blockquote>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>This module provides utilities to imitation-train linear assisted layers by generating synthetic supervised datasets with parity-based targets, converting datasets into TensorFlow input pipelines, and transferring trained weights into other layer/model instances. Generated datasets are NumPy array dictionaries with leading dimension <code>num_samples</code>; arrays are float32 with values in <code>{0.0, 1.0}</code> for TensorFlow friendliness. All generators are reproducible via an explicit RNG seed.</p>
+<p>Terminology used by the module: SR (shared resource) is a pre-shared auxiliary resource available without communication; <code>PRAssistedLayer</code> is referenced as a specific SR type (not defined in this module).</p>
+<h2 id="public-api">Public API<a class="headerlink" href="#public-api" title="Permanent link">&para;</a></h2>
+<h3 id="functions">Functions<a class="headerlink" href="#functions" title="Permanent link">&para;</a></h3>
+<h4 id="_rngseed-optionalint-nprandomgenerator"><code>_rng(seed: Optional[int]) -&gt; np.random.Generator</code><a class="headerlink" href="#_rngseed-optionalint-nprandomgenerator" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Create a reproducible NumPy random generator from an optional seed.</p>
+<p><strong>Arguments:</strong>
+- <code>seed</code>: Optional RNG seed.</p>
+<p><strong>Returns:</strong>
+- A <code>np.random.Generator</code> instance.</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_rng</span>
+
+<span class="n">r</span> <span class="o">=</span> <span class="n">_rng</span><span class="p">(</span><span class="mi">123</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">integers</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span><span class="p">,))</span>
+</code></pre></div></p>
+<h4 id="_n2_from_layoutlayout-any-int"><code>_n2_from_layout(layout: Any) -&gt; int</code><a class="headerlink" href="#_n2_from_layoutlayout-any-int" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Compute <code>n²</code> (field size squared) from a layout-like object or raw integer.</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Either an object with attribute <code>field_size</code>, or a raw integer interpreted as <code>field_size</code>.</p>
+<p><strong>Returns:</strong>
+- <code>n2</code>: An integer equal to <code>field_size * field_size</code>.</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_n2_from_layout</span>
+
+<span class="n">n2</span> <span class="o">=</span> <span class="n">_n2_from_layout</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>  <span class="c1"># 25</span>
+</code></pre></div></p>
+<h4 id="_m_from_layoutlayout-any-int"><code>_m_from_layout(layout: Any) -&gt; int</code><a class="headerlink" href="#_m_from_layoutlayout-any-int" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Extract <code>m</code> (communication bits size) from a layout-like object, defaulting to <code>1</code> if unspecified.</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Layout-like object; if it has <code>comms_size</code>, that value is used.</p>
+<p><strong>Returns:</strong>
+- <code>m</code>: Integer comms size.</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_m_from_layout</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">comms_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">_m_from_layout</span><span class="p">(</span><span class="n">layout</span><span class="p">)</span>  <span class="c1"># 3</span>
+</code></pre></div></p>
+<h4 id="_as_float01x-npndarray-npndarray"><code>_as_float01(x: np.ndarray) -&gt; np.ndarray</code><a class="headerlink" href="#_as_float01x-npndarray-npndarray" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Ensure an array is <code>float32</code> (intended to represent values in <code>{0.0, 1.0}</code>).</p>
+<p><strong>Arguments:</strong>
+- <code>x</code>: NumPy array.</p>
+<p><strong>Returns:</strong>
+- A NumPy array cast to <code>np.float32</code> (or returned unchanged if already <code>float32</code>).</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_as_float01</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">_as_float01</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># float32</span>
+</code></pre></div></p>
+<h4 id="_parity_bitsx01-npndarray-npndarray"><code>_parity_bits(x01: np.ndarray) -&gt; np.ndarray</code><a class="headerlink" href="#_parity_bitsx01-npndarray-npndarray" title="Permanent link">&para;</a></h4>
+<p><strong>Signature:</strong> <code>_parity_bits(x01: np.ndarray) -&gt; np.ndarray</code></p>
+<p><strong>Purpose:</strong> Compute parity (XOR reduction) over the last dimension.</p>
+<p><strong>Arguments:</strong>
+- <code>x01</code>: Array with last dimension <code>N</code>, values intended in <code>{0, 1}</code> (int/bool/float accepted; floats are thresholded at <code>&gt; 0.5</code>).</p>
+<p><strong>Returns:</strong>
+- <code>parity</code>: Array with shape <code>x01.shape[:-1]</code>, dtype <code>int64</code>, values in <code>{0, 1}</code>.</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_parity_bits</span>
+
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">p</span> <span class="o">=</span> <span class="n">_parity_bits</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>  <span class="c1"># array([0, 1])</span>
+</code></pre></div></p>
+<h4 id="_layer_is_builtlayer-tfkeraslayerslayer-bool"><code>_layer_is_built(layer: tf.keras.layers.Layer) -&gt; bool</code><a class="headerlink" href="#_layer_is_builtlayer-tfkeraslayerslayer-bool" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Check whether a Keras layer is built and has weights.</p>
+<p><strong>Arguments:</strong>
+- <code>layer</code>: A <code>tf.keras.layers.Layer</code>.</p>
+<p><strong>Returns:</strong>
+- <code>True</code> if <code>layer.built</code> is truthy and <code>layer.weights</code> is not <code>None</code>, else <code>False</code>.</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">_layer_is_built</span>
+
+<span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="n">built</span> <span class="o">=</span> <span class="n">_layer_is_built</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>  <span class="c1"># likely False until first call/build</span>
+</code></pre></div></p>
+<h4 id="generate_measurement_dataset_alayout-any-num_samples-int-p_one-float-05-seed-optionalint-none-arraydict"><code>generate_measurement_dataset_a(layout: Any, num_samples: int, p_one: float = 0.5, seed: Optional[int] = None) -&gt; ArrayDict</code><a class="headerlink" href="#generate_measurement_dataset_alayout-any-num_samples-int-p_one-float-05-seed-optionalint-none-arraydict" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Generate supervised pairs for <code>LinMeasurementLayerA</code> where the target equals the field (<code>meas_target == field</code>).</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Layout-like object or int; used to determine <code>n2 = field_size²</code>.
+- <code>num_samples</code>: Number of samples to generate.
+- <code>p_one</code>: Probability of a <code>1</code> in each field bit (Bernoulli/binomial).
+- <code>seed</code>: Optional RNG seed for reproducibility.</p>
+<p><strong>Returns:</strong>
+- A dict with keys:
+  - <code>"field"</code>: shape <code>(num_samples, n2)</code>, float32 in <code>{0.0, 1.0}</code>
+  - <code>"meas_target"</code>: shape <code>(num_samples, n2)</code>, identical copy of <code>"field"</code></p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_measurement_dataset_a</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">generate_measurement_dataset_a</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">p_one</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">field</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">]</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;meas_target&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<h4 id="generate_measurement_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict"><code>generate_measurement_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict</code><a class="headerlink" href="#generate_measurement_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Generate supervised pairs for <code>LinMeasurementLayerB</code> where the input gun vector is one-hot and the target equals the gun (<code>meas_target == gun</code>).</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Layout-like object or int; used to determine <code>n2 = field_size²</code>.
+- <code>num_samples</code>: Number of samples to generate.
+- <code>seed</code>: Optional RNG seed for reproducibility.</p>
+<p><strong>Returns:</strong>
+- A dict with keys:
+  - <code>"gun"</code>: shape <code>(num_samples, n2)</code>, one-hot float32 vectors
+  - <code>"meas_target"</code>: shape <code>(num_samples, n2)</code>, identical copy of <code>"gun"</code></p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_measurement_dataset_b</span>
+
+<span class="n">ds</span> <span class="o">=</span> <span class="n">generate_measurement_dataset_b</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">gun</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;gun&quot;</span><span class="p">]</span>
+<span class="n">target</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;meas_target&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+<h4 id="generate_combine_dataset_alayout-any-num_samples-int-seed-optionalint-none-arraydict"><code>generate_combine_dataset_a(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict</code><a class="headerlink" href="#generate_combine_dataset_alayout-any-num_samples-int-seed-optionalint-none-arraydict" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Generate supervised pairs for <code>LinCombineLayerA</code> where <code>comm_target</code> is the parity of <code>outcomes_a</code>, replicated to <code>m</code> bits.</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Layout-like object or int; used to determine <code>n2 = field_size²</code> and <code>m = comms_size</code> (default <code>1</code>).
+- <code>num_samples</code>: Number of samples to generate.
+- <code>seed</code>: Optional RNG seed for reproducibility.</p>
+<p><strong>Returns:</strong>
+- A dict with keys:
+  - <code>"outcomes_a"</code>: shape <code>(num_samples, n2)</code>, random float32 in <code>{0.0, 1.0}</code>
+  - <code>"comm_target"</code>: shape <code>(num_samples, m)</code>, float32 where each row is <code>parity(outcomes_a[row])</code> replicated <code>m</code> times</p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_combine_dataset_a</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">field_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">comms_size</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">generate_combine_dataset_a</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="generate_combine_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict"><code>generate_combine_dataset_b(layout: Any, num_samples: int, seed: Optional[int] = None) -&gt; ArrayDict</code><a class="headerlink" href="#generate_combine_dataset_blayout-any-num_samples-int-seed-optionalint-none-arraydict" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Generate supervised triples for <code>LinCombineLayerB</code> where <code>shoot_target</code> is <code>parity(outcomes_b) XOR parity(comm)</code>.</p>
+<p><strong>Arguments:</strong>
+- <code>layout</code>: Layout-like object or int; used to determine <code>n2 = field_size²</code> and <code>m = comms_size</code> (default <code>1</code>).
+- <code>num_samples</code>: Number of samples to generate.
+- <code>seed</code>: Optional RNG seed for reproducibility.</p>
+<p><strong>Returns:</strong>
+- A dict with keys:
+  - <code>"outcomes_b"</code>: shape <code>(num_samples, n2)</code>, random float32 in <code>{0.0, 1.0}</code>
+  - <code>"comm"</code>: shape <code>(num_samples, m)</code>, random float32 in <code>{0.0, 1.0}</code>
+  - <code>"shoot_target"</code>: shape <code>(num_samples, 1)</code>, float32 in <code>{0.0, 1.0}</code></p>
+<p><strong>Errors:</strong>
+- Not specified.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">types</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleNamespace</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_combine_dataset_b</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="n">SimpleNamespace</span><span class="p">(</span><span class="n">field_size</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">comms_size</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">generate_combine_dataset_b</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">128</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">99</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="to_tf_datasetdataset-unionarraydict-sequencemappingstr-any-x_keys-sequencestr-y_key-str-batch_size-int-32-shuffle-bool-true-seed-optionalint-none-tfdatadataset"><code>to_tf_dataset(dataset: Union[ArrayDict, Sequence[Mapping[str, Any]]], x_keys: Sequence[str], y_key: str, batch_size: int = 32, shuffle: bool = True, seed: Optional[int] = None) -&gt; tf.data.Dataset</code><a class="headerlink" href="#to_tf_datasetdataset-unionarraydict-sequencemappingstr-any-x_keys-sequencestr-y_key-str-batch_size-int-32-shuffle-bool-true-seed-optionalint-none-tfdatadataset" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Convert a generated dataset (dict-of-arrays or list-of-rows) into a batched <code>tf.data.Dataset</code> yielding <code>(x, y)</code> for Keras training.</p>
+<p><strong>Arguments:</strong>
+- <code>dataset</code>: Either a mapping of arrays with leading dimension <code>N</code>, or a sequence of row mappings (e.g. <code>list[dict]</code>).
+- <code>x_keys</code>: Keys used as model inputs; if length is <code>1</code>, <code>x</code> is a single tensor; if length &gt; <code>1</code>, <code>x</code> is a tuple of tensors in this same order.
+- <code>y_key</code>: Key used as the target tensor.
+- <code>batch_size</code>: Batch size used by <code>.batch(...)</code>.
+- <code>shuffle</code>: Whether to shuffle before batching.
+- <code>seed</code>: Shuffle seed for reproducible ordering.</p>
+<p><strong>Returns:</strong>
+- A <code>tf.data.Dataset</code> yielding <code>(x, y)</code> batches, with tensors cast to float32 via <code>_as_float01</code>.</p>
+<p><strong>Errors:</strong>
+- <code>ImportError</code>: If TensorFlow is required but unavailable (guard present as <code>if tf is None</code>).
+- <code>ValueError</code>: If dict-of-arrays has inconsistent leading dimensions.
+- <code>ValueError</code>: If sequence-of-rows is empty.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_combine_dataset_b</span><span class="p">,</span> <span class="n">to_tf_dataset</span>
+
+<span class="n">np_ds</span> <span class="o">=</span> <span class="n">generate_combine_dataset_b</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">1000</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">tf_ds</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">np_ds</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;outcomes_b&quot;</span><span class="p">,</span> <span class="s2">&quot;comm&quot;</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">&quot;shoot_target&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="transfer_layer_weightssource_layer-tfkeraslayerslayer-target_layer-tfkeraslayerslayer-none"><code>transfer_layer_weights(source_layer: tf.keras.layers.Layer, target_layer: tf.keras.layers.Layer) -&gt; None</code><a class="headerlink" href="#transfer_layer_weightssource_layer-tfkeraslayerslayer-target_layer-tfkeraslayerslayer-none" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Copy trained weights from one built Keras layer into another, with explicit validation and clear errors on mismatch.</p>
+<p><strong>Arguments:</strong>
+- <code>source_layer</code>: Built layer providing weights.
+- <code>target_layer</code>: Built layer receiving weights.</p>
+<p><strong>Returns:</strong>
+- <code>None</code>.</p>
+<p><strong>Errors:</strong>
+- <code>ValueError</code>: If either layer is not built or has no weights.
+- <code>ValueError</code>: If number of weights differs.
+- <code>ValueError</code>: If any corresponding weight shapes differ (error message includes index and weight names when available).</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">transfer_layer_weights</span>
+
+<span class="n">src</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">tgt</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">src</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">tgt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">)))</span>
+<span class="n">transfer_layer_weights</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">tgt</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="transfer_assisted_model_a_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_a-any-none"><code>transfer_assisted_model_a_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_a: Any) -&gt; None</code><a class="headerlink" href="#transfer_assisted_model_a_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_a-any-none" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Copy trained measurement and combine layer weights into an object representing a full <code>LinTrainableAssistedModelA</code>-like model.</p>
+<p><strong>Arguments:</strong>
+- <code>trained_measure_layer</code>: Trained measurement layer to copy from.
+- <code>trained_combine_layer</code>: Trained combine layer to copy from.
+- <code>model_a</code>: Target model object expected to have <code>measure_layer</code> and <code>combine_layer</code> attributes.</p>
+<p><strong>Returns:</strong>
+- <code>None</code>.</p>
+<p><strong>Errors:</strong>
+- <code>AttributeError</code>: If <code>model_a</code> lacks <code>measure_layer</code> or <code>combine_layer</code>.
+- Propagates <code>ValueError</code> from <code>transfer_layer_weights</code> for build/shape mismatches.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">transfer_assisted_model_a_layer_weights</span>
+
+<span class="c1"># model_a must expose .measure_layer and .combine_layer; exact class is not specified in this module.</span>
+<span class="n">transfer_assisted_model_a_layer_weights</span><span class="p">(</span><span class="n">trained_measure_layer</span><span class="p">,</span> <span class="n">trained_combine_layer</span><span class="p">,</span> <span class="n">model_a</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="transfer_assisted_model_b_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_b-any-none"><code>transfer_assisted_model_b_layer_weights(trained_measure_layer: tf.keras.layers.Layer, trained_combine_layer: tf.keras.layers.Layer, model_b: Any) -&gt; None</code><a class="headerlink" href="#transfer_assisted_model_b_layer_weightstrained_measure_layer-tfkeraslayerslayer-trained_combine_layer-tfkeraslayerslayer-model_b-any-none" title="Permanent link">&para;</a></h4>
+<p><strong>Purpose:</strong> Symmetric helper to copy trained measurement and combine layer weights into a <code>LinTrainableAssistedModelB</code>-like object.</p>
+<p><strong>Arguments:</strong>
+- <code>trained_measure_layer</code>: Trained measurement layer to copy from.
+- <code>trained_combine_layer</code>: Trained combine layer to copy from.
+- <code>model_b</code>: Target model object expected to have <code>measure_layer</code> and <code>combine_layer</code> attributes.</p>
+<p><strong>Returns:</strong>
+- <code>None</code>.</p>
+<p><strong>Errors:</strong>
+- <code>AttributeError</code>: If <code>model_b</code> lacks <code>measure_layer</code> or <code>combine_layer</code>.
+- Propagates <code>ValueError</code> from <code>transfer_layer_weights</code> for build/shape mismatches.</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">transfer_assisted_model_b_layer_weights</span>
+
+<span class="n">transfer_assisted_model_b_layer_weights</span><span class="p">(</span><span class="n">trained_measure_layer</span><span class="p">,</span> <span class="n">trained_combine_layer</span><span class="p">,</span> <span class="n">model_b</span><span class="p">)</span>
+</code></pre></div></p>
+<h4 id="train_layerlayer-ds-loss-epochs-int-metricsnone"><code>train_layer(layer, ds, loss, epochs: int, metrics=None)</code><a class="headerlink" href="#train_layerlayer-ds-loss-epochs-int-metricsnone" title="Permanent link">&para;</a></h4>
+<p><strong>Signature:</strong> <code>train_layer(layer, ds, loss, epochs: int, metrics=None)</code></p>
+<p><strong>Purpose:</strong> Train a single Keras layer (or callable) via supervised imitation by wrapping it into a minimal <code>tf.keras.Model</code> and running <code>model.fit(...)</code>.</p>
+<p><strong>Arguments:</strong>
+- <code>layer</code>: <code>tf.keras.layers.Layer</code> or callable; must accept either a single tensor or multiple tensor inputs.
+- <code>ds</code>: <code>tf.data.Dataset</code> yielding <code>(x, y)</code>, where <code>x</code> is a tensor or tuple/list of tensors.
+- <code>loss</code>: Keras loss object or string.
+- <code>epochs</code>: Number of training epochs.
+- <code>metrics</code>: Optional list of Keras metrics; defaults to empty list.</p>
+<p><strong>Returns:</strong>
+- A compiled and trained <code>tf.keras.Model</code> wrapping the provided <code>layer</code>.</p>
+<p><strong>Errors:</strong>
+- Not specified; underlying TensorFlow/Keras errors may occur (e.g., incompatible shapes, invalid loss).</p>
+<p><strong>Example:</strong>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">tensorflow</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">tf</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_measurement_dataset_a</span><span class="p">,</span> <span class="n">to_tf_dataset</span><span class="p">,</span> <span class="n">train_layer</span>
+
+<span class="n">np_ds</span> <span class="o">=</span> <span class="n">generate_measurement_dataset_a</span><span class="p">(</span><span class="n">layout</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">ds</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">np_ds</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;field&quot;</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">&quot;meas_target&quot;</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="mi">32</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span><span class="mi">25</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="s2">&quot;sigmoid&quot;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">train_layer</span><span class="p">(</span><span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">,</span> <span class="n">ds</span><span class="o">=</span><span class="n">ds</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s2">&quot;binary_crossentropy&quot;</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">BinaryAccuracy</span><span class="p">()])</span>
+</code></pre></div></p>
+<h3 id="constants">Constants<a class="headerlink" href="#constants" title="Permanent link">&para;</a></h3>
+<ul>
+<li>None.</li>
+</ul>
+<h3 id="types">Types<a class="headerlink" href="#types" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>ArrayDict</code>: Type alias for <code>Dict[str, np.ndarray]</code>.</li>
+</ul>
+<h2 id="dependencies">Dependencies<a class="headerlink" href="#dependencies" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>numpy</code> (<code>np</code>): random generation, array creation, parity computation, shape checks.</li>
+<li><code>tensorflow</code> (<code>tf</code>): <code>tf.data.Dataset</code>, tensor conversion, Keras layers/models/training.</li>
+<li><code>dataclasses.asdict</code>, <code>dataclasses.is_dataclass</code>: Imported but not used in this module.</li>
+<li><code>typing</code> utilities: <code>Any</code>, <code>Dict</code>, <code>Iterable</code>, <code>List</code>, <code>Mapping</code>, <code>MutableMapping</code>, <code>Optional</code>, <code>Sequence</code>, <code>Tuple</code>, <code>Union</code> (only a subset is used).</li>
+</ul>
+<h2 id="planned-design-spec">Planned (design-spec)<a class="headerlink" href="#planned-design-spec" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Unknown (no design notes provided).</li>
+</ul>
+<h2 id="deviations">Deviations<a class="headerlink" href="#deviations" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>to_tf_dataset</code> contains a guard <code>if tf is None</code>, but <code>tensorflow</code> is imported unconditionally as <code>tf</code> in this module; behavior when TensorFlow is missing is not specified beyond the raised <code>ImportError</code>.</li>
+<li><code>asdict</code> and <code>is_dataclass</code> are imported but unused.</li>
+<li><code>_as_float01</code> enforces <code>float32</code> but does not clamp/validate values beyond dtype conversion; values are assumed to be in <code>{0.0, 1.0}</code> by construction/caller.</li>
+</ul>
+<h2 id="notes-for-contributors">Notes for Contributors<a class="headerlink" href="#notes-for-contributors" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep dataset generators reproducible by routing randomness through <code>_rng(seed)</code> and ensuring all returned arrays use leading dimension <code>(num_samples, ...)</code> with <code>np.float32</code>.</li>
+<li>When adding new dataset generators, preserve the dict-of-arrays contract so <code>to_tf_dataset</code> can consume them.</li>
+<li>Weight transfer helpers require layers to be built; ensure callers build layers (e.g., via a forward pass) before calling <code>transfer_layer_weights</code>.</li>
+<li><code>train_layer</code> infers input structure from the first batch of <code>ds</code>; ensure datasets yield consistent structures and fully-defined non-batch shapes.</li>
+</ul>
+<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Referenced (not defined here): <code>LinMeasurementLayerA</code>, <code>LinMeasurementLayerB</code>, <code>LinCombineLayerA</code>, <code>LinCombineLayerB</code>, <code>LinTrainableAssistedModelA</code>, <code>LinTrainableAssistedModelB</code>, <code>PRAssistedLayer</code>.</li>
+</ul>
+<h2 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h2>
+<ul>
+<li>0.1: Initial version (as stated in module docstring).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>

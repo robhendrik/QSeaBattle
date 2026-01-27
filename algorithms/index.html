@@ -1,0 +1,3320 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Living specification for the QSeaBattle project.">
+      
+      
+        <meta name="author" content="Rob Hendriks">
+      
+      
+      
+        <link rel="prev" href="../invariants/">
+      
+      
+        <link rel="next" href="../simple_algorithm/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Algorithms - QSeaBattle Specification</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#algorithms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="QSeaBattle Specification" class="md-header__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            QSeaBattle Specification
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Algorithms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-hidden="true"  type="radio" name="__palette" id="__palette_0">
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="QSeaBattle Specification" class="md-nav__button md-logo" aria-label="QSeaBattle Specification" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    QSeaBattle Specification
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Introduction
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../conventions/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Conventions
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../invariants/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Invariants
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Algorithms
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Algorithms
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notation-and-symbols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation and symbols
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-resource-sr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared resource (SR)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shared resource (SR)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sr-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SR interface contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-game-semantics-used-by-all-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core game semantics used by all algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core game semantics used by all algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#game-inputs-and-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Game inputs and outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deterministic-baseline-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic baseline algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deterministic baseline algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-coverage-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple (coverage) strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-segment-majority-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority (segment-majority) strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assisted-algorithms-with-sr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted algorithms with SR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted algorithms with SR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assisted-lin-algorithm-family" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted (Lin) algorithm family
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted (Lin) algorithm family">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lin-teacher-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lin teacher primitives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lin-end-to-end-reference-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lin end-to-end reference flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assisted-pyr-algorithm-family" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted (Pyr) algorithm family
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted (Pyr) algorithm family">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyramid-structural-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyramid structural constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyr-teacher-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyr teacher primitives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyr-end-to-end-reference-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyr end-to-end reference flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trainable-assisted-models-as-constrained-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainable assisted models as constrained implementations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trainable assisted models as constrained implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#teacher-vs-trainable-relationship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teacher vs trainable relationship
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equivalence-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equivalence targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preconditions-postconditions-errors-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preconditions, postconditions, errors summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Preconditions, postconditions, errors summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-preconditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global preconditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-postconditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global postconditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing hooks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-design-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned (design-spec)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Simple
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Majority
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../linear_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Linear
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyramidal_algorithm/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pyramid
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Game
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_layout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game_env/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    GameEnv
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../game/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Game
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Tournament
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tournament_log/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TournamentLog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Players
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../players_base/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Players
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player_base_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../simple_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SimplePlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../majority_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MajorityPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_players/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../trainable_assisted_player_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TrainableAssistedPlayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Shared resources
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Shared resources
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shared_resources/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssisted
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pr_assisted_layer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PRAssistedLayer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Models
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Models
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LinMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_model_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrTrainableAssistedModelB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_combine_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrCombineLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_a/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_measurement_layer_b/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PyrMeasurementLayerB
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_teacher_layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_teacher_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_layers.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_layers
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_9" >
+        
+          
+          <label class="md-nav__link" for="__nav_9" id="__nav_9_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Utilities
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Utilities
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reference_performance_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    reference_performance_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../neural_net_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    neural_net_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dru_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    dru_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../logits_utilities.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    logits_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lin_trainable_assisted_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    lin_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pyr_trainable_assisted_imitation_utilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    pyr_trainable_assisted_imitation_utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notation-and-symbols" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation and symbols
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shared-resource-sr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared resource (SR)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shared resource (SR)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#definition" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Definition
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sr-interface-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SR interface contract
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#core-game-semantics-used-by-all-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core game semantics used by all algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Core game semantics used by all algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#game-inputs-and-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Game inputs and outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deterministic-baseline-algorithms" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic baseline algorithms
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deterministic baseline algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#simple-coverage-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Simple (coverage) strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#majority-segment-majority-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Majority (segment-majority) strategy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#assisted-algorithms-with-sr" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted algorithms with SR
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted algorithms with SR">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#assisted-lin-algorithm-family" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted (Lin) algorithm family
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted (Lin) algorithm family">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#lin-teacher-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lin teacher primitives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#lin-end-to-end-reference-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lin end-to-end reference flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#assisted-pyr-algorithm-family" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Assisted (Pyr) algorithm family
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Assisted (Pyr) algorithm family">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pyramid-structural-constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyramid structural constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyr-teacher-primitives" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyr teacher primitives
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pyr-end-to-end-reference-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pyr end-to-end reference flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trainable-assisted-models-as-constrained-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trainable assisted models as constrained implementations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Trainable assisted models as constrained implementations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#teacher-vs-trainable-relationship" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Teacher vs trainable relationship
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#equivalence-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Equivalence targets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preconditions-postconditions-errors-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preconditions, postconditions, errors summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Preconditions, postconditions, errors summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#global-preconditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global preconditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-postconditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global postconditions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing hooks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-design-spec" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned (design-spec)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deviations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deviations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changelog" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Changelog
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="algorithms">Algorithms<a class="headerlink" href="#algorithms" title="Permanent link">&para;</a></h1>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
+<p>This page defines the <strong>normative</strong> algorithms for QSeaBattle player families and the shared resource (SR) interface. The goal is to make the reference behavior independently re-implementable without reading Python source.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>If any behavior in code contradicts this page, the code is considered incorrect.</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<p>This page specifies:</p>
+<ul>
+<li>Core game-level semantics needed by algorithms.</li>
+<li>Deterministic classical baselines (Simple, Majority).</li>
+<li>Assisted algorithms using <strong>SR (shared resource)</strong>.</li>
+<li>Trainable assisted algorithms (Lin and Pyr) as constrained implementations of the same information flow.</li>
+<li>SR semantics and sampling modes.</li>
+</ul>
+<p>This page does not specify:</p>
+<ul>
+<li>Training procedures (see Training pages).</li>
+<li>Implementation details of TensorFlow/Keras layers.</li>
+<li>Logging, tournaments, or visualization.</li>
+</ul>
+<h2 id="notation-and-symbols">Notation and symbols<a class="headerlink" href="#notation-and-symbols" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>field_size</code>: integer <span class="arithmatex">\(n \ge 1\)</span>.</li>
+<li><code>n2</code>: integer <span class="arithmatex">\(n^2\)</span>.</li>
+<li><code>comms_size</code>: integer <span class="arithmatex">\(m\)</span> with <span class="arithmatex">\(1 \le m \le n2\)</span>.</li>
+<li><code>field</code>: binary vector of length <code>n2</code>, flattened in a fixed order.</li>
+<li><code>gun</code>: one-hot vector of length <code>n2</code> indicating the queried cell index.</li>
+<li><code>comm</code>: communicated message from Player A to Player B, binary vector of length <code>m</code> (Lin) or a single bit (Pyr).</li>
+<li><code>sr</code>: shared resource value(s) available to both players without signaling.</li>
+</ul>
+<p>Shapes used throughout:</p>
+<ul>
+<li><code>field</code>: <code>np.ndarray, dtype int {0,1}, shape (n2,)</code> or <code>tf.Tensor, dtype float32, shape (B, n2)</code>.</li>
+<li><code>gun</code>: <code>np.ndarray, dtype int {0,1}, shape (n2,)</code> one-hot or <code>tf.Tensor, dtype float32, shape (B, n2)</code> one-hot.</li>
+<li><code>comm</code>: <code>np.ndarray, dtype int {0,1}, shape (m,)</code> or <code>tf.Tensor, dtype float32, shape (B, m)</code>.</li>
+<li><code>shoot</code>: scalar decision bit <code>np.ndarray, dtype int {0,1}, shape (1,)</code> or <code>tf.Tensor, dtype float32, shape (B, 1)</code>.</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+</div>
+<p>All math symbols MUST be interpreted using the variable names above. Do not mix different meanings of <code>m</code>, <code>n2</code>, <code>field_size</code>.</p>
+<h2 id="shared-resource-sr">Shared resource (SR)<a class="headerlink" href="#shared-resource-sr" title="Permanent link">&para;</a></h2>
+<h3 id="definition">Definition<a class="headerlink" href="#definition" title="Permanent link">&para;</a></h3>
+<p><strong>SR (shared resource)</strong> is any pre-established auxiliary resource accessible to both Player A and Player B without communication and without signaling. SR may be classical, post-quantum, or simulated.</p>
+<p><code>PRAssistedLayer</code> is one concrete SR mechanism that provides structured correlations.</p>
+<h3 id="sr-interface-contract">SR interface contract<a class="headerlink" href="#sr-interface-contract" title="Permanent link">&para;</a></h3>
+<p>SR MUST satisfy:</p>
+<ul>
+<li><strong>No signaling</strong>: Player B MUST NOT obtain information about <code>field</code> except via <code>comm</code> and SR that is independent of <code>field</code> given the chosen SR mode.</li>
+<li><strong>Symmetry</strong>: Player A and Player B MUST interpret SR values in the same indexing convention.</li>
+<li><strong>Mode control</strong>: Any <code>sr_mode</code> parameter MUST be defined as a choice of shared resource mechanism, not "randomness".</li>
+</ul>
+<p>SR MAY be used in one of two modes:</p>
+<ul>
+<li><strong>Expected-mode</strong>: SR outcomes are replaced by their expectation under the SR distribution (deterministic, differentiable).</li>
+<li><strong>Sample-mode</strong>: SR outcomes are sampled (stochastic).</li>
+</ul>
+<p>Preconditions:</p>
+<ul>
+<li>SR configuration is fixed before a game begins.</li>
+<li>SR does not depend on runtime observations (<code>field</code>, <code>gun</code>) except through allowed conditional selection rules described below.</li>
+</ul>
+<p>Postconditions:</p>
+<ul>
+<li>SR usage preserves the information flow constraints described in Invariants.</li>
+</ul>
+<p>Errors:</p>
+<ul>
+<li>Any SR mechanism that can encode <code>field</code> into SR outcomes is invalid.</li>
+</ul>
+<h2 id="core-game-semantics-used-by-all-algorithms">Core game semantics used by all algorithms<a class="headerlink" href="#core-game-semantics-used-by-all-algorithms" title="Permanent link">&para;</a></h2>
+<h3 id="game-inputs-and-outputs">Game inputs and outputs<a class="headerlink" href="#game-inputs-and-outputs" title="Permanent link">&para;</a></h3>
+<p>For each game instance:</p>
+<ul>
+<li>Player A receives <code>field</code>.</li>
+<li>Player B receives <code>gun</code>.</li>
+<li>Player A sends <code>comm</code> to Player B.</li>
+<li>Player B outputs <code>shoot</code> as a guess of the battlefield value at the gun index.</li>
+</ul>
+<p>Success condition (conceptual):</p>
+<ul>
+<li>Let <code>k = argmax(gun)</code> for one-hot <code>gun</code>.</li>
+<li>The game is won if <code>shoot == field[k]</code>.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>Algorithms below specify how <code>comm</code> and <code>shoot</code> are computed; the environment defines win/loss bookkeeping.</p>
+<h2 id="deterministic-baseline-algorithms">Deterministic baseline algorithms<a class="headerlink" href="#deterministic-baseline-algorithms" title="Permanent link">&para;</a></h2>
+<h3 id="simple-coverage-strategy">Simple (coverage) strategy<a class="headerlink" href="#simple-coverage-strategy" title="Permanent link">&para;</a></h3>
+<p>Intent: communicate <code>m</code> cells directly and guess randomly outside coverage.</p>
+<p>Algorithm:</p>
+<ul>
+<li>Partition indices into a fixed agreed set <code>C</code> of size <code>m</code> and its complement.</li>
+<li>Player A sets <code>comm[j] = field[C[j]]</code> for <span class="arithmatex">\(j = 0..m-1\)</span>.</li>
+<li>Player B computes <code>k = argmax(gun)</code>.</li>
+<li>If <code>k</code> is in <code>C</code>, Player B outputs the matching communicated bit.</li>
+<li>Else Player B outputs <code>0</code> or <code>1</code> using a fixed baseline rule (for example, always <code>0</code>, or a fixed prior).</li>
+</ul>
+<p>Preconditions:</p>
+<ul>
+<li><code>1 &lt;= m &lt;= n2</code>.</li>
+<li>Both players share the same ordered index set <code>C</code>.</li>
+</ul>
+<p>Postconditions:</p>
+<ul>
+<li>If <code>k</code> is in coverage, <code>shoot</code> matches <code>field[k]</code> in noiseless communication.</li>
+</ul>
+<p>Errors:</p>
+<ul>
+<li><code>ValueError</code> if <code>m</code> invalid or coverage mapping inconsistent.</li>
+</ul>
+<h3 id="majority-segment-majority-strategy">Majority (segment-majority) strategy<a class="headerlink" href="#majority-segment-majority-strategy" title="Permanent link">&para;</a></h3>
+<p>Intent: communicate one bit per segment of the field.</p>
+<p>Algorithm:</p>
+<ul>
+<li>Partition the flattened field indices into <code>m</code> contiguous segments of equal length <code>L = n2 / m</code> (requires <code>m | n2</code>).</li>
+<li>Player A computes, for each segment, the majority bit (ties map to <code>1</code>).</li>
+<li>Player A sends these <code>m</code> bits as <code>comm</code>.</li>
+<li>Player B computes <code>k = argmax(gun)</code> and determines which segment contains <code>k</code>.</li>
+<li>Player B outputs the corresponding segment bit.</li>
+</ul>
+<p>Preconditions:</p>
+<ul>
+<li><code>field_size &gt;= 1</code>.</li>
+<li><code>1 &lt;= m &lt;= n2</code>.</li>
+<li><code>m | n2</code>.</li>
+</ul>
+<p>Postconditions:</p>
+<ul>
+<li><code>comm</code> is deterministic given <code>field</code>.</li>
+<li><code>shoot</code> depends only on <code>comm</code> and <code>gun</code>.</li>
+</ul>
+<p>Errors:</p>
+<ul>
+<li><code>ValueError</code> if <code>m</code> does not divide <code>n2</code>.</li>
+</ul>
+<h2 id="assisted-algorithms-with-sr">Assisted algorithms with SR<a class="headerlink" href="#assisted-algorithms-with-sr" title="Permanent link">&para;</a></h2>
+<p>This section specifies algorithms that may outperform purely classical deterministic baselines by using SR correlations while respecting no-signaling constraints.</p>
+<h3 id="assisted-lin-algorithm-family">Assisted (Lin) algorithm family<a class="headerlink" href="#assisted-lin-algorithm-family" title="Permanent link">&para;</a></h3>
+<p>This family uses <code>m</code>-bit communication with linear-style primitives.</p>
+<h4 id="lin-teacher-primitives">Lin teacher primitives<a class="headerlink" href="#lin-teacher-primitives" title="Permanent link">&para;</a></h4>
+<p>Teacher layers define reference transformations:</p>
+<ul>
+<li>Measurement-A: produces <code>meas_a</code> from <code>field</code>.</li>
+<li>Combine-A: produces <code>comm</code> from <code>meas_a</code> and SR outcomes.</li>
+<li>Measurement-B: produces <code>meas_b</code> from <code>gun</code>.</li>
+<li>Combine-B: produces <code>shoot</code> from <code>meas_b</code>, SR outcomes, and <code>comm</code>.</li>
+</ul>
+<p>Types and shapes (batch form):</p>
+<ul>
+<li><code>field</code>: <code>tf.Tensor, dtype float32, shape (B, n2)</code>.</li>
+<li><code>gun</code>: <code>tf.Tensor, dtype float32, shape (B, n2)</code> one-hot.</li>
+<li><code>meas_a</code>: <code>tf.Tensor, dtype float32, shape (B, n2)</code> (Lin design default).</li>
+<li><code>meas_b</code>: <code>tf.Tensor, dtype float32, shape (B, n2)</code> (Lin design default).</li>
+<li><code>comm</code>: <code>tf.Tensor, dtype float32, shape (B, m)</code>.</li>
+<li><code>shoot</code>: <code>tf.Tensor, dtype float32, shape (B, 1)</code>.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>Lin exact measurement/combine semantics depend on the selected Lin reference strategy (for example, parity prototype). The teacher primitives MUST be the single source of truth for these semantics.</p>
+<h4 id="lin-end-to-end-reference-flow">Lin end-to-end reference flow<a class="headerlink" href="#lin-end-to-end-reference-flow" title="Permanent link">&para;</a></h4>
+<p>Algorithm (single sample):</p>
+<ul>
+<li>
+<p>Player A:</p>
+</li>
+<li>
+<p>Compute <code>meas_a = MeasureA(field)</code>.</p>
+</li>
+<li>Obtain SR outcomes required by Combine-A according to <code>sr_mode</code>.</li>
+<li>Compute <code>comm = CombineA(meas_a, sr_outcomes_a)</code>.</li>
+<li>
+<p>Player B:</p>
+</li>
+<li>
+<p>Compute <code>meas_b = MeasureB(gun)</code>.</p>
+</li>
+<li>Obtain SR outcomes required by Combine-B according to <code>sr_mode</code>.</li>
+<li>Compute <code>shoot = CombineB(meas_b, sr_outcomes_b, comm)</code>.</li>
+</ul>
+<p>Preconditions:</p>
+<ul>
+<li><code>field_size &gt;= 1</code>.</li>
+<li><code>1 &lt;= m &lt;= n2</code>.</li>
+<li>SR configuration is compatible with the Combine rules.</li>
+</ul>
+<p>Postconditions:</p>
+<ul>
+<li><code>comm</code> depends on <code>field</code> only through MeasureA and CombineA.</li>
+<li><code>shoot</code> depends on <code>field</code> only through <code>comm</code> and SR outcomes.</li>
+</ul>
+<p>Errors:</p>
+<ul>
+<li><code>ValueError</code> on shape mismatch or invalid SR configuration.</li>
+</ul>
+<h3 id="assisted-pyr-algorithm-family">Assisted (Pyr) algorithm family<a class="headerlink" href="#assisted-pyr-algorithm-family" title="Permanent link">&para;</a></h3>
+<p>This family uses a pyramid reduction structure and typically enforces <code>comms_size = 1</code>.</p>
+<h4 id="pyramid-structural-constraints">Pyramid structural constraints<a class="headerlink" href="#pyramid-structural-constraints" title="Permanent link">&para;</a></h4>
+<ul>
+<li><code>n2 = field_size^2</code> MUST be a power of two.</li>
+<li><code>comms_size</code> MUST equal <code>1</code>.</li>
+<li>The pyramid has <code>K = log2(n2)</code> levels.</li>
+<li>Level <span class="arithmatex">\(l\)</span> has active length <span class="arithmatex">\(L_l = n2 / 2^l\)</span> for <span class="arithmatex">\(l = 0..K-1\)</span>.</li>
+<li>Each level maps length <span class="arithmatex">\(L\)</span> to <span class="arithmatex">\(L/2\)</span>.</li>
+</ul>
+<p>Preconditions:</p>
+<ul>
+<li><code>field_size &gt;= 1</code>.</li>
+<li><code>n2</code> is a power of two.</li>
+<li><code>m = 1</code>.</li>
+</ul>
+<p>Errors:</p>
+<ul>
+<li><code>ValueError</code> if <code>n2</code> not power of two or <code>m != 1</code>.</li>
+</ul>
+<h4 id="pyr-teacher-primitives">Pyr teacher primitives<a class="headerlink" href="#pyr-teacher-primitives" title="Permanent link">&para;</a></h4>
+<p>At each level:</p>
+<ul>
+<li>Measurement-A: <code>meas_a_l = MeasureA_l(field_l)</code> where <code>field_l</code> has length <span class="arithmatex">\(L\)</span> and output has length <span class="arithmatex">\(L/2\)</span>.</li>
+<li>Combine-A: <code>field_{l+1} = CombineA_l(field_l, sr_outcome_l)</code> output length <span class="arithmatex">\(L/2\)</span>.</li>
+<li>Measurement-B: <code>meas_b_l = MeasureB_l(gun_l)</code> input length <span class="arithmatex">\(L\)</span>, output length <span class="arithmatex">\(L/2\)</span>.</li>
+<li>Combine-B: <code>(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)</code> where <code>comm_l</code> is a single bit.</li>
+</ul>
+<p>Types and shapes (single sample):</p>
+<ul>
+<li><code>field_l</code>: <code>np.ndarray, dtype int {0,1}, shape (L,)</code>.</li>
+<li><code>gun_l</code>: <code>np.ndarray, dtype int {0,1}, shape (L,)</code> one-hot.</li>
+<li><code>sr_outcome_l</code>: <code>np.ndarray, dtype int {0,1}, shape (L/2,)</code>.</li>
+<li><code>comm_l</code>: <code>np.ndarray, dtype int {0,1}, shape (1,)</code>.</li>
+</ul>
+<h4 id="pyr-end-to-end-reference-flow">Pyr end-to-end reference flow<a class="headerlink" href="#pyr-end-to-end-reference-flow" title="Permanent link">&para;</a></h4>
+<p>Algorithm (single sample):</p>
+<ul>
+<li>
+<p>Initialize:</p>
+</li>
+<li>
+<p><code>field_0 = field</code> reshaped/flattened to length <code>n2</code>.</p>
+</li>
+<li><code>gun_0 = gun</code> one-hot length <code>n2</code>.</li>
+<li><code>comm_0</code> is a single bit initialized by Player A at level 0 (teacher-defined rule).</li>
+<li>
+<p>For each level <span class="arithmatex">\(l = 0..K-1\)</span>:</p>
+</li>
+<li>
+<p>Player A:</p>
+<ul>
+<li>Compute <code>meas_a_l = MeasureA_l(field_l)</code>.</li>
+<li>Obtain SR outcomes <code>sr_outcome_l</code> for this level.</li>
+<li>Compute <code>field_{l+1} = CombineA_l(field_l, sr_outcome_l)</code>.</li>
+<li>Update <code>comm_l</code> according to the Pyr-A teacher rule and send the current <code>comm_l</code> (or final <code>comm_K</code>) to Player B depending on the protocol definition.</li>
+<li>
+<p>Player B:</p>
+</li>
+<li>
+<p>Compute <code>meas_b_l = MeasureB_l(gun_l)</code>.</p>
+</li>
+<li>Obtain SR outcomes <code>sr_outcome_l</code> for this level.</li>
+<li>Compute <code>(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)</code>.</li>
+<li>Output:</li>
+</ul>
+</li>
+<li>
+<p>Player B outputs <code>shoot = comm_K</code> or the protocol-defined final bit.</p>
+</li>
+</ul>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+</div>
+<p>The exact rule for how <code>comm</code> is initialized and when it is transmitted MUST match the Pyr teacher implementation used for dataset generation.</p>
+<h2 id="trainable-assisted-models-as-constrained-implementations">Trainable assisted models as constrained implementations<a class="headerlink" href="#trainable-assisted-models-as-constrained-implementations" title="Permanent link">&para;</a></h2>
+<h3 id="teacher-vs-trainable-relationship">Teacher vs trainable relationship<a class="headerlink" href="#teacher-vs-trainable-relationship" title="Permanent link">&para;</a></h3>
+<p>For both Lin and Pyr:</p>
+<ul>
+<li>Teacher primitives define the <strong>reference mapping</strong> used to generate supervised targets.</li>
+<li>Trainable models MUST be architectures that cannot violate the information flow constraints and are trained to approximate the teacher mapping.</li>
+</ul>
+<p>Normative requirement:</p>
+<ul>
+<li>
+<p>A trainable assisted model MUST NOT have any input path that bypasses:</p>
+</li>
+<li>
+<p><code>field -&gt; comm</code> only through Player A,</p>
+</li>
+<li><code>comm + gun -&gt; shoot</code> only through Player B,</li>
+<li>SR usage only through SR interfaces.</li>
+</ul>
+<h3 id="equivalence-targets">Equivalence targets<a class="headerlink" href="#equivalence-targets" title="Permanent link">&para;</a></h3>
+<p>When trained on the corresponding imitation datasets:</p>
+<ul>
+<li><code>LinTrainableAssistedModelA</code> SHOULD approximate <code>Lin teacher A</code> mapping: <code>field -&gt; comm</code>.</li>
+<li><code>LinTrainableAssistedModelB</code> SHOULD approximate <code>Lin teacher B</code> mapping: <code>(gun, comm) -&gt; shoot</code>.</li>
+<li><code>PyrTrainableAssistedModelA</code> SHOULD approximate <code>Pyr teacher A</code> per-level mappings.</li>
+<li><code>PyrTrainableAssistedModelB</code> SHOULD approximate <code>Pyr teacher B</code> per-level mappings.</li>
+</ul>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+</div>
+<p>This page does not claim optimality of learned models. It specifies the intended target behavior and constraints.</p>
+<h2 id="preconditions-postconditions-errors-summary">Preconditions, postconditions, errors summary<a class="headerlink" href="#preconditions-postconditions-errors-summary" title="Permanent link">&para;</a></h2>
+<h3 id="global-preconditions">Global preconditions<a class="headerlink" href="#global-preconditions" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>field_size &gt;= 1</code>.</li>
+<li><code>n2 = field_size^2</code>.</li>
+<li><code>1 &lt;= comms_size &lt;= n2</code> unless specified otherwise.</li>
+<li>For Pyr: <code>n2</code> power of two and <code>comms_size = 1</code>.</li>
+<li>All bit-vectors are binary in <code>{0,1}</code> (or float32 equivalents <code>{0.0,1.0}</code> for TF).</li>
+</ul>
+<h3 id="global-postconditions">Global postconditions<a class="headerlink" href="#global-postconditions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Player B output <code>shoot</code> is a single bit.</li>
+<li>Player B uses only <code>gun</code>, received <code>comm</code>, and SR outcomes.</li>
+<li>SR does not violate no-signaling constraints.</li>
+</ul>
+<h3 id="global-errors">Global errors<a class="headerlink" href="#global-errors" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>ValueError</code> for invalid shapes, invalid parameter domains, or violated structural constraints.</li>
+<li><code>RuntimeError</code> for detected internal inconsistency (for example, mismatched level lists between Player A and Player B).</li>
+</ul>
+<h2 id="testing-hooks">Testing hooks<a class="headerlink" href="#testing-hooks" title="Permanent link">&para;</a></h2>
+<p>Suggested invariants to test algorithm correctness without training:</p>
+<ul>
+<li>Majority segmentation covers <code>[0, n2)</code> with no overlaps and total length <code>n2</code>.</li>
+<li>For Pyr: level sizes are <code>[n2, n2/2, ..., 2]</code> and count is <code>log2(n2)</code>.</li>
+<li>For Pyr: each level halves the active length for both field and gun representations.</li>
+<li>For Lin: <code>comm</code> has shape <code>(m,)</code> and <code>shoot</code> has shape <code>(1,)</code> for single-sample execution.</li>
+<li>No-signaling smoke test: holding <code>comm</code> fixed, varying <code>field</code> MUST NOT change Player B output distribution in expected-mode SR.</li>
+</ul>
+<h2 id="planned-design-spec">Planned (design-spec)<a class="headerlink" href="#planned-design-spec" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A fully explicit pseudocode listing for each teacher primitive (Measure/Combine for Lin and Pyr) may be added if the reference teachers are updated or extended.</li>
+</ul>
+<h2 id="deviations">Deviations<a class="headerlink" href="#deviations" title="Permanent link">&para;</a></h2>
+<ul>
+<li>None.</li>
+</ul>
+<h2 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h2>
+<ul>
+<li>2026-01-16 (Rob Hendriks): Initial <code>algorithms.md</code> drafted as normative baseline for assisted and trainable-assisted algorithm families.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "toc.follow", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      
+    
+  </body>
+</html>
