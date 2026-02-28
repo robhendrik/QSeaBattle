@@ -27,7 +27,7 @@ from .player_base_b import PlayerB
 from .game import Game
 from .tournament import Tournament
 from .tournament_log import TournamentLog
-
+from .gameplay_adapters import GameplayModelAAdapter, GameplayModelBAdapter
 from .simple_players import SimplePlayers
 from .majority_players import MajorityPlayers
 

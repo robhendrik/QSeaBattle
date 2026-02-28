@@ -1,0 +1,25 @@
+diff --git a/WIP/src/Q_Sea_Battle_New/pr_assisted_replay.py b/WIP/src/Q_Sea_Battle_New/pr_assisted_replay.py
+--- a/WIP/src/Q_Sea_Battle_New/pr_assisted_replay.py
++++ b/WIP/src/Q_Sea_Battle_New/pr_assisted_replay.py
+@@ -197,9 +197,18 @@
+         if self._cfg.sr_mode == "replay":
+             # First measurement: prescribed logits (identity). Second: deterministic PR rule (soft gate).
+             if "replay_outcome_logits" not in inputs:
+                 # Strict validation: if any element in the batch indicates first measurement, the prescribed
+                 # replay logits MUST be provided. We use a TF assertion so this also works under tf.function.
+-                tf.debugging.assert_equal(
+-                    tf.reduce_any(is_first),
+-                    False,
+-                    message="replay_outcome_logits is required for replay-mode first measurement",
+-                )
++                if tf.executing_eagerly():
++                    # Eager mode (unit tests): raise a Python exception so pytest can catch it naturally.
++                    if bool(tf.reduce_any(is_first).numpy()):
++                        raise ValueError("replay_outcome_logits is required for replay-mode first measurement")
++                else:
++                    # Graph mode: keep a TF assertion (raises InvalidArgumentError) for correctness under tf.function.
++                    tf.debugging.assert_equal(
++                        tf.reduce_any(is_first),
++                        False,
++                        message="replay_outcome_logits is required for replay-mode first measurement",
++                    )
