@@ -164,7 +164,7 @@ venvs/
 archive/
 
 # WIP
-WIP/
+# WIP/
 
 # OS generated files
 .DS_Store
