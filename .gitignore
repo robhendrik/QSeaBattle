@@ -152,6 +152,9 @@ venvs/
 *.hdf5
 *.joblib
 
+# dataset
+*.snapshot
+
 # Data files (you may want to adjust based on your needs)
 *.csv
 *.json

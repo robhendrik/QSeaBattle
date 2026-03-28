@@ -93,11 +93,20 @@ class PyrCombineLayerB(tf.keras.layers.Layer):
             name="dense_gun",
             dtype=self.dtype,
         )
+
+        # self._dense_comm = tf.keras.layers.Dense(
+        #     1,
+        #     activation=None,
+        #     name="dense_comm",
+        #     dtype=self.dtype,
+        # )
         self._dense_comm = tf.keras.layers.Dense(
             1,
             activation=None,
             name="dense_comm",
             dtype=self.dtype,
+            kernel_initializer=tf.keras.initializers.RandomNormal(stddev=0.01),
+            bias_initializer="zeros",
         )
         self._built_for_L = L
         super().build(input_shape)
@@ -135,7 +144,9 @@ class PyrCombineLayerB(tf.keras.layers.Layer):
         x = tf.concat([gun_batch, sr_outcome_batch, comm_batch], axis=-1)
         h = self._dense_hidden(x, training=training)
         next_gun_logits = self._dense_gun(h, training=training)
-        next_comm_logit = self._dense_comm(h, training=training)
+        #next_comm_logit = self._dense_comm(h, training=training)
+        next_comm_logit = self._dense_comm(h, training=training) + comm_batch
+
         return next_gun_logits, next_comm_logit
 
     def get_config(self) -> Dict[str, Any]:

@@ -1,0 +1,75 @@
+--- a/train_PhaseD_comm_mag.py
++++ b/train_PhaseD_comm_mag.py
+@@ -20,7 +20,7 @@ from helpers import (
+     save_ab_weights,
+     weighted_per_level_bce,
+     add_logit_noise_tf,
+     harden_ste,
+-    magnitude_margin_loss,
++    magnitude_target_huber_loss,
+ )
+ 
+@@ -313,11 +313,19 @@ def make_train_steps(depth: int):
+         comms_b_loss, comms_b_per = weighted_per_level_bce(
+             comms_tgt_list_123,
+             comms_pred_list_123,
+             w_comms_b_123,
+         )
+ 
+-        comm_mag_loss_raw = magnitude_margin_loss(comm_logits_for_b, beta_target=1.0)
++        comm_mag_loss_raw = magnitude_target_huber_loss(
++            comm_logits_for_b,
++            beta_target=1.0,
++            delta=0.25,
++        )
+         comm_mag_loss = w_comm_mag * comm_mag_loss_raw
+         mean_abs_comm_for_b = tf.reduce_mean(tf.abs(tf.cast(comm_logits_for_b, tf.float32)))
++        mean_abs_err_comm_for_b = tf.reduce_mean(
++            tf.abs(tf.abs(tf.cast(comm_logits_for_b, tf.float32)) - 1.0)
++        )
+ 
+         total = shoot_loss + comm_a_loss + meas_in_a_loss + comms_b_loss + comm_mag_loss
+ 
+         return {
+@@ -330,6 +338,7 @@ def make_train_steps(depth: int):
+             "shoot_loss": shoot_loss,
+             "comm_mag_loss": comm_mag_loss,
+             "comm_mag_loss_raw": comm_mag_loss_raw,
+             "mean_abs_comm_for_b": mean_abs_comm_for_b,
++            "mean_abs_err_comm_for_b": mean_abs_err_comm_for_b,
+         }
+ 
+@@ -543,6 +552,7 @@ def train(config: dict[str, Any]) -> dict[str, Any]:
+             m_shoot_loss = tf.keras.metrics.Mean()
+             m_comm_mag = tf.keras.metrics.Mean()
+             m_comm_mag_raw = tf.keras.metrics.Mean()
+             m_mean_abs_comm_for_b = tf.keras.metrics.Mean()
++            m_mean_abs_err_comm_for_b = tf.keras.metrics.Mean()
+             m_meas_in_a_per = [tf.keras.metrics.Mean() for _ in range(DEPTH)]
+             m_comms_b_per = [tf.keras.metrics.Mean() for _ in range(max(DEPTH - 1, 0))]
+ 
+@@ -592,6 +602,7 @@ def train(config: dict[str, Any]) -> dict[str, Any]:
+                 m_comm_mag.update_state(out["comm_mag_loss"])
+                 m_comm_mag_raw.update_state(out["comm_mag_loss_raw"])
+                 m_mean_abs_comm_for_b.update_state(out["mean_abs_comm_for_b"])
++                m_mean_abs_err_comm_for_b.update_state(out["mean_abs_err_comm_for_b"])
+ 
+                 for i, t in enumerate(out["meas_in_a_per"]):
+                     if i < len(m_meas_in_a_per):
+@@ -610,6 +621,7 @@ def train(config: dict[str, Any]) -> dict[str, Any]:
+                 "comm_mag_loss": float(m_comm_mag.result().numpy()),
+                 "comm_mag_loss_raw": float(m_comm_mag_raw.result().numpy()),
+                 "mean_abs_comm_for_b": float(m_mean_abs_comm_for_b.result().numpy()),
++                "mean_abs_err_comm_for_b": float(m_mean_abs_err_comm_for_b.result().numpy()),
+                 "comm_mag_beta_target": float(COMM_MAG_BETA_TARGET),
+                 "w_comm_mag": float(state.W_COMM_MAG.numpy()),
+                 "epoch": int(epoch),
+@@ -703,10 +715,6 @@ def train(config: dict[str, Any]) -> dict[str, Any]:
+                 })
+                 break
+ 
+-            if epoch_metrics["shoot_acc"] > 0.999:
+-                print(f"Early stopping criteria met at epoch {epoch}.")
+-                break
+-
+             epoch += 1

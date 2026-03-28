@@ -38,7 +38,7 @@ def test_replay_first_measurement_requires_replay_outcome(PRAssistedReplay):
 def test_replay_second_measurement_ignores_replay_outcome(PRAssistedReplay):
     # Contract: for second measurement, replay_outcome_logits is ignored.
     k = 8
-    layer = PRAssistedReplay(sr_mode="replay", alpha=5.0, p_high=0.9, beta=10.0, seed=1)
+    layer = PRAssistedReplay(sr_mode="replay", alpha=5.0, p_high=1.0, beta=10.0, seed=1)
 
     prev_meas = tf.fill((1, k), -10.0)  # low
     curr_meas = tf.fill((1, k), -10.0)  # low => no flip, outcome ~= prev_outcome

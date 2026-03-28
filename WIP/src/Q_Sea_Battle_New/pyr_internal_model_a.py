@@ -105,6 +105,38 @@ class PyrInternalModelA(tf.keras.Model):
             )
             active //= 2
 
+    def set_alpha(self, alpha: float) -> None:
+        """Set PR gate sharpness for all SR layers (runtime-safe)."""
+        for sr in self.sr_layers:
+            if hasattr(sr, "set_alpha"):
+                sr.set_alpha(alpha)
+            else:
+                raise AttributeError("SR layer has no set_alpha(); update PRAssistedReplay first.")
+
+    def set_p_high(self, p_high: float) -> None:
+        """Set stochastic follow probability for all SR layers (runtime-safe)."""
+        for sr in self.sr_layers:
+            if hasattr(sr, "set_p_high"):
+                sr.set_p_high(p_high)
+            else:
+                raise AttributeError("SR layer has no set_p_high(); update PRAssistedReplay first.")
+
+    def set_beta(self, beta: float) -> None:
+        """Set hard-logit beta for all SR layers (runtime-safe)."""
+        for sr in self.sr_layers:
+            if hasattr(sr, "set_beta"):
+                sr.set_beta(beta)
+            else:
+                raise AttributeError("SR layer has no set_beta(); update PRAssistedReplay first.")
+
+    def set_sr_mode(self, sr_mode: str) -> None:
+        """Set SR mode for all SR layers (runtime-safe)."""
+        for sr in self.sr_layers:
+            if hasattr(sr, "set_sr_mode"):
+                sr.set_sr_mode(sr_mode)
+            else:
+                raise AttributeError("SR layer has no set_sr_mode(); update PRAssistedReplay first.")
+
     def call(self, field_scaled: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor:
         comm_logits, _, _ = self.compute_with_internal(field_scaled, replay_out_a_logits_list=None, training=training)
         return comm_logits

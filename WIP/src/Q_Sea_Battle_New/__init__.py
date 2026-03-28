@@ -20,7 +20,7 @@ from .pyr_dataset_generation_utilities import save_npz
 
 
 
-from WIP.src.Q_Sea_Battle_New.pyr_dataset_conversion_utilities import (
+from Q_Sea_Battle_New.pyr_dataset_conversion_utilities import (
     convert_layer_measure_a,
     convert_layer_combine_a,
     convert_layer_measure_b,

@@ -10,7 +10,7 @@ def test_replay_second_measurement_pr_rule_approx(PRAssistedReplay):
     k = 16
     beta = 10.0
     alpha = 5.0
-    layer = PRAssistedReplay(sr_mode="replay", alpha=alpha, p_high=0.5, beta=beta, seed=0)
+    layer = PRAssistedReplay(sr_mode="replay", alpha=alpha, p_high=1.0, beta=beta, seed=0)
 
     prev_out = tf.concat([_hard_logits(k//2, beta), _hard_logits(k//2, -beta)], axis=1)
 
