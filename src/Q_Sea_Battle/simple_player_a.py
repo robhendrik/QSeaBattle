@@ -1,8 +1,8 @@
-"""Simple deterministic Player A implementation.
+"""Deterministic baseline implementation of Player A.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module provides a simple Player A policy that encodes information about the
+player's field directly into the communication vector. The policy is fully
+deterministic and uses no shared resource (SR), replay buffer, or stochasticity.
 """
 
 from __future__ import annotations
@@ -16,14 +16,15 @@ from .players_base import PlayerA
 
 
 class SimplePlayerA(PlayerA):
-    """Deterministic Player A using the first m cells of the field.
+    """Deterministic Player A that transmits the first ``m`` field bits.
 
-    This player encodes the first ``m`` bits of the flattened field
-    directly into the communication vector.
+    The provided field is flattened in row-major order (NumPy default) and the
+    first ``m = game_layout.comms_size`` values are returned as the communication
+    vector. Values are coerced to integers via ``np.asarray(..., dtype=int)``.
     """
 
     def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise a :class:`SimplePlayerA` instance.
+        """Initialize a :class:`SimplePlayerA` instance.
 
         Args:
             game_layout: Game configuration for this player.
@@ -31,18 +32,19 @@ class SimplePlayerA(PlayerA):
         super().__init__(game_layout)
 
     def decide(self, field: np.ndarray, supp: Optional[Any] = None) -> np.ndarray:
-        """Return the first ``m`` bits of the flattened field.
+        """Compute the communication vector for Player B.
 
         Args:
-            field: Flattened field array of 0/1 values. Any shape is
-                accepted and will be flattened internally.
+            field: Field array containing 0/1 values. Any shape is accepted and
+                will be flattened internally.
             supp: Optional supporting information (unused).
 
         Returns:
-            Communication vector of length ``m`` derived from the field.
+            A 1-D NumPy array of length ``m`` containing the first ``m`` values
+            of the flattened field.
         """
-        # Flatten the field and take the first m bits.
+        # Flatten the field (row-major) and take the first m entries as the
+        # communication vector.
         flat_field = np.asarray(field, dtype=int).ravel()
         m = self.game_layout.comms_size
         return flat_field[:m].copy()
-

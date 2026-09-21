@@ -1,17 +1,17 @@
 # PlayerA
 
-> Role: Baseline A-side player that emits a random binary communication vector of length $m=\mathrm{comms\_size}$, independent of inputs.
+> Role: Baseline A-side player that produces a random binary communication vector for a given game layout.
 Location: `Q_Sea_Battle.player_base_a.PlayerA`
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_layout | GameLayout, constraints: not specified, shape: not applicable | Game configuration for this player; stored as `self.game_layout`. |
+| game_layout | `GameLayout`, constraints: not specified, shape: N/A | Game configuration for this player. |
 
 Preconditions
 
-- `game_layout` must provide attribute `comms_size` (type and constraints not specified in this module).
+- `game_layout`: `GameLayout`, constraints: not specified, shape: N/A.
 
 Postconditions
 
@@ -26,32 +26,24 @@ Errors
     from Q_Sea_Battle.player_base_a import PlayerA
     from Q_Sea_Battle.game_layout import GameLayout
     
-    layout = GameLayout(...)  # Not specified in this module
-    player = PlayerA(game_layout=layout)
+    game_layout = GameLayout()  # constructor signature not specified here
+    player = PlayerA(game_layout=game_layout)
     ```
 
 ## Public Methods
 
-### decide(field, supp=None)
+### decide
 
-Decide on a communication vector given the field; the base implementation ignores both inputs and returns a random binary vector of length $m=\mathrm{comms\_size}$.
+Return a communication vector based on the current field; the base implementation ignores inputs and returns a random 0/1 vector of length $m = \text{game\_layout.comms\_size}$.
 
 Parameters
 
-- `field`: np.ndarray, dtype int {0,1}, shape (n2,); flattened field array containing 0/1 values; content is unused in the base implementation.
-- `supp`: Optional[Any], constraints: may be None, shape: not applicable; optional supporting information (unused in base class).
+- `field`: `np.ndarray`, dtype: not specified, constraints: flattened field array, shape: not specified.
+- `supp`: `Optional[Any]`, constraints: optional supporting information (unused), shape: N/A.
 
 Returns
 
-- np.ndarray, dtype int {0,1}, shape (m,); a one-dimensional communication array with entries in {0, 1}, where $m=\mathrm{game\_layout.comms\_size}$.
-
-Preconditions
-
-- `self.game_layout.comms_size` is defined and is usable as the `size` argument to `np.random.randint` (exact type constraints not specified).
-
-Postconditions
-
-- No state changes are specified.
+- `np.ndarray`, dtype `int`, constraints: values in `{0,1}`, shape `(m,)` where $m = \text{game\_layout.comms\_size}$.
 
 Errors
 
@@ -61,19 +53,19 @@ Errors
     ```python
     import numpy as np
     from Q_Sea_Battle.player_base_a import PlayerA
-    from Q_Sea_Battle.game_layout import GameLayout
     
-    layout = GameLayout(...)  # Not specified in this module
-    player = PlayerA(layout)
+    # Assume `game_layout` exists and provides `comms_size`.
+    player = PlayerA(game_layout)
     
-    n2 = 100
-    field = np.zeros((n2,), dtype=int)
-    comms = player.decide(field)
+    field = np.zeros((10 * 10,), dtype=int)  # shape is illustrative; not enforced by PlayerA
+    comms = player.decide(field=field)
+    assert comms.shape == (game_layout.comms_size,)
+    assert set(np.unique(comms)).issubset({0, 1})
     ```
 
 ## Data & State
 
-- `game_layout`: GameLayout, constraints: not specified, shape: not applicable; shared configuration from the Players factory; used for `comms_size`.
+- `game_layout`: `GameLayout`, constraints: not specified, shape: N/A; game configuration provided at construction time.
 
 ## Planned (design-spec)
 
@@ -85,13 +77,12 @@ Errors
 
 ## Notes for Contributors
 
-- This baseline uses `np.random.randint(0, 2, size=m, dtype=int)`; any changes that affect reproducibility (e.g., RNG seeding) are not specified in this module and should be documented explicitly if introduced.
-- Ensure `field` remains a flattened 0/1 vector of shape `(n2,)` if downstream implementations start depending on it; this base class currently ignores `field` and `supp`.
+- Subclasses typically override `decide` to implement learned or rule-based strategies; the baseline implementation does not use `field` or `supp`.
 
 ## Related
 
-- `Q_Sea_Battle.game_layout.GameLayout` (provides `comms_size`).
+- `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- Version in module docstring: 0.2.
+- Not specified.

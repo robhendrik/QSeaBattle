@@ -1,18 +1,18 @@
 """Base player interfaces for QSeaBattle.
 
-This module is the stable public facade for the core player types:
-- :class:`~Q_Sea_Battle.players_base.Players`
-- :class:`~Q_Sea_Battle.players_base.PlayerA` (deprecated import path)
-- :class:`~Q_Sea_Battle.players_base.PlayerB` (deprecated import path)
+This module provides the stable public façade for constructing the two
+participants used by the game engine:
+
+- :class:`Players`: Factory/container that supplies paired Player A and Player B
+  instances sharing the same :class:`~Q_Sea_Battle.game_layout.GameLayout`.
+- ``PlayerA`` / ``PlayerB``: Deprecated import paths kept for backward
+  compatibility.
 
 Implementation note:
-The concrete baseline implementations for PlayerA and PlayerB were moved to
-:mod:`Q_Sea_Battle.players_base_a` and :mod:`Q_Sea_Battle.players_base_b`.
-The names remain available here for backward compatibility.
-
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.2
+The concrete baseline implementations for Player A and Player B live in
+:mod:`Q_Sea_Battle.players_base_a` and :mod:`Q_Sea_Battle.players_base_b`. The
+legacy names remain accessible from this module via :func:`__getattr__`, which
+emits a :class:`DeprecationWarning`.
 """
 
 from __future__ import annotations
@@ -34,65 +34,67 @@ _DEPRECATION_MSG = (
 
 
 class Players:
-    """Factory and container for a pair of QSeaBattle players.
+    """Factory/container for a pair of QSeaBattle players.
 
-    This class provides a simple interface to construct PlayerA and
-    PlayerB instances that share the same GameLayout configuration.
+    Instances of this class hold a shared :class:`~Q_Sea_Battle.game_layout.GameLayout`
+    and provide a :meth:`players` method that constructs Player A and Player B
+    using that configuration.
 
     Attributes:
         game_layout: Shared configuration used by both players.
     """
 
     def __init__(self, game_layout: Optional[GameLayout] = None) -> None:
-        """Initialise a pair of players.
+        """Initialize the container.
 
         Args:
-            game_layout: Optional shared configuration. If None, a
-                default GameLayout is created.
+            game_layout: Shared configuration for both players. If ``None``, a
+                default :class:`~Q_Sea_Battle.game_layout.GameLayout` is created.
         """
         self.game_layout: GameLayout = game_layout or GameLayout()
 
     def players(self) -> Tuple["PlayerA", "PlayerB"]:
-        """Create the concrete Player A and Player B instances.
+        """Create Player A and Player B instances.
 
-        The base implementation returns instances of PlayerA and PlayerB
-        using the shared GameLayout. Child classes may override this
-        method to return specialised player implementations.
+        Subclasses may override this method to return specialized player
+        implementations while still sharing the same :attr:`game_layout`.
 
         Returns:
-            A tuple (player_a, player_b).
+            Tuple ``(player_a, player_b)``.
         """
         player_a = _PlayerA(self.game_layout)
         player_b = _PlayerB(self.game_layout)
         return player_a, player_b
 
     def reset(self) -> None:
-        """Reset any internal state across both players.
+        """Reset any container-level state.
 
-        The base implementation has no internal state to reset, but the
-        method is provided for compatibility with more complex child
-        classes.
+        The base implementation has no internal state. This hook exists for
+        compatibility with subclasses that may cache state across games.
         """
         # No state to reset in the base implementation.
         return None
 
 
 def __getattr__(name: str) -> Any:
-    """Resolve deprecated attribute access for PlayerA/PlayerB.
+    """Provide deprecated module attributes.
 
-    This hook supports legacy imports like:
+    Supports legacy imports such as::
+
         from Q_Sea_Battle.players_base import PlayerA, PlayerB
 
-    A DeprecationWarning is emitted once per interpreter process for each symbol.
+    Accessing these names emits a :class:`DeprecationWarning`. The resolved
+    symbol is cached in :func:`globals` so the warning is emitted at most once
+    per interpreter process per symbol.
 
     Args:
         name: Attribute name being accessed.
 
     Returns:
-        The requested symbol.
+        The requested attribute value.
 
     Raises:
-        AttributeError: If the attribute is not provided by this module.
+        AttributeError: If *name* is not provided by this module.
     """
     if name == "PlayerA":
         warnings.warn(_DEPRECATION_MSG, DeprecationWarning, stacklevel=2)
@@ -106,7 +108,7 @@ def __getattr__(name: str) -> Any:
 
 
 if TYPE_CHECKING:
-    # Make type checkers aware of the deprecated names without importing via __getattr__.
+    # Expose deprecated names to type checkers without triggering __getattr__.
     from .players_base_a import PlayerA
     from .players_base_b import PlayerB
 

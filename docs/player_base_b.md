@@ -1,6 +1,6 @@
 # PlayerB
 
-> Role: Baseline B-side player that decides whether to shoot; default strategy is random.
+> Role: Baseline B-side player policy that returns a random binary shoot/no-shoot decision.
 
 Location: `Q_Sea_Battle.player_base_b.PlayerB`
 
@@ -8,11 +8,11 @@ Location: `Q_Sea_Battle.player_base_b.PlayerB`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_layout | `GameLayout`, not specified, shape (not applicable) | Game configuration for this player; stored on the instance as `game_layout`. |
+| game_layout | GameLayout, constraints Not specified, shape Not applicable | Shared game configuration for this player instance; stored as `self.game_layout`. |
 
 Preconditions
 
-- `game_layout` is provided (not `None`); further constraints are not specified.
+- `game_layout` is a `GameLayout` instance.
 
 Postconditions
 
@@ -22,53 +22,52 @@ Errors
 
 - Not specified.
 
-Example
+!!! example "Example"
+    ```python
+    from Q_Sea_Battle.player_base_b import PlayerB
+    from Q_Sea_Battle.game_layout import GameLayout
 
-```python
-from Q_Sea_Battle.player_base_b import PlayerB
-from Q_Sea_Battle.game_layout import GameLayout
-
-game_layout = GameLayout()  # arguments not specified in this module
-player_b = PlayerB(game_layout=game_layout)
-```
+    layout = GameLayout()  # construction args not specified here
+    player_b = PlayerB(game_layout=layout)
+    ```
 
 ## Public Methods
 
-### decide(gun, comm, supp=None)
+### decide
 
-Decide whether to shoot based on gun position and message; the base implementation ignores inputs and returns a random decision in {0, 1}.
+Return Player B's shoot / no-shoot decision by sampling a uniform random action in $\{0, 1\}$; all inputs are ignored in this baseline implementation.
 
 Parameters
 
-- `gun`: `np.ndarray`, dtype not specified, flattened one-hot encoding, shape (n2,).
-- `comm`: `np.ndarray`, dtype not specified, communication vector, shape (comms_size,).
-- `supp`: `Optional[Any]`, constraint: may be `None`, shape (not applicable).
+- `gun`: np.ndarray, dtype Not specified, constraints Not specified, shape Not specified; gun position encoding (typically a flattened one-hot array); ignored.
+- `comm`: np.ndarray, dtype Not specified, constraints Not specified, shape Not specified; communication vector from Player A; ignored.
+- `supp`: Optional[Any], constraints Not specified, shape Not applicable; optional supporting information; unused.
 
 Returns
 
-- `int`, constraint: value in {0, 1}, shape (not applicable).
+- int, constraints in {0,1}, shape scalar; `0` for "do not shoot" or `1` for "shoot".
 
 Errors
 
 - Not specified.
 
-Example
+!!! example "Example"
+    ```python
+    import numpy as np
+    from Q_Sea_Battle.player_base_b import PlayerB
+    from Q_Sea_Battle.game_layout import GameLayout
 
-```python
-import numpy as np
-from Q_Sea_Battle.player_base_b import PlayerB
-from Q_Sea_Battle.game_layout import GameLayout
+    player_b = PlayerB(GameLayout())
+    gun = np.zeros((10,), dtype=int)
+    comm = np.zeros((5,), dtype=float)
 
-player_b = PlayerB(game_layout=GameLayout())
-gun = np.zeros((10,), dtype=int)   # n2 is not specified in this module
-comm = np.zeros((4,), dtype=float) # comms_size is not specified in this module
-action = player_b.decide(gun=gun, comm=comm)
-assert action in (0, 1)
-```
+    action = player_b.decide(gun=gun, comm=comm)
+    assert action in (0, 1)
+    ```
 
 ## Data & State
 
-- `game_layout`: `GameLayout`, not specified, shape (not applicable); shared configuration from the Players factory.
+- `game_layout`: GameLayout, constraints Not specified, shape Not applicable; shared game configuration provided at construction time.
 
 ## Planned (design-spec)
 
@@ -76,16 +75,18 @@ assert action in (0, 1)
 
 ## Deviations
 
-- No design notes were provided; no deviations can be derived.
+- None detected between code and provided design notes.
 
 ## Notes for Contributors
 
-- The current implementation of `decide` is intentionally input-agnostic and uses `np.random.randint(0, 2)`; subclasses may override `decide` to implement non-random strategies.
+- `decide` currently ignores `gun`, `comm`, and `supp` and uses `np.random.randint(0, 2)`; changing this behavior will affect baseline reproducibility expectations if any external tests assume randomness.
+- Consider injecting a RNG or seeding strategy if deterministic behavior becomes necessary; no such mechanism exists in the current code.
 
 ## Related
 
+- `Q_Sea_Battle.players_base` (mentioned as a legacy import context in the module docstring).
 - `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- Not specified in module text.
+- Not specified.

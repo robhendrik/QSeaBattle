@@ -1,27 +1,32 @@
-"""Trainable PyrCombineLayerA (field + SR outcome -> next field logits).
+# Author: Rob Hendriks
+
+"""Trainable PyrCombineLayerA (field + SR outcome -> next-field logits).
 
 This module defines :class:`PyrCombineLayerA`, a small trainable Keras layer that
-combines the current field representation with a shared-resource (SR) outcome
-vector and produces logits for the next field.
+combines a per-player *field* representation with a shared resource (SR) outcome
+vector and produces **logits** for the next field.
 
-Keras 3 multi-input build note:
-Keras may call `build()` with only the *first* input shape even if `call()` accepts
-multiple positional inputs. For this layer, that is sufficient because the SR
-outcome dimension is determined by L/2. Therefore we create *all* state in
-`build()` using the field shape only, and validate SR shape at runtime.
+Keras multi-input build note:
+Keras may call `build()` with only the first input shape even when `call()`
+accepts multiple inputs. This layer allocates weights solely from the field
+width `L`; the SR outcome width is expected to be `L/2` and is validated at
+runtime.
 
-Contract (must match existing public API exactly):
-- call(field_batch, sr_outcome_batch, training=False) -> next_field
-- field_batch: tf.Tensor, shape (B, L)
-- sr_outcome_batch: tf.Tensor, shape (B, L/2)
-- next_field: tf.Tensor, shape (B, L/2)  # probabilities in [0, 1]
+Training-domain conventions (internal-training variant):
+- `field_batch` is expected to be in the scaled/logit-like domain used by the
+  training pipeline (often values such as {-0.5, +0.5}).
+- `sr_outcome_batch` is expected to be logits (often values such as {-beta, +beta}).
+- The output is **logits** (no sigmoid).
 
-MLP:
-- concat([field_batch, sr_outcome_batch]) -> (B, 3L/2)
+Shape contract (cropped / active widths):
+- `field_batch`: shape (B, L)
+- `sr_outcome_batch`: shape (B, L/2)
+- return `next_field_logits`: shape (B, L/2)
+
+Architecture:
+- Concatenate: concat([field_batch, sr_outcome_batch]) -> (B, 3L/2)
 - Dense(hidden_units, relu)
-- Dense(L/2, sigmoid) -> probabilities
-
-No rule-based / teacher mapping (XOR/parity/etc.) is implemented here.
+- Dense(L/2, linear) -> logits
 
 Author: Rob Hendriks
 Package: Q_Sea_Battle
@@ -35,11 +40,35 @@ import tensorflow as tf
 
 
 def _ensure_rank2(x: tf.Tensor, name: str) -> None:
+    """Validate that `x` is a rank-2 tensor when rank is statically known.
+
+    Args:
+        x: Input tensor.
+        name: Human-readable tensor name for error messages.
+
+    Raises:
+        ValueError: If the static rank is known and is not 2.
+    """
     if x.shape.rank is not None and x.shape.rank != 2:
         raise ValueError(f"{name} must be rank-2 (B, D). Got rank={x.shape.rank}, shape={x.shape}.")
 
 
 def _require_known_last_dim(shape: tf.TensorShape, name: str) -> int:
+    """Return the statically known last dimension size.
+
+    This layer relies on a statically known field width `L` to create Dense
+    weights in `build()`.
+
+    Args:
+        shape: Tensor shape to inspect.
+        name: Human-readable tensor name for error messages.
+
+    Returns:
+        The last dimension size as a Python int.
+
+    Raises:
+        ValueError: If the last dimension is not statically known.
+    """
     d = shape[-1]
     if d is None:
         raise ValueError(f"{name} last dimension must be statically known. Got shape={shape}.")
@@ -47,7 +76,14 @@ def _require_known_last_dim(shape: tf.TensorShape, name: str) -> int:
 
 
 class PyrCombineLayerA(tf.keras.layers.Layer):
-    """Trainable layer mapping (field, sr_outcome) -> next_field probabilities."""
+    """Combine field values and SR outcome logits into next-field logits.
+
+    Inputs are expected to be rank-2 tensors with a shared batch dimension:
+    - `field_batch`: shape (B, L)
+    - `sr_outcome_batch`: shape (B, L/2)
+
+    The output is a rank-2 tensor of logits with shape (B, L/2).
+    """
 
     def __init__(
         self,
@@ -56,29 +92,47 @@ class PyrCombineLayerA(tf.keras.layers.Layer):
         dtype: Optional[tf.dtypes.DType] = None,
         **kwargs: Any,
     ) -> None:
+        """Initialize the layer.
+
+        Args:
+            hidden_units: Width of the hidden Dense layer. Must be >= 1.
+            name: Optional Keras layer name.
+            dtype: Optional Keras dtype for layer variables and computations.
+            **kwargs: Forwarded to `tf.keras.layers.Layer`.
+        """
         super().__init__(name=name, dtype=dtype, trainable=True, **kwargs)
         if hidden_units < 1:
             raise ValueError("hidden_units must be >= 1.")
         self.hidden_units = int(hidden_units)
 
-        # These are created in build() (Keras 3: do not create new state in call()).
+        # Created in build()
         self._dense_hidden: Optional[tf.keras.layers.Dense] = None
         self._dense_out: Optional[tf.keras.layers.Dense] = None
         self._built_for_L: Optional[int] = None
 
     def build(self, input_shape: Any) -> None:
-        # Keras may pass either:
-        # - field_shape                (B, L)  (common for multi-input layers)
-        # - (field_shape, sr_shape)     ((B, L), (B, L/2))  (sometimes)
-        #
-        # We only need L to build, because sr_dim = L/2.
+        """Create sublayers for the given field width `L`.
+
+        Notes:
+            Keras may pass only the first input's shape for multi-input layers.
+            This implementation uses only the field width `L` to size the output
+            head as `L/2`; the SR outcome width is checked in `call()`.
+
+        Args:
+            input_shape: Shape for `field_batch`, or a multi-input shape
+                structure where the first element corresponds to `field_batch`.
+
+        Raises:
+            ValueError: If `L` is not statically known or is not even.
+        """
+        # Keras may pass only the first input shape for multi-input layers.
         if isinstance(input_shape, (list, tuple)) and len(input_shape) == 2 and not isinstance(input_shape[0], int):
-            # Could be (B, L) as flat ints OR (field_shape, sr_shape) as nested shapes.
-            # Distinguish nested shapes by checking whether the first element is shape-like.
-            if isinstance(input_shape[0], (list, tuple, tf.TensorShape)) and isinstance(input_shape[1], (list, tuple, tf.TensorShape)):
+            if isinstance(input_shape[0], (list, tuple, tf.TensorShape)) and isinstance(
+                input_shape[1], (list, tuple, tf.TensorShape)
+            ):
                 field_shape = tf.TensorShape(input_shape[0])
             else:
-                field_shape = tf.TensorShape(input_shape)  # treat as (B, L)
+                field_shape = tf.TensorShape(input_shape)
         else:
             field_shape = tf.TensorShape(input_shape)
 
@@ -93,9 +147,10 @@ class PyrCombineLayerA(tf.keras.layers.Layer):
             name="dense_hidden",
             dtype=self.dtype,
         )
+        # IMPORTANT: output head returns logits (no sigmoid).
         self._dense_out = tf.keras.layers.Dense(
             out_dim,
-            activation="sigmoid",
+            activation=None,
             name="dense_out",
             dtype=self.dtype,
         )
@@ -109,28 +164,43 @@ class PyrCombineLayerA(tf.keras.layers.Layer):
         training: bool = False,
         **kwargs: Any,
     ) -> tf.Tensor:
+        """Run the forward pass.
+
+        Args:
+            field_batch: Field tensor of shape (B, L). Typically in the scaled
+                values used by training.
+            sr_outcome_batch: SR outcome logits of shape (B, L/2).
+            training: Standard Keras `training` flag passed to sublayers.
+            **kwargs: Unused; present for Keras compatibility.
+
+        Returns:
+            Next-field logits tensor with shape (B, L/2).
+
+        Raises:
+            RuntimeError: If sublayers were not created in `build()`.
+        """
         field_batch = tf.convert_to_tensor(field_batch, dtype=self.dtype or tf.float32)
         sr_outcome_batch = tf.convert_to_tensor(sr_outcome_batch, dtype=self.dtype or tf.float32)
 
         _ensure_rank2(field_batch, "field_batch")
         _ensure_rank2(sr_outcome_batch, "sr_outcome_batch")
 
-        # Runtime shape consistency check.
         tf.debugging.assert_equal(
             tf.shape(sr_outcome_batch)[-1],
             tf.shape(field_batch)[-1] // 2,
-            message="sr_outcome_batch last dimension must equal L/2 where L is field_batch last dimension.",
+            message="sr_outcome_batch last dimension must equal L/2.",
         )
 
         if self._dense_hidden is None or self._dense_out is None:
             raise RuntimeError("PyrCombineLayerA is not built correctly (missing sublayers).")
 
         x = tf.concat([field_batch, sr_outcome_batch], axis=-1)
-        x = self._dense_hidden(x, training=training)
-        next_field = self._dense_out(x, training=training)
-        return next_field
+        h = self._dense_hidden(x, training=training)
+        next_field_logits = self._dense_out(h, training=training)
+        return next_field_logits
 
     def get_config(self) -> Dict[str, Any]:
+        """Return the serialized configuration for Keras cloning/serialization."""
         cfg = super().get_config()
         cfg.update({"hidden_units": self.hidden_units})
         return cfg

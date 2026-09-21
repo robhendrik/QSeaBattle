@@ -7332,7 +7332,12 @@ a.anchor-link {
     if (!diagrams.length) {
       return;
     }
-    const mermaid = (await import("https://cdnjs.cloudflare.com/ajax/libs/mermaid/10.7.0/mermaid.esm.min.mjs")).default;
+    const mermaid = (await import("https://cdnjs.cloudflare.com/ajax/libs/mermaid/11.10.0/mermaid.esm.min.mjs")).default;
+    const elkUrl = "https://cdnjs.cloudflare.com/ajax/libs/mermaid-layout-elk/0.1.9/mermaid-layout-elk.esm.min.mjs";
+    if(elkUrl) {
+      const elkLayouts = (await import(elkUrl)).default;
+      mermaid.registerLayoutLoaders(elkLayouts);
+    }
     const parser = new DOMParser();
 
     mermaid.initialize({
@@ -7429,7 +7434,8 @@ a.anchor-link {
      * Post-process to ensure mermaid diagrams contain only valid SVG and XHTML.
      */
     function cleanMermaidSvg(svg) {
-      return svg.replace(RE_VOID_ELEMENT, replaceVoidElement);
+      svg = svg.replace(RE_VOID_ELEMENT, replaceVoidElement);
+      return `${SVG_XML_HEADER}${svg}`;
     }
 
 
@@ -7455,6 +7461,285 @@ a.anchor-link {
       }
       return `<${tag} ${rest}>`;
     }
+
+
+  /**
+   * Named HTML entities with their decimal equivalent codes.
+   *
+   * @see https://www.w3.org/TR/WD-html40-970708/sgml/entities.html
+   * */
+  const HTML_ENTITIES = `<!ENTITY Aacute "&#193;">
+<!ENTITY aacute "&#225;">
+<!ENTITY Acirc "&#194;">
+<!ENTITY acirc "&#226;">
+<!ENTITY acute "&#180;">
+<!ENTITY AElig "&#198;">
+<!ENTITY aelig "&#230;">
+<!ENTITY Agrave "&#192;">
+<!ENTITY agrave "&#224;">
+<!ENTITY alefsym "&#8501;">
+<!ENTITY Alpha "&#913;">
+<!ENTITY alpha "&#945;">
+<!ENTITY amp "&#38;">
+<!ENTITY and "&#8869;">
+<!ENTITY ang "&#8736;">
+<!ENTITY Aring "&#197;">
+<!ENTITY aring "&#229;">
+<!ENTITY asymp "&#8776;">
+<!ENTITY Atilde "&#195;">
+<!ENTITY atilde "&#227;">
+<!ENTITY Auml "&#196;">
+<!ENTITY auml "&#228;">
+<!ENTITY bdquo "&#8222;">
+<!ENTITY Beta "&#914;">
+<!ENTITY beta "&#946;">
+<!ENTITY brvbar "&#166;">
+<!ENTITY bull "&#8226;">
+<!ENTITY cap "&#8745;">
+<!ENTITY Ccedil "&#199;">
+<!ENTITY ccedil "&#231;">
+<!ENTITY cedil "&#184;">
+<!ENTITY cent "&#162;">
+<!ENTITY Chi "&#935;">
+<!ENTITY chi "&#967;">
+<!ENTITY circ "&#710;">
+<!ENTITY clubs "&#9827;">
+<!ENTITY cong "&#8773;">
+<!ENTITY copy "&#169;">
+<!ENTITY crarr "&#8629;">
+<!ENTITY cup "&#8746;">
+<!ENTITY curren "&#164;">
+<!ENTITY dagger "&#8224;">
+<!ENTITY Dagger "&#8225;">
+<!ENTITY darr "&#8595;">
+<!ENTITY dArr "&#8659;">
+<!ENTITY deg "&#176;">
+<!ENTITY Delta "&#916;">
+<!ENTITY delta "&#948;">
+<!ENTITY diams "&#9830;">
+<!ENTITY divide "&#247;">
+<!ENTITY Eacute "&#201;">
+<!ENTITY eacute "&#233;">
+<!ENTITY Ecirc "&#202;">
+<!ENTITY ecirc "&#234;">
+<!ENTITY Egrave "&#200;">
+<!ENTITY egrave "&#232;">
+<!ENTITY empty "&#8709;">
+<!ENTITY emsp "&#8195;">
+<!ENTITY ensp "&#8194;">
+<!ENTITY epsilon "&#949;">
+<!ENTITY Epsilon "&#917;">
+<!ENTITY equiv "&#8801;">
+<!ENTITY Eta "&#919;">
+<!ENTITY eta "&#951;">
+<!ENTITY ETH "&#208;">
+<!ENTITY eth "&#240;">
+<!ENTITY Euml "&#203;">
+<!ENTITY euml "&#235;">
+<!ENTITY exist "&#8707;">
+<!ENTITY fnof "&#402;">
+<!ENTITY forall "&#8704;">
+<!ENTITY frac12 "&#189;">
+<!ENTITY frac14 "&#188;">
+<!ENTITY frac34 "&#190;">
+<!ENTITY frasl "&#8260;">
+<!ENTITY Gamma "&#915;">
+<!ENTITY gamma "&#947;">
+<!ENTITY ge "&#8805;">
+<!ENTITY gt "&#62;">
+<!ENTITY harr "&#8596;">
+<!ENTITY hArr "&#8660;">
+<!ENTITY hearts "&#9829;">
+<!ENTITY hellip "&#8230;">
+<!ENTITY Iacute "&#205;">
+<!ENTITY iacute "&#237;">
+<!ENTITY Icirc "&#206;">
+<!ENTITY icirc "&#238;">
+<!ENTITY iexcl "&#161;">
+<!ENTITY Igrave "&#204;">
+<!ENTITY igrave "&#236;">
+<!ENTITY image "&#8465;">
+<!ENTITY infin "&#8734;">
+<!ENTITY int "&#8747;">
+<!ENTITY Iota "&#921;">
+<!ENTITY iota "&#953;">
+<!ENTITY iquest "&#191;">
+<!ENTITY isin "&#8712;">
+<!ENTITY Iuml "&#207;">
+<!ENTITY iuml "&#239;">
+<!ENTITY Kappa "&#922;">
+<!ENTITY kappa "&#954;">
+<!ENTITY Lambda "&#923;">
+<!ENTITY lambda "&#955;">
+<!ENTITY lang "&#9001;">
+<!ENTITY laquo "&#171;">
+<!ENTITY larr "&#8592;">
+<!ENTITY lArr "&#8656;">
+<!ENTITY lceil "&#8968;">
+<!ENTITY ldquo "&#8220;">
+<!ENTITY le "&#8804;">
+<!ENTITY lfloor "&#8970;">
+<!ENTITY lowast "&#8727;">
+<!ENTITY loz "&#9674;">
+<!ENTITY lrm "&#8206;">
+<!ENTITY lsaquo "&#8249;">
+<!ENTITY lsquo "&#8216;">
+<!ENTITY lt "&#60;">
+<!ENTITY macr "&#175;">
+<!ENTITY mdash "&#8212;">
+<!ENTITY micro "&#181;">
+<!ENTITY middot "&#183;">
+<!ENTITY minus "&#8722;">
+<!ENTITY Mu "&#924;">
+<!ENTITY mu "&#956;">
+<!ENTITY nabla "&#8711;">
+<!ENTITY nbsp "&#160;">
+<!ENTITY ndash "&#8211;">
+<!ENTITY ne "&#8800;">
+<!ENTITY ni "&#8715;">
+<!ENTITY not "&#172;">
+<!ENTITY notin "&#8713;">
+<!ENTITY nsub "&#8836;">
+<!ENTITY Ntilde "&#209;">
+<!ENTITY ntilde "&#241;">
+<!ENTITY Nu "&#925;">
+<!ENTITY nu "&#957;">
+<!ENTITY Oacute "&#211;">
+<!ENTITY oacute "&#243;">
+<!ENTITY Ocirc "&#212;">
+<!ENTITY ocirc "&#244;">
+<!ENTITY OElig "&#338;">
+<!ENTITY oelig "&#339;">
+<!ENTITY Ograve "&#210;">
+<!ENTITY ograve "&#242;">
+<!ENTITY oline "&#8254;">
+<!ENTITY Omega "&#937;">
+<!ENTITY omega "&#969;">
+<!ENTITY Omicron "&#927;">
+<!ENTITY omicron "&#959;">
+<!ENTITY oplus "&#8853;">
+<!ENTITY or "&#8870;">
+<!ENTITY ordf "&#170;">
+<!ENTITY ordm "&#186;">
+<!ENTITY Oslash "&#216;">
+<!ENTITY oslash "&#248;">
+<!ENTITY Otilde "&#213;">
+<!ENTITY otilde "&#245;">
+<!ENTITY otimes "&#8855;">
+<!ENTITY Ouml "&#214;">
+<!ENTITY ouml "&#246;">
+<!ENTITY para "&#182;">
+<!ENTITY part "&#8706;">
+<!ENTITY permil "&#8240;">
+<!ENTITY perp "&#8869;">
+<!ENTITY Phi "&#934;">
+<!ENTITY phi "&#966;">
+<!ENTITY Pi "&#928;">
+<!ENTITY pi "&#960;">
+<!ENTITY piv "&#982;">
+<!ENTITY plusmn "&#177;">
+<!ENTITY pound "&#163;">
+<!ENTITY prime "&#8242;">
+<!ENTITY Prime "&#8243;">
+<!ENTITY prod "&#8719;">
+<!ENTITY prop "&#8733;">
+<!ENTITY Psi "&#936;">
+<!ENTITY psi "&#968;">
+<!ENTITY quot "&#34;">
+<!ENTITY radic "&#8730;">
+<!ENTITY rang "&#9002;">
+<!ENTITY raquo "&#187;">
+<!ENTITY rarr "&#8594;">
+<!ENTITY rArr "&#8658;">
+<!ENTITY rceil "&#8969;">
+<!ENTITY rdquo "&#8221;">
+<!ENTITY real "&#8476;">
+<!ENTITY reg "&#174;">
+<!ENTITY rfloor "&#8971;">
+<!ENTITY Rho "&#929;">
+<!ENTITY rho "&#961;">
+<!ENTITY rlm "&#8207;">
+<!ENTITY rsaquo "&#8250;">
+<!ENTITY rsquo "&#8217;">
+<!ENTITY sbquo "&#8218;">
+<!ENTITY Scaron "&#352;">
+<!ENTITY scaron "&#353;">
+<!ENTITY sdot "&#8901;">
+<!ENTITY sect "&#167;">
+<!ENTITY shy "&#173;">
+<!ENTITY Sigma "&#931;">
+<!ENTITY sigma "&#963;">
+<!ENTITY sigmaf "&#962;">
+<!ENTITY sim "&#8764;">
+<!ENTITY spades "&#9824;">
+<!ENTITY sub "&#8834;">
+<!ENTITY sube "&#8838;">
+<!ENTITY sum "&#8721;">
+<!ENTITY sup "&#8835;">
+<!ENTITY sup1 "&#185;">
+<!ENTITY sup2 "&#178;">
+<!ENTITY sup3 "&#179;">
+<!ENTITY supe "&#8839;">
+<!ENTITY szlig "&#223;">
+<!ENTITY Tau "&#932;">
+<!ENTITY tau "&#964;">
+<!ENTITY there4 "&#8756;">
+<!ENTITY Theta "&#920;">
+<!ENTITY theta "&#952;">
+<!ENTITY thetasym "&#977;">
+<!ENTITY thinsp "&#8201;">
+<!ENTITY THORN "&#222;">
+<!ENTITY thorn "&#254;">
+<!ENTITY tilde "&#732;">
+<!ENTITY times "&#215;">
+<!ENTITY trade "&#8482;">
+<!ENTITY Uacute "&#218;">
+<!ENTITY uacute "&#250;">
+<!ENTITY uarr "&#8593;">
+<!ENTITY uArr "&#8657;">
+<!ENTITY Ucirc "&#219;">
+<!ENTITY ucirc "&#251;">
+<!ENTITY Ugrave "&#217;">
+<!ENTITY ugrave "&#249;">
+<!ENTITY uml "&#168;">
+<!ENTITY upsih "&#978;">
+<!ENTITY Upsilon "&#933;">
+<!ENTITY upsilon "&#965;">
+<!ENTITY Uuml "&#220;">
+<!ENTITY uuml "&#252;">
+<!ENTITY weierp "&#8472;">
+<!ENTITY Xi "&#926;">
+<!ENTITY xi "&#958;">
+<!ENTITY Yacute "&#221;">
+<!ENTITY yacute "&#253;">
+<!ENTITY yen "&#165;">
+<!ENTITY Yuml "&#376;">
+<!ENTITY yuml "&#255;">
+<!ENTITY Zeta "&#918;">
+<!ENTITY zeta "&#950;">
+<!ENTITY zwj "&#8205;">
+<!ENTITY zwnj "&#8204;">`.replace(/\n/g, ' ');
+
+  /**
+   * A reasonably strict xml declaration.
+   */
+  const XML_DECL = '<?xml version="1.0" standalone="no"?>';
+
+  /**
+   * The beginning of the XML doctype declaration.
+   */
+  const DOCTYPE_START = `<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd" [`;
+
+  /**
+   * The end of the XML docype declaration.
+   */
+  const DOCTYPE_END = ']>';
+
+  /**
+   * A full header for an SVG XML document.
+   */
+  const SVG_XML_HEADER = `${XML_DECL}
+    ${DOCTYPE_START}${HTML_ENTITIES}${DOCTYPE_END}`;
 
     void Promise.all([...diagrams].map(renderOneMarmaid));
   });
@@ -7517,64 +7802,15 @@ a.anchor-link {
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h1 id="QSeaBattle:-Lin-Trainable-Assisted-Imitation-Learning-(Bootstrap-Tutorial)">QSeaBattle: Lin Trainable Assisted Imitation Learning (Bootstrap Tutorial)<a class="anchor-link" href="#QSeaBattle:-Lin-Trainable-Assisted-Imitation-Learning-(Bootstrap-Tutorial)">¶</a></h1><p>This notebook demonstrates how we bootstrap <em>trainable assisted players</em>
-by imitation learning from a known-correct classical assisted strategy.</p>
-<p>The goal is <strong>not</strong> to learn a better strategy yet, but to:</p>
-<ol>
-<li>Verify that the Lin neural architecture can exactly reproduce the
-classical assisted algorithm.</li>
-<li>Produce a stable initialization for later DIAL / DRU / RL training.</li>
-<li>Validate the measurement–shared resource (SR)–combine decomposition.</li>
-</ol>
-<p>If this notebook works, the architecture is correct.
-If it fails, the bug is architectural, not “learning-related”.</p>
-<p>Invariant:
-At the end of this notebook, the neural assisted players must match
-the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
-</div>
-</div>
-</div>
-</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=876dbcb6">
-<div class="jp-Cell-inputWrapper" tabindex="0">
-<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
-</div>
-<div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [2]:</div>
-<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
-<div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
-
-<span class="kn">import</span><span class="w"> </span><span class="nn">os</span>
-<span class="kn">import</span><span class="w"> </span><span class="nn">sys</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">change_to_repo_root</span><span class="p">(</span><span class="n">marker</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">"src"</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">"""Change CWD to the repository root (parent of `src`)."""</span>
-    <span class="n">here</span> <span class="o">=</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">()</span>
-    <span class="k">for</span> <span class="n">parent</span> <span class="ow">in</span> <span class="p">[</span><span class="n">here</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">here</span><span class="o">.</span><span class="n">parents</span><span class="p">):</span>
-        <span class="k">if</span> <span class="p">(</span><span class="n">parent</span> <span class="o">/</span> <span class="n">marker</span><span class="p">)</span><span class="o">.</span><span class="n">is_dir</span><span class="p">():</span>
-            <span class="n">os</span><span class="o">.</span><span class="n">chdir</span><span class="p">(</span><span class="n">parent</span><span class="p">)</span>
-            <span class="k">break</span>
-
-<span class="n">change_to_repo_root</span><span class="p">(</span><span class="s2">"src"</span><span class="p">)</span>
-<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">"./src"</span><span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s2">"CWD:"</span><span class="p">,</span> <span class="n">Path</span><span class="o">.</span><span class="n">cwd</span><span class="p">())</span>
-</pre></div>
-</div>
-</div>
-</div>
-</div>
-<div class="jp-Cell-outputWrapper">
-<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
-</div>
-<div class="jp-OutputArea jp-Cell-outputArea">
-<div class="jp-OutputArea-child">
-<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
-<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>CWD: c:\Users\nly99857\OneDrive - Philips\SW Projects\QSeaBattle
-</pre>
-</div>
+<h1 id="Training-a-Linear-Assisted-Player-by-Imitation">Training a Linear Assisted Player by Imitation<a class="anchor-link" href="#Training-a-Linear-Assisted-Player-by-Imitation">¶</a></h1><p><strong>Author:</strong> Rob Hendriks<br/>
+<strong>Last verified:</strong> 17 September 2026</p>
+<p>This tutorial shows how to bootstrap the trainable linear (<code>Lin</code>) assisted players from a known-correct classical strategy.</p>
+<p>Rather than train the complete game end-to-end, we first train the four learned components separately: Alice's measurement and combine layers, and Bob's measurement and combine layers. We then insert those weights into the full models and verify the result in a tournament.</p>
+<p>The important representation rule is simple:</p>
+<p><strong>the game uses bits, while the trainable model uses logits.</strong></p>
+<p>A bit <code>0</code> or <code>1</code> is represented inside the model by the sign of a logit. In this tutorial we use hard logits <code>-10</code> and <code>+10</code>. The gameplay adapters form the boundary between these two representations:</p>
+<p><code>game bits → gameplay adapter → model logits → gameplay adapter → game bits</code></p>
+<p>Inside the model — including between learned layers and the shared-resource (SR) layer — values remain logits.</p>
 </div>
 </div>
 </div>
@@ -7585,7 +7821,7 @@ the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Imports">Imports<a class="anchor-link" href="#Imports">¶</a></h2><p>We reuse the linear trainable assisted stack and utilities for imitation training.</p>
+<h2 id="Imports">Imports<a class="anchor-link" href="#Imports">¶</a></h2><p>We use the current linear assisted-player stack, the canonical dataset utilities, and the gameplay adapters used during tournament evaluation.</p>
 </div>
 </div>
 </div>
@@ -7594,7 +7830,7 @@ the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [3]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -7604,19 +7840,17 @@ the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
 <span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.game_env</span><span class="w"> </span><span class="kn">import</span> <span class="n">GameEnv</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.tournament</span><span class="w"> </span><span class="kn">import</span> <span class="n">Tournament</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinTrainableAssistedModelA</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_models</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinTrainableAssistedModelB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_model_a</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinTrainableAssistedModelA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_model_b</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinTrainableAssistedModelB</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.trainable_assisted_players</span><span class="w"> </span><span class="kn">import</span> <span class="n">TrainableAssistedPlayers</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.gameplay_adapters</span><span class="w"> </span><span class="kn">import</span> <span class="n">GameplayModelAAdapter</span><span class="p">,</span> <span class="n">GameplayModelBAdapter</span><span class="p">,</span> <span class="n">hard_logit</span>
 
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_trainable_assisted_imitation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">generate_measurement_dataset_a</span><span class="p">,</span>
-    <span class="n">generate_measurement_dataset_b</span><span class="p">,</span>
-    <span class="n">generate_combine_dataset_a</span><span class="p">,</span>
-    <span class="n">generate_combine_dataset_b</span><span class="p">,</span>
-    <span class="n">to_tf_dataset</span><span class="p">,</span>
-    <span class="n">transfer_assisted_model_a_layer_weights</span><span class="p">,</span>
-    <span class="n">transfer_assisted_model_b_layer_weights</span><span class="p">,</span>
-    <span class="n">train_layer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_dataset_generation_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="n">generate_lin_dataset</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_dataset_conversion_utilities</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">convert_layer_measure_a</span><span class="p">,</span>
+    <span class="n">convert_layer_measure_b</span><span class="p">,</span>
+    <span class="n">convert_layer_combine_a</span><span class="p">,</span>
+    <span class="n">convert_layer_combine_b</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"TensorFlow:"</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">__version__</span><span class="p">)</span>
@@ -7632,7 +7866,7 @@ the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>TensorFlow: 2.20.0
+<pre>TensorFlow: 2.21.0
 </pre>
 </div>
 </div>
@@ -7645,18 +7879,9 @@ the classical assisted players <em>bit-for-bit</em> in sample mode.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Game-layout-and-correlation-setting">Game layout and correlation setting<a class="anchor-link" href="#Game-layout-and-correlation-setting">¶</a></h2><p>We fix a small field (4×4) and a single communication bit (m=1).
-This regime is chosen deliberately:</p>
-<p>• n² = 16 is the smallest nontrivial power-of-two field
-• m = 1 matches the theoretical assisted protocol
-• p_high controls the strength of the shared resource (SR) correlation</p>
-<p>Why this matters:
-The Lin architecture relies on a <em>single shared resource (SR) call per decision</em>.
-Using the smallest valid field makes debugging and verification feasible,
-while still exercising the full measurement → correlation → parity pipeline.</p>
-<p>Note:
-Changing n² or m here does not only scale the problem;
-it changes the required structure of the combine layers.</p>
+<h2 id="1.-Choose-a-Small-Test-Problem">1. Choose a Small Test Problem<a class="anchor-link" href="#1.-Choose-a-Small-Test-Problem">¶</a></h2><p>We use a 4×4 field and one communication bit. This is small enough to train quickly, while still exercising the complete linear assisted protocol.</p>
+<p><code>p_rule=1</code> gives the ideal shared-resource correlation. With zero channel noise, a correctly trained and assembled model should therefore reach a tournament score very close to <code>1.0</code>.</p>
+<p>The measurement layers learn relatively simple local rules. The combine layers must learn parity-like functions and usually need substantially more training.</p>
 </div>
 </div>
 </div>
@@ -7665,25 +7890,26 @@ it changes the required structure of the combine layers.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [4]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="n">FIELD_SIZE</span> <span class="o">=</span> <span class="mi">4</span>
 <span class="n">COMMS_SIZE</span> <span class="o">=</span> <span class="mi">1</span>
 
 <span class="c1"># shared resource (SR) correlation parameter used by your task</span>
-<span class="n">P_HIGH</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">P_RULE</span> <span class="o">=</span> <span class="mf">1.0</span>
+<span class="n">BETA</span> <span class="o">=</span> <span class="mf">10.0</span>  <span class="c1"># magnitude used for hard logits throughout this tutorial</span>
 
 <span class="c1"># Dataset / training sizes</span>
 <span class="n">DATASET_SIZE</span> <span class="o">=</span> <span class="mi">50_000</span>
 <span class="n">BATCH_SIZE</span> <span class="o">=</span> <span class="mi">256</span>
 <span class="n">EPOCHS_MEAS</span> <span class="o">=</span> <span class="mi">4</span> <span class="c1"># we can use smaller number of epochs for measurement training, since it is an easier task</span>
-<span class="n">EPOCHS_COMB</span> <span class="o">=</span> <span class="mi">25</span>
+<span class="n">EPOCHS_COMB</span> <span class="o">=</span> <span class="mi">100</span>  <span class="c1"># parity-like combine layers usually need more training</span>
 
 <span class="c1"># DIAL/DRU training settings</span>
-<span class="n">SR_MODE_BOOTSTRAP_EVAL</span> <span class="o">=</span> <span class="s2">"sample"</span>
-<span class="n">SR_MODE_DIAL_TRAIN</span> <span class="o">=</span> <span class="s2">"expected"</span>
-<span class="n">SR_MODE_DIAL_EVAL</span> <span class="o">=</span> <span class="s2">"sample"</span>
+<span class="n">SR_MODE_BOOTSTRAP_EVAL</span> <span class="o">=</span> <span class="s2">"stochastic"</span>
+<span class="n">SR_MODE_DIAL_TRAIN</span> <span class="o">=</span> <span class="s2">"replay"</span>
+<span class="n">SR_MODE_DIAL_EVAL</span> <span class="o">=</span> <span class="s2">"stochastic"</span>
 
 <span class="n">SEED</span> <span class="o">=</span> <span class="mi">123</span>
 <span class="n">tf</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">set_seed</span><span class="p">(</span><span class="n">SEED</span><span class="p">)</span>
@@ -7722,22 +7948,14 @@ it changes the required structure of the combine layers.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Generating-imitation-targets-from-the-classical-assisted-players">Generating imitation targets from the classical assisted players<a class="anchor-link" href="#Generating-imitation-targets-from-the-classical-assisted-players">¶</a></h2><p>In this section we generate datasets using the <em>deterministic classical
-assisted strategy</em>.</p>
-<p>Why imitation first?
-• The classical assisted algorithm is provably correct.
-• It defines exact targets for:
-– measurement choices
-– shared resource (SR) outcomes
-– communication bits
-– shoot decisions
-• Learning from this data isolates architectural errors from optimisation noise.</p>
-<p>Crucially:
-The neural models are <strong>not</strong> discovering the strategy here.
-They are learning to <em>represent</em> it.</p>
-<p>Invariant:
-The generated dataset encodes exactly one shared-resource interaction
-per decision, and this ordering must be preserved throughout training.</p>
+<h2 id="2.-Generate-the-Classical-Imitation-Data">2. Generate the Classical Imitation Data<a class="anchor-link" href="#2.-Generate-the-Classical-Imitation-Data">¶</a></h2><p>The canonical dataset is generated in ordinary bits. Before a tensor is presented to a trainable layer, however, we convert it to the representation used by the model.</p>
+<p>For a hard-logit magnitude <code>β = 10</code>:</p>
+<ul>
+<li>bit <code>0</code> becomes logit <code>-10</code></li>
+<li>bit <code>1</code> becomes logit <code>+10</code></li>
+</ul>
+<p>This distinction matters. A raw bit value <code>0</code> is <strong>not</strong> a valid logit representation of logical zero: when logits are interpreted by sign, both <code>0</code> and <code>1</code> would lie on the non-negative side of the decision boundary.</p>
+<p>We therefore keep bits only in the canonical dataset and convert every model-facing input and imitation target to hard logits.</p>
 </div>
 </div>
 </div>
@@ -7746,24 +7964,28 @@ per decision, and this ordering must be preserved throughout training.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [5]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Build layout for data generation (enemy_probability/channel_noise not used by these generators)</span>
 <span class="n">layout</span> <span class="o">=</span> <span class="n">GameLayout</span><span class="p">(</span><span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span> <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">)</span>
 
-<span class="c1"># --- Generate datasets ---</span>
-<span class="n">ds_meas_a</span> <span class="o">=</span> <span class="n">generate_measurement_dataset_a</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">DATASET_SIZE</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-<span class="n">ds_comb_a</span> <span class="o">=</span> <span class="n">generate_combine_dataset_a</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">DATASET_SIZE</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-<span class="n">ds_meas_b</span> <span class="o">=</span> <span class="n">generate_measurement_dataset_b</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">DATASET_SIZE</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">ds_comb_b</span> <span class="o">=</span> <span class="n">generate_combine_dataset_b</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">num_samples</span><span class="o">=</span><span class="n">DATASET_SIZE</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span> <span class="o">+</span> <span class="mi">3</span><span class="p">)</span>
+<span class="c1"># --- Generate canonical linear dataset in bits ---</span>
+<span class="n">ds_lin</span> <span class="o">=</span> <span class="n">generate_lin_dataset</span><span class="p">(</span><span class="n">n2</span><span class="o">=</span><span class="n">n2</span><span class="p">,</span> <span class="n">m</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span> <span class="n">num_games</span><span class="o">=</span><span class="n">DATASET_SIZE</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-<span class="n">tfds_meas_a</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">ds_meas_a</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"field"</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">"meas_target"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">)</span>
-<span class="n">tfds_comb_a</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">ds_comb_a</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"outcomes_a"</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">"comm_target"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
-<span class="n">tfds_meas_b</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">ds_meas_b</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"gun"</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">"meas_target"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="o">+</span><span class="mi">2</span><span class="p">)</span>
-<span class="n">tfds_comb_b</span> <span class="o">=</span> <span class="n">to_tf_dataset</span><span class="p">(</span><span class="n">ds_comb_b</span><span class="p">,</span> <span class="n">x_keys</span><span class="o">=</span><span class="p">[</span><span class="s2">"outcomes_b"</span><span class="p">,</span><span class="s2">"comm"</span><span class="p">],</span> <span class="n">y_key</span><span class="o">=</span><span class="s2">"shoot_target"</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="o">+</span><span class="mi">3</span><span class="p">)</span>
+<span class="c1"># --- Convert to layer-specific training views in hard logits ---</span>
+<span class="n">layer_data_meas_a</span> <span class="o">=</span> <span class="n">convert_layer_measure_a</span><span class="p">(</span><span class="n">ds_lin</span><span class="p">,</span> <span class="n">rep_x</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">rep_y</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">)</span>
+<span class="n">layer_data_comb_a</span> <span class="o">=</span> <span class="n">convert_layer_combine_a</span><span class="p">(</span><span class="n">ds_lin</span><span class="p">,</span> <span class="n">rep_outcome</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">rep_target</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">)</span>
+<span class="n">layer_data_meas_b</span> <span class="o">=</span> <span class="n">convert_layer_measure_b</span><span class="p">(</span><span class="n">ds_lin</span><span class="p">,</span> <span class="n">rep_x</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">rep_y</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">)</span>
+<span class="n">layer_data_comb_b</span> <span class="o">=</span> <span class="n">convert_layer_combine_b</span><span class="p">(</span>
+    <span class="n">ds_lin</span><span class="p">,</span>
+    <span class="n">rep_outcome_b</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span>
+    <span class="n">rep_comm_in</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span>
+    <span class="n">rep_shoot</span><span class="o">=</span><span class="s2">"hard_logit"</span><span class="p">,</span>
+    <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Datasets ready."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Datasets ready (bits canonical, logits training views)."</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -7776,8 +7998,66 @@ per decision, and this ordering must be preserved throughout training.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Datasets ready.
+<pre>Datasets ready (bits canonical, logits training views).
 </pre>
+</div>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell jp-mod-noOutputs" id="cell-id=aea9017e">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [7]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">logits_bce_from_logit_targets</span><span class="p">(</span><span class="n">y_true_logits</span><span class="p">,</span> <span class="n">y_pred_logits</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""BCE with logits where targets are semantic logits and labels are derived by sign."""</span>
+    <span class="n">y_true_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true_logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y_pred_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_pred_logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true_logits</span> <span class="o">&gt;=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">per_elem</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid_cross_entropy_with_logits</span><span class="p">(</span><span class="n">labels</span><span class="o">=</span><span class="n">labels</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="n">y_pred_logits</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">per_elem</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">sign_accuracy_from_logit_targets</span><span class="p">(</span><span class="n">y_true_logits</span><span class="p">,</span> <span class="n">y_pred_logits</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Accuracy computed by sign agreement between target logits and predicted logits."""</span>
+    <span class="n">y_true_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true_logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">y_pred_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_pred_logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">target_bits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_true_logits</span> <span class="o">&gt;=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">pred_bits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">y_pred_logits</span> <span class="o">&gt;=</span> <span class="mf">0.0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">target_bits</span><span class="p">,</span> <span class="n">pred_bits</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">train_single_input_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Train a single-input Keras layer inside a tiny functional model."""</span>
+    <span class="n">input_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">x_train</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">output_tensor</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">input_tensor</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">input_tensor</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">output_tensor</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">),</span>
+        <span class="n">loss</span><span class="o">=</span><span class="n">logits_bce_from_logit_targets</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">sign_accuracy_from_logit_targets</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">train_two_input_layer</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="n">x_left</span><span class="p">,</span> <span class="n">x_right</span><span class="p">,</span> <span class="n">y_train</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">epochs</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-3</span><span class="p">,</span> <span class="n">verbose</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Train a two-input Keras layer inside a tiny functional model."""</span>
+    <span class="n">left_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">x_left</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">right_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Input</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="n">x_right</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">output_tensor</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">left_tensor</span><span class="p">,</span> <span class="n">right_tensor</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">Model</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="p">[</span><span class="n">left_tensor</span><span class="p">,</span> <span class="n">right_tensor</span><span class="p">],</span> <span class="n">outputs</span><span class="o">=</span><span class="n">output_tensor</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
+        <span class="n">optimizer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">optimizers</span><span class="o">.</span><span class="n">Adam</span><span class="p">(</span><span class="n">learning_rate</span><span class="o">=</span><span class="n">learning_rate</span><span class="p">),</span>
+        <span class="n">loss</span><span class="o">=</span><span class="n">logits_bce_from_logit_targets</span><span class="p">,</span>
+        <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">sign_accuracy_from_logit_targets</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">([</span><span class="n">x_left</span><span class="p">,</span> <span class="n">x_right</span><span class="p">],</span> <span class="n">y_train</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">epochs</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">model</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -7789,24 +8069,16 @@ per decision, and this ordering must be preserved throughout training.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Training-individual-layers-by-supervised-imitation">Training individual layers by supervised imitation<a class="anchor-link" href="#Training-individual-layers-by-supervised-imitation">¶</a></h2><p>We train the layers in isolation rather than end-to-end.</p>
-<p>Why layer-wise training?
-• The assisted algorithm has a known internal structure.
-• Measurement layers have <em>local</em>, per-cell targets.
-• Combine layers implement <em>global parity</em>, which is hard to learn end-to-end.
-• Separating them stabilizes training and makes failures diagnosable.</p>
-<p>Interpretation:
-Each layer learns a well-defined subroutine of the classical algorithm.</p>
-<p>Measurement target:
-Player A measures type-1 exactly on cells where field == 1.
-Player B measures type-1 exactly at the gun position.</p>
-<p>These targets are not arbitrary:
-they are the classical measurement rules expressed in neural form.</p>
-<p>Combine target:
-The communication bit (and shoot decision) is the parity (XOR)
-of the shared-resource outcomes.</p>
-<p>This is the nontrivial part of the protocol.
-If this layer fails to learn parity, the architecture will not scale.</p>
+<h2 id="3.-Train-the-Four-Learned-Layers">3. Train the Four Learned Layers<a class="anchor-link" href="#3.-Train-the-Four-Learned-Layers">¶</a></h2><p>We train the layers separately so that each part of the protocol can be checked independently:</p>
+<ol>
+<li><code>LinMeasurementLayerA</code></li>
+<li><code>LinCombineLayerA</code></li>
+<li><code>LinMeasurementLayerB</code></li>
+<li><code>LinCombineLayerB</code></li>
+</ol>
+<p>The SR layer itself is not learned here; it implements the assisted correlation rule.</p>
+<p>The training targets remain logits. Binary cross-entropy still needs <code>0/1</code> labels, so the loss converts the <strong>sign</strong> of each target logit to a label internally. Accuracy is also measured by sign agreement.</p>
+<p>This keeps the representation contract intact: the network sees logits, while the loss only translates their sign at the final mathematical boundary.</p>
 </div>
 </div>
 </div>
@@ -7815,23 +8087,23 @@ If this layer fails to learn parity, the architecture will not scale.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [6]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [8]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
 <div class="highlight hl-ipython3"><pre><span></span><span class="c1"># --- Train layers ---</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_teacher_layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinMeasurementLayerA</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_teacher_layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinMeasurementLayerB</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_teacher_layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinCombineLayerA</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_teacher_layers</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinCombineLayerB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_measurement_layer_a</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinMeasurementLayerA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_measurement_layer_b</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinMeasurementLayerB</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_combine_layer_a</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinCombineLayerA</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">Q_Sea_Battle.lin_combine_layer_b</span><span class="w"> </span><span class="kn">import</span> <span class="n">LinCombineLayerB</span>
 
 <span class="c1"># --- Build layers ---</span>
 <span class="n">n2</span> <span class="o">=</span> <span class="n">FIELD_SIZE</span> <span class="o">*</span> <span class="n">FIELD_SIZE</span>
 <span class="n">model_a</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelA</span><span class="p">(</span>
     <span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span>
     <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span>
-    <span class="n">sr_mode</span><span class="o">=</span><span class="s2">"sample"</span><span class="p">,</span>   <span class="c1"># evaluation mode</span>
+    <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span>   <span class="c1"># evaluation mode</span>
     <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span>
-    <span class="n">p_high</span><span class="o">=</span><span class="n">P_HIGH</span><span class="p">,</span>
+    <span class="n">p_rule</span><span class="o">=</span><span class="n">P_RULE</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">meas_layer_a</span> <span class="o">=</span> <span class="n">model_a</span><span class="o">.</span><span class="n">measure_layer</span>
 <span class="n">comb_layer_a</span> <span class="o">=</span> <span class="n">model_a</span><span class="o">.</span><span class="n">combine_layer</span>
@@ -7839,22 +8111,23 @@ If this layer fails to learn parity, the architecture will not scale.</p>
 <span class="n">model_b</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelB</span><span class="p">(</span>
     <span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span>
     <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span>
-    <span class="n">sr_mode</span><span class="o">=</span><span class="s2">"sample"</span><span class="p">,</span>   <span class="c1"># evaluation mode</span>
+    <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span>   <span class="c1"># evaluation mode</span>
     <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span>
-    <span class="n">p_high</span><span class="o">=</span><span class="n">P_HIGH</span><span class="p">,</span>
+    <span class="n">p_rule</span><span class="o">=</span><span class="n">P_RULE</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">meas_layer_b</span> <span class="o">=</span> <span class="n">model_b</span><span class="o">.</span><span class="n">measure_layer</span>
 <span class="n">comb_layer_b</span> <span class="o">=</span> <span class="n">model_b</span><span class="o">.</span><span class="n">combine_layer</span>
 
-<span class="n">_</span> <span class="o">=</span> <span class="n">train_layer</span><span class="p">(</span><span class="n">meas_layer_a</span><span class="p">,</span> <span class="n">tfds_meas_a</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">BinaryCrossentropy</span><span class="p">(</span><span class="n">from_logits</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_MEAS</span><span class="p">,</span>
-                <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">BinaryAccuracy</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)])</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">train_layer</span><span class="p">(</span><span class="n">comb_layer_a</span><span class="p">,</span> <span class="n">tfds_comb_a</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">BinaryCrossentropy</span><span class="p">(</span><span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_COMB</span><span class="p">,</span>
-                <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">BinaryAccuracy</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)])</span>
+<span class="n">x_meas_a</span><span class="p">,</span> <span class="n">y_meas_a</span> <span class="o">=</span> <span class="n">layer_data_meas_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">x_comb_a</span><span class="p">,</span> <span class="n">y_comb_a</span> <span class="o">=</span> <span class="n">layer_data_comb_a</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">x_meas_b</span><span class="p">,</span> <span class="n">y_meas_b</span> <span class="o">=</span> <span class="n">layer_data_meas_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="p">(</span><span class="n">x_comb_b_left</span><span class="p">,</span> <span class="n">x_comb_b_right</span><span class="p">),</span> <span class="n">y_comb_b</span> <span class="o">=</span> <span class="n">layer_data_comb_b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<span class="n">_</span> <span class="o">=</span> <span class="n">train_layer</span><span class="p">(</span><span class="n">meas_layer_b</span><span class="p">,</span> <span class="n">tfds_meas_b</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">BinaryCrossentropy</span><span class="p">(</span><span class="n">from_logits</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_MEAS</span><span class="p">,</span>
-                <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">BinaryAccuracy</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)])</span>
-<span class="n">_</span> <span class="o">=</span> <span class="n">train_layer</span><span class="p">(</span><span class="n">comb_layer_b</span><span class="p">,</span> <span class="n">tfds_comb_b</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">BinaryCrossentropy</span><span class="p">(</span><span class="n">from_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_COMB</span><span class="p">,</span>
-                <span class="n">metrics</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">metrics</span><span class="o">.</span><span class="n">BinaryAccuracy</span><span class="p">(</span><span class="n">threshold</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)])</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">train_single_input_layer</span><span class="p">(</span><span class="n">meas_layer_a</span><span class="p">,</span> <span class="n">x_meas_a</span><span class="p">,</span> <span class="n">y_meas_a</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_MEAS</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">train_single_input_layer</span><span class="p">(</span><span class="n">comb_layer_a</span><span class="p">,</span> <span class="n">x_comb_a</span><span class="p">,</span> <span class="n">y_comb_a</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_COMB</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
+
+<span class="n">_</span> <span class="o">=</span> <span class="n">train_single_input_layer</span><span class="p">(</span><span class="n">meas_layer_b</span><span class="p">,</span> <span class="n">x_meas_b</span><span class="p">,</span> <span class="n">y_meas_b</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_MEAS</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">train_two_input_layer</span><span class="p">(</span><span class="n">comb_layer_b</span><span class="p">,</span> <span class="n">x_comb_b_left</span><span class="p">,</span> <span class="n">x_comb_b_right</span><span class="p">,</span> <span class="n">y_comb_b</span><span class="p">,</span> <span class="n">epochs</span><span class="o">=</span><span class="n">EPOCHS_COMB</span><span class="p">,</span> <span class="n">batch_size</span><span class="o">=</span><span class="n">BATCH_SIZE</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Standalone layers trained."</span><span class="p">)</span>
 </pre></div>
@@ -7869,124 +8142,425 @@ If this layer fails to learn parity, the architecture will not scale.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>WARNING:tensorflow:From c:\Users\nly99857\OneDrive - Philips\SW Projects\QSeaBattle\venvs\env_QSeaBattle\Lib\site-packages\keras\src\backend\tensorflow\core.py:232: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
+<pre>WARNING:tensorflow:From c:\Users\nly99857\OneDrive - Philips\SW Projects\QSeaBattle\env_QSeaBattle\Lib\site-packages\keras\src\backend\tensorflow\core.py:233: The name tf.placeholder is deprecated. Please use tf.compat.v1.placeholder instead.
 
+WARNING:tensorflow:TensorFlow GPU support is not available on native Windows for TensorFlow &gt;= 2.11. Even if CUDA/cuDNN are installed, GPU will not be used. Please use WSL2 or the TensorFlow-DirectML plugin.
 Epoch 1/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 22ms/step - binary_accuracy: 0.8626 - loss: 0.4615
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">2s</span> 3ms/step - loss: 0.4460 - sign_accuracy_from_logit_targets: 0.8556
 Epoch 2/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9997 - loss: 0.1260
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0280 - sign_accuracy_from_logit_targets: 0.9956
 Epoch 3/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 22ms/step - binary_accuracy: 1.0000 - loss: 0.0403
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0105 - sign_accuracy_from_logit_targets: 0.9994
 Epoch 4/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 1.0000 - loss: 0.0184
-Epoch 1/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">8s</span> 41ms/step - binary_accuracy: 0.5041 - loss: 0.6941
-Epoch 2/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">7s</span> 36ms/step - binary_accuracy: 0.5145 - loss: 0.6925
-Epoch 3/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 27ms/step - binary_accuracy: 0.5412 - loss: 0.6883
-Epoch 4/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">9s</span> 45ms/step - binary_accuracy: 0.5802 - loss: 0.6769
-Epoch 5/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.6340 - loss: 0.6462
-Epoch 6/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.6996 - loss: 0.5887
-Epoch 7/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 28ms/step - binary_accuracy: 0.7629 - loss: 0.5112
-Epoch 8/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.8092 - loss: 0.4398
-Epoch 9/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.8538 - loss: 0.3696
-Epoch 10/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 27ms/step - binary_accuracy: 0.8926 - loss: 0.3026
-Epoch 11/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 27ms/step - binary_accuracy: 0.9175 - loss: 0.2517
-Epoch 12/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.9368 - loss: 0.2081
-Epoch 13/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9502 - loss: 0.1751
-Epoch 14/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9631 - loss: 0.1426
-Epoch 15/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9693 - loss: 0.1197
-Epoch 16/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9736 - loss: 0.1035
-Epoch 17/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9786 - loss: 0.0873
-Epoch 18/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 0.9801 - loss: 0.0784
-Epoch 19/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9829 - loss: 0.0700
-Epoch 20/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9836 - loss: 0.0643
-Epoch 21/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 23ms/step - binary_accuracy: 0.9858 - loss: 0.0590
-Epoch 22/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">6s</span> 28ms/step - binary_accuracy: 0.9865 - loss: 0.0543
-Epoch 23/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9886 - loss: 0.0493
-Epoch 24/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">6s</span> 31ms/step - binary_accuracy: 0.9882 - loss: 0.0478
-Epoch 25/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.9892 - loss: 0.0434
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0055 - sign_accuracy_from_logit_targets: 0.9998
+Epoch 1/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 1.0599 - sign_accuracy_from_logit_targets: 0.4993
+Epoch 2/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.7414 - sign_accuracy_from_logit_targets: 0.5045
+Epoch 3/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.7101 - sign_accuracy_from_logit_targets: 0.5337
+Epoch 4/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.6692 - sign_accuracy_from_logit_targets: 0.5897
+Epoch 5/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.6276 - sign_accuracy_from_logit_targets: 0.6495
+Epoch 6/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.5922 - sign_accuracy_from_logit_targets: 0.6926
+Epoch 7/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.5592 - sign_accuracy_from_logit_targets: 0.7269
+Epoch 8/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.5279 - sign_accuracy_from_logit_targets: 0.7576
+Epoch 9/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.4920 - sign_accuracy_from_logit_targets: 0.7841
+Epoch 10/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.4622 - sign_accuracy_from_logit_targets: 0.8032
+Epoch 11/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.4353 - sign_accuracy_from_logit_targets: 0.8193
+Epoch 12/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.4056 - sign_accuracy_from_logit_targets: 0.8365
+Epoch 13/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.3751 - sign_accuracy_from_logit_targets: 0.8523
+Epoch 14/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.3502 - sign_accuracy_from_logit_targets: 0.8648
+Epoch 15/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.3173 - sign_accuracy_from_logit_targets: 0.8842
+Epoch 16/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.2830 - sign_accuracy_from_logit_targets: 0.9015
+Epoch 17/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.2542 - sign_accuracy_from_logit_targets: 0.9163
+Epoch 18/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.2269 - sign_accuracy_from_logit_targets: 0.9285
+Epoch 19/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.2003 - sign_accuracy_from_logit_targets: 0.9411
+Epoch 20/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1790 - sign_accuracy_from_logit_targets: 0.9507
+Epoch 21/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1601 - sign_accuracy_from_logit_targets: 0.9580
+Epoch 22/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1435 - sign_accuracy_from_logit_targets: 0.9641
+Epoch 23/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1295 - sign_accuracy_from_logit_targets: 0.9689
+Epoch 24/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1182 - sign_accuracy_from_logit_targets: 0.9724
+Epoch 25/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1082 - sign_accuracy_from_logit_targets: 0.9758
+Epoch 26/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0985 - sign_accuracy_from_logit_targets: 0.9790
+Epoch 27/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0881 - sign_accuracy_from_logit_targets: 0.9822
+Epoch 28/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0794 - sign_accuracy_from_logit_targets: 0.9845
+Epoch 29/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0726 - sign_accuracy_from_logit_targets: 0.9859
+Epoch 30/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0666 - sign_accuracy_from_logit_targets: 0.9869
+Epoch 31/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0614 - sign_accuracy_from_logit_targets: 0.9883
+Epoch 32/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0572 - sign_accuracy_from_logit_targets: 0.9892
+Epoch 33/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0538 - sign_accuracy_from_logit_targets: 0.9898
+Epoch 34/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0508 - sign_accuracy_from_logit_targets: 0.9905
+Epoch 35/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0479 - sign_accuracy_from_logit_targets: 0.9911
+Epoch 36/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0450 - sign_accuracy_from_logit_targets: 0.9918
+Epoch 37/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0425 - sign_accuracy_from_logit_targets: 0.9922
+Epoch 38/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0404 - sign_accuracy_from_logit_targets: 0.9926
+Epoch 39/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0385 - sign_accuracy_from_logit_targets: 0.9932
+Epoch 40/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0368 - sign_accuracy_from_logit_targets: 0.9934
+Epoch 41/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0354 - sign_accuracy_from_logit_targets: 0.9935
+Epoch 42/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0341 - sign_accuracy_from_logit_targets: 0.9935
+Epoch 43/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0329 - sign_accuracy_from_logit_targets: 0.9938
+Epoch 44/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">2s</span> 8ms/step - loss: 0.0318 - sign_accuracy_from_logit_targets: 0.9939
+Epoch 45/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0308 - sign_accuracy_from_logit_targets: 0.9940
+Epoch 46/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0299 - sign_accuracy_from_logit_targets: 0.9942
+Epoch 47/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0290 - sign_accuracy_from_logit_targets: 0.9944
+Epoch 48/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0281 - sign_accuracy_from_logit_targets: 0.9944
+Epoch 49/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0272 - sign_accuracy_from_logit_targets: 0.9946
+Epoch 50/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0263 - sign_accuracy_from_logit_targets: 0.9947
+Epoch 51/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0256 - sign_accuracy_from_logit_targets: 0.9950
+Epoch 52/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0249 - sign_accuracy_from_logit_targets: 0.9951
+Epoch 53/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0243 - sign_accuracy_from_logit_targets: 0.9952
+Epoch 54/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0238 - sign_accuracy_from_logit_targets: 0.9952
+Epoch 55/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0233 - sign_accuracy_from_logit_targets: 0.9953
+Epoch 56/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0227 - sign_accuracy_from_logit_targets: 0.9955
+Epoch 57/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0222 - sign_accuracy_from_logit_targets: 0.9956
+Epoch 58/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0218 - sign_accuracy_from_logit_targets: 0.9957
+Epoch 59/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0213 - sign_accuracy_from_logit_targets: 0.9957
+Epoch 60/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0209 - sign_accuracy_from_logit_targets: 0.9957
+Epoch 61/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0205 - sign_accuracy_from_logit_targets: 0.9957
+Epoch 62/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0202 - sign_accuracy_from_logit_targets: 0.9957
+Epoch 63/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0198 - sign_accuracy_from_logit_targets: 0.9958
+Epoch 64/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0195 - sign_accuracy_from_logit_targets: 0.9960
+Epoch 65/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0192 - sign_accuracy_from_logit_targets: 0.9960
+Epoch 66/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0189 - sign_accuracy_from_logit_targets: 0.9960
+Epoch 67/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0186 - sign_accuracy_from_logit_targets: 0.9961
+Epoch 68/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0183 - sign_accuracy_from_logit_targets: 0.9961
+Epoch 69/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0180 - sign_accuracy_from_logit_targets: 0.9961
+Epoch 70/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0177 - sign_accuracy_from_logit_targets: 0.9961
+Epoch 71/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0175 - sign_accuracy_from_logit_targets: 0.9962
+Epoch 72/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0172 - sign_accuracy_from_logit_targets: 0.9962
+Epoch 73/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0170 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 74/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0168 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 75/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0165 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 76/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0163 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 77/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0161 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 78/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0159 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 79/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0158 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 80/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0156 - sign_accuracy_from_logit_targets: 0.9964
+Epoch 81/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0154 - sign_accuracy_from_logit_targets: 0.9965
+Epoch 82/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0152 - sign_accuracy_from_logit_targets: 0.9965
+Epoch 83/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0150 - sign_accuracy_from_logit_targets: 0.9966
+Epoch 84/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0148 - sign_accuracy_from_logit_targets: 0.9966
+Epoch 85/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0144 - sign_accuracy_from_logit_targets: 0.9967
+Epoch 86/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0140 - sign_accuracy_from_logit_targets: 0.9968
+Epoch 87/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0137 - sign_accuracy_from_logit_targets: 0.9970
+Epoch 88/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0134 - sign_accuracy_from_logit_targets: 0.9970
+Epoch 89/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0132 - sign_accuracy_from_logit_targets: 0.9971
+Epoch 90/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0130 - sign_accuracy_from_logit_targets: 0.9971
+Epoch 91/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0128 - sign_accuracy_from_logit_targets: 0.9972
+Epoch 92/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0127 - sign_accuracy_from_logit_targets: 0.9972
+Epoch 93/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0125 - sign_accuracy_from_logit_targets: 0.9972
+Epoch 94/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0124 - sign_accuracy_from_logit_targets: 0.9972
+Epoch 95/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0123 - sign_accuracy_from_logit_targets: 0.9972
+Epoch 96/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0122 - sign_accuracy_from_logit_targets: 0.9973
+Epoch 97/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0120 - sign_accuracy_from_logit_targets: 0.9973
+Epoch 98/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0119 - sign_accuracy_from_logit_targets: 0.9973
+Epoch 99/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 4ms/step - loss: 0.0118 - sign_accuracy_from_logit_targets: 0.9974
+Epoch 100/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0117 - sign_accuracy_from_logit_targets: 0.9974
 Epoch 1/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 19ms/step - binary_accuracy: 0.8968 - loss: 0.3909
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.2549 - sign_accuracy_from_logit_targets: 0.9278
 Epoch 2/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 19ms/step - binary_accuracy: 0.9442 - loss: 0.1299
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0114 - sign_accuracy_from_logit_targets: 1.0000
 Epoch 3/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 19ms/step - binary_accuracy: 0.9990 - loss: 0.0419
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0042 - sign_accuracy_from_logit_targets: 1.0000
 Epoch 4/4
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">4s</span> 19ms/step - binary_accuracy: 1.0000 - loss: 0.0148
-Epoch 1/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.5031 - loss: 0.6942
-Epoch 2/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 0.5143 - loss: 0.6929
-Epoch 3/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 0.5190 - loss: 0.6922
-Epoch 4/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.5382 - loss: 0.6894
-Epoch 5/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.5862 - loss: 0.6776
-Epoch 6/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.6343 - loss: 0.6472
-Epoch 7/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 0.6875 - loss: 0.5989
-Epoch 8/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.7638 - loss: 0.5178
-Epoch 9/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.8164 - loss: 0.4349
-Epoch 10/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.8534 - loss: 0.3659
-Epoch 11/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">6s</span> 28ms/step - binary_accuracy: 0.8822 - loss: 0.3072
-Epoch 12/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 25ms/step - binary_accuracy: 0.9139 - loss: 0.2490
-Epoch 13/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9412 - loss: 0.1914
-Epoch 14/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 26ms/step - binary_accuracy: 0.9541 - loss: 0.1546
-Epoch 15/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9629 - loss: 0.1296
-Epoch 16/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9689 - loss: 0.1117
-Epoch 17/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9731 - loss: 0.0979
-Epoch 18/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9747 - loss: 0.0888
-Epoch 19/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9780 - loss: 0.0788
-Epoch 20/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9805 - loss: 0.0711
-Epoch 21/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9808 - loss: 0.0668
-Epoch 22/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9825 - loss: 0.0615
-Epoch 23/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9837 - loss: 0.0575
-Epoch 24/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9844 - loss: 0.0536
-Epoch 25/25
-<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">5s</span> 24ms/step - binary_accuracy: 0.9862 - loss: 0.0501
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0022 - sign_accuracy_from_logit_targets: 1.0000
+Epoch 1/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 3.1315 - sign_accuracy_from_logit_targets: 0.5027
+Epoch 2/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 1.2644 - sign_accuracy_from_logit_targets: 0.5120
+Epoch 3/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.9416 - sign_accuracy_from_logit_targets: 0.5358
+Epoch 4/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.7768 - sign_accuracy_from_logit_targets: 0.5733
+Epoch 5/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.6951 - sign_accuracy_from_logit_targets: 0.6054
+Epoch 6/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.6534 - sign_accuracy_from_logit_targets: 0.6281
+Epoch 7/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.6245 - sign_accuracy_from_logit_targets: 0.6515
+Epoch 8/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.6018 - sign_accuracy_from_logit_targets: 0.6719
+Epoch 9/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.5720 - sign_accuracy_from_logit_targets: 0.6969
+Epoch 10/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.5412 - sign_accuracy_from_logit_targets: 0.7230
+Epoch 11/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.5034 - sign_accuracy_from_logit_targets: 0.7524
+Epoch 12/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.4724 - sign_accuracy_from_logit_targets: 0.7741
+Epoch 13/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.4391 - sign_accuracy_from_logit_targets: 0.7950
+Epoch 14/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.3947 - sign_accuracy_from_logit_targets: 0.8218
+Epoch 15/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.3379 - sign_accuracy_from_logit_targets: 0.8525
+Epoch 16/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.2804 - sign_accuracy_from_logit_targets: 0.8836
+Epoch 17/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.2320 - sign_accuracy_from_logit_targets: 0.9068
+Epoch 18/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1910 - sign_accuracy_from_logit_targets: 0.9256
+Epoch 19/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.1599 - sign_accuracy_from_logit_targets: 0.9389
+Epoch 20/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.1329 - sign_accuracy_from_logit_targets: 0.9505
+Epoch 21/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.1114 - sign_accuracy_from_logit_targets: 0.9591
+Epoch 22/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0960 - sign_accuracy_from_logit_targets: 0.9650
+Epoch 23/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0825 - sign_accuracy_from_logit_targets: 0.9707
+Epoch 24/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0715 - sign_accuracy_from_logit_targets: 0.9746
+Epoch 25/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0624 - sign_accuracy_from_logit_targets: 0.9781
+Epoch 26/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0552 - sign_accuracy_from_logit_targets: 0.9813
+Epoch 27/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0490 - sign_accuracy_from_logit_targets: 0.9837
+Epoch 28/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0436 - sign_accuracy_from_logit_targets: 0.9857
+Epoch 29/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0392 - sign_accuracy_from_logit_targets: 0.9872
+Epoch 30/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0360 - sign_accuracy_from_logit_targets: 0.9881
+Epoch 31/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0333 - sign_accuracy_from_logit_targets: 0.9889
+Epoch 32/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0310 - sign_accuracy_from_logit_targets: 0.9896
+Epoch 33/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0288 - sign_accuracy_from_logit_targets: 0.9903
+Epoch 34/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0271 - sign_accuracy_from_logit_targets: 0.9910
+Epoch 35/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0251 - sign_accuracy_from_logit_targets: 0.9918
+Epoch 36/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0235 - sign_accuracy_from_logit_targets: 0.9920
+Epoch 37/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0221 - sign_accuracy_from_logit_targets: 0.9924
+Epoch 38/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0212 - sign_accuracy_from_logit_targets: 0.9927
+Epoch 39/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0204 - sign_accuracy_from_logit_targets: 0.9930
+Epoch 40/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0199 - sign_accuracy_from_logit_targets: 0.9929
+Epoch 41/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0194 - sign_accuracy_from_logit_targets: 0.9932
+Epoch 42/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0191 - sign_accuracy_from_logit_targets: 0.9932
+Epoch 43/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0190 - sign_accuracy_from_logit_targets: 0.9932
+Epoch 44/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0186 - sign_accuracy_from_logit_targets: 0.9933
+Epoch 45/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0183 - sign_accuracy_from_logit_targets: 0.9936
+Epoch 46/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0183 - sign_accuracy_from_logit_targets: 0.9938
+Epoch 47/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0181 - sign_accuracy_from_logit_targets: 0.9935
+Epoch 48/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0185 - sign_accuracy_from_logit_targets: 0.9934
+Epoch 49/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0184 - sign_accuracy_from_logit_targets: 0.9935
+Epoch 50/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0185 - sign_accuracy_from_logit_targets: 0.9934
+Epoch 51/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0187 - sign_accuracy_from_logit_targets: 0.9934
+Epoch 52/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0188 - sign_accuracy_from_logit_targets: 0.9933
+Epoch 53/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0179 - sign_accuracy_from_logit_targets: 0.9937
+Epoch 54/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0169 - sign_accuracy_from_logit_targets: 0.9939
+Epoch 55/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0175 - sign_accuracy_from_logit_targets: 0.9935
+Epoch 56/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0169 - sign_accuracy_from_logit_targets: 0.9940
+Epoch 57/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0154 - sign_accuracy_from_logit_targets: 0.9941
+Epoch 58/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0159 - sign_accuracy_from_logit_targets: 0.9943
+Epoch 59/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 3ms/step - loss: 0.0154 - sign_accuracy_from_logit_targets: 0.9943
+Epoch 60/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0173 - sign_accuracy_from_logit_targets: 0.9936
+Epoch 61/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0154 - sign_accuracy_from_logit_targets: 0.9943
+Epoch 62/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0148 - sign_accuracy_from_logit_targets: 0.9949
+Epoch 63/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0149 - sign_accuracy_from_logit_targets: 0.9945
+Epoch 64/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0152 - sign_accuracy_from_logit_targets: 0.9943
+Epoch 65/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0150 - sign_accuracy_from_logit_targets: 0.9945
+Epoch 66/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0144 - sign_accuracy_from_logit_targets: 0.9945
+Epoch 67/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0135 - sign_accuracy_from_logit_targets: 0.9950
+Epoch 68/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0117 - sign_accuracy_from_logit_targets: 0.9958
+Epoch 69/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">1s</span> 2ms/step - loss: 0.0135 - sign_accuracy_from_logit_targets: 0.9953
+Epoch 70/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0132 - sign_accuracy_from_logit_targets: 0.9952
+Epoch 71/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0118 - sign_accuracy_from_logit_targets: 0.9961
+Epoch 72/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0129 - sign_accuracy_from_logit_targets: 0.9953
+Epoch 73/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0162 - sign_accuracy_from_logit_targets: 0.9940
+Epoch 74/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0110 - sign_accuracy_from_logit_targets: 0.9960
+Epoch 75/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0109 - sign_accuracy_from_logit_targets: 0.9962
+Epoch 76/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0128 - sign_accuracy_from_logit_targets: 0.9954
+Epoch 77/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0110 - sign_accuracy_from_logit_targets: 0.9962
+Epoch 78/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0103 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 79/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0103 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 80/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0105 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 81/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0117 - sign_accuracy_from_logit_targets: 0.9958
+Epoch 82/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0131 - sign_accuracy_from_logit_targets: 0.9953
+Epoch 83/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0091 - sign_accuracy_from_logit_targets: 0.9969
+Epoch 84/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0115 - sign_accuracy_from_logit_targets: 0.9956
+Epoch 85/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0131 - sign_accuracy_from_logit_targets: 0.9952
+Epoch 86/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0091 - sign_accuracy_from_logit_targets: 0.9971
+Epoch 87/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0094 - sign_accuracy_from_logit_targets: 0.9967
+Epoch 88/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0099 - sign_accuracy_from_logit_targets: 0.9962
+Epoch 89/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0088 - sign_accuracy_from_logit_targets: 0.9969
+Epoch 90/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0089 - sign_accuracy_from_logit_targets: 0.9969
+Epoch 91/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0154 - sign_accuracy_from_logit_targets: 0.9941
+Epoch 92/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0092 - sign_accuracy_from_logit_targets: 0.9969
+Epoch 93/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0098 - sign_accuracy_from_logit_targets: 0.9967
+Epoch 94/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0099 - sign_accuracy_from_logit_targets: 0.9963
+Epoch 95/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0069 - sign_accuracy_from_logit_targets: 0.9977
+Epoch 96/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0085 - sign_accuracy_from_logit_targets: 0.9973
+Epoch 97/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0127 - sign_accuracy_from_logit_targets: 0.9953
+Epoch 98/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0115 - sign_accuracy_from_logit_targets: 0.9958
+Epoch 99/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0063 - sign_accuracy_from_logit_targets: 0.9979
+Epoch 100/100
+<span class="ansi-bold">196/196</span> <span class="ansi-green-fg">━━━━━━━━━━━━━━━━━━━━</span> <span class="ansi-bold">0s</span> 2ms/step - loss: 0.0077 - sign_accuracy_from_logit_targets: 0.9971
 Standalone layers trained.
 </pre>
 </div>
@@ -8000,16 +8574,9 @@ Standalone layers trained.
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h2 id="Assembling-Model-A-and-Model-B">Assembling Model A and Model B<a class="anchor-link" href="#Assembling-Model-A-and-Model-B">¶</a></h2><p>After training the components, we assemble the full
-LinTrainableAssistedModelA and LinTrainableAssistedModelB.</p>
-<p>Why assembly after training?
-• It enforces a strict separation between structure and optimisation.
-• It guarantees that A and B use <em>the same shared resource (SR) resource</em>.
-• It mirrors the exact dataflow of the classical assisted players.</p>
-<p>At this point, the models are structurally complete.</p>
-<p>Warning:
-If Model A and Model B are not perfectly aligned on shared layers,
-any apparent learning success is meaningless.</p>
+<h2 id="4.-Assemble-the-Full-Models">4. Assemble the Full Models<a class="anchor-link" href="#4.-Assemble-the-Full-Models">¶</a></h2><p>The four layers above were trained in isolation. We now create fresh evaluation models and copy each learned weight set into the corresponding layer.</p>
+<p>This step is deliberately explicit: it verifies that the standalone layers and the complete models use the same interfaces and shapes.</p>
+<p>The internal model continues to operate entirely on logits. The SR mechanism sits inside that logit-valued computation; we do not convert intermediate values back to bits.</p>
 </div>
 </div>
 </div>
@@ -8018,27 +8585,49 @@ any apparent learning success is meaningless.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># --- Install into full models ---</span>
-<span class="n">model_a</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelA</span><span class="p">(</span><span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span> <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span> <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span> <span class="n">p_high</span><span class="o">=</span><span class="n">P_HIGH</span><span class="p">)</span>
-<span class="n">model_b</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelB</span><span class="p">(</span><span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span> <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span> <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span> <span class="n">p_high</span><span class="o">=</span><span class="n">P_HIGH</span><span class="p">)</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># --- Install into fresh internal models for evaluation ---</span>
+<span class="c1"># We explicitly copy each trained learned layer into the matching internal-model slot.</span>
 
-<span class="c1"># Build models (required before weight transfer)</span>
+<span class="c1"># Build source wrappers once so trained layers are materialized.</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">model_a</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
 <span class="n">_dummy_gun</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">_dummy_comm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">COMMS_SIZE</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="n">_dummy_prev_meas_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)]</span>
-<span class="n">_dummy_prev_out_list</span>  <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)]</span>
+<span class="n">_dummy_prev_out_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)]</span>
 <span class="n">_</span> <span class="o">=</span> <span class="n">model_b</span><span class="p">([</span><span class="n">_dummy_gun</span><span class="p">,</span> <span class="n">_dummy_comm</span><span class="p">,</span> <span class="n">_dummy_prev_meas_list</span><span class="p">,</span> <span class="n">_dummy_prev_out_list</span><span class="p">])</span>
 
-<span class="n">transfer_assisted_model_a_layer_weights</span><span class="p">(</span><span class="n">meas_layer_a</span><span class="p">,</span> <span class="n">comb_layer_a</span><span class="p">,</span> <span class="n">model_a</span><span class="p">)</span>
-<span class="n">transfer_assisted_model_b_layer_weights</span><span class="p">(</span><span class="n">meas_layer_b</span><span class="p">,</span> <span class="n">comb_layer_b</span><span class="p">,</span> <span class="n">model_b</span><span class="p">)</span>
+<span class="c1"># Create fresh internal wrappers for evaluation contract.</span>
+<span class="n">eval_model_a</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelA</span><span class="p">(</span>
+    <span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span>
+    <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span>
+    <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span>
+    <span class="n">p_rule</span><span class="o">=</span><span class="n">P_RULE</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">eval_model_b</span> <span class="o">=</span> <span class="n">LinTrainableAssistedModelB</span><span class="p">(</span>
+    <span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span>
+    <span class="n">comms_size</span><span class="o">=</span><span class="n">COMMS_SIZE</span><span class="p">,</span>
+    <span class="n">sr_mode</span><span class="o">=</span><span class="n">SR_MODE_BOOTSTRAP_EVAL</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="n">SEED</span><span class="p">,</span>
+    <span class="n">p_rule</span><span class="o">=</span><span class="n">P_RULE</span><span class="p">,</span>
+<span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s2">"Installed weights into model_a/model_b"</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"model_a sr_mode:"</span><span class="p">,</span> <span class="n">model_a</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="s2">"model_b sr_mode:"</span><span class="p">,</span> <span class="n">model_b</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+<span class="c1"># Build destination wrappers before assigning layer weights.</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">eval_model_a</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">n2</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+<span class="n">_</span> <span class="o">=</span> <span class="n">eval_model_b</span><span class="p">([</span><span class="n">_dummy_gun</span><span class="p">,</span> <span class="n">_dummy_comm</span><span class="p">,</span> <span class="n">_dummy_prev_meas_list</span><span class="p">,</span> <span class="n">_dummy_prev_out_list</span><span class="p">])</span>
+
+<span class="c1"># Explicit weight transfer: trained layer -&gt; matching internal-model layer.</span>
+<span class="n">eval_model_a</span><span class="o">.</span><span class="n">measure_layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">meas_layer_a</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span>
+<span class="n">eval_model_a</span><span class="o">.</span><span class="n">combine_layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">comb_layer_a</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span>
+<span class="n">eval_model_b</span><span class="o">.</span><span class="n">measure_layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">meas_layer_b</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span>
+<span class="n">eval_model_b</span><span class="o">.</span><span class="n">combine_layer</span><span class="o">.</span><span class="n">set_weights</span><span class="p">(</span><span class="n">comb_layer_b</span><span class="o">.</span><span class="n">get_weights</span><span class="p">())</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Transferred trained layer weights into eval internal models."</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"A: meas -&gt; eval_model_a.measure_layer, comb -&gt; eval_model_a.combine_layer"</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">"B: meas -&gt; eval_model_b.measure_layer, comb -&gt; eval_model_b.combine_layer"</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -8051,9 +8640,113 @@ any apparent learning success is meaningless.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Installed weights into model_a/model_b
-model_a sr_mode: sample
-model_b sr_mode: sample
+<pre>Transferred trained layer weights into eval internal models.
+A: meas -&gt; eval_model_a.measure_layer, comb -&gt; eval_model_a.combine_layer
+B: meas -&gt; eval_model_b.measure_layer, comb -&gt; eval_model_b.combine_layer
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell jp-MarkdownCell jp-Notebook-cell" id="cell-id=bd3492b0">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
+</div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
+<h2 id="5.-Check-the-Internal-Representation">5. Check the Internal Representation<a class="anchor-link" href="#5.-Check-the-Internal-Representation">¶</a></h2><p>Before running a tournament, it is useful to inspect one example end-to-end.</p>
+<p>The learned layers are free to produce logits of different magnitudes, but logical values are encoded by their sign. At the hardened interfaces we expect values close to <code>±β</code>.</p>
+<p>This small diagnostic is particularly useful after refactoring: if a tensor that should contain logits suddenly contains raw <code>0/1</code> bits, the model can look syntactically correct while behaving almost randomly.</p>
+</div>
+</div>
+</div>
+</div><div class="jp-Cell jp-CodeCell jp-Notebook-cell" id="cell-id=90d68d72">
+<div class="jp-Cell-inputWrapper" tabindex="0">
+<div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
+</div>
+<div class="jp-InputArea jp-Cell-inputArea">
+<div class="jp-InputPrompt jp-InputArea-prompt">In [10]:</div>
+<div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
+<div class="cm-editor cm-s-jupyter">
+<div class="highlight hl-ipython3"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">describe_tensor</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">arr</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">numpy</span><span class="p">()</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">name</span><span class="si">:</span><span class="s2">24s</span><span class="si">}</span><span class="s2"> shape=</span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">shape</span><span class="si">}</span><span class="s2">, min=</span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">min</span><span class="p">()</span><span class="si">:</span><span class="s2"> .3f</span><span class="si">}</span><span class="s2">, max=</span><span class="si">{</span><span class="n">arr</span><span class="o">.</span><span class="n">max</span><span class="p">()</span><span class="si">:</span><span class="s2"> .3f</span><span class="si">}</span><span class="s2">, mean|x|=</span><span class="si">{</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">arr</span><span class="p">))</span><span class="si">:</span><span class="s2"> .3f</span><span class="si">}</span><span class="s2">"</span>
+    <span class="p">)</span>
+
+<span class="c1"># Single-sample gameplay bits from canonical dataset</span>
+<span class="n">field_bits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">ds_lin</span><span class="p">[</span><span class="s2">"field_bits"</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+<span class="n">gun_bits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">ds_lin</span><span class="p">[</span><span class="s2">"gun_bits"</span><span class="p">][</span><span class="mi">0</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+<span class="c1"># Build temporary adapters to probe the explicit gameplay boundary.</span>
+<span class="n">diag_model_a</span> <span class="o">=</span> <span class="n">GameplayModelAAdapter</span><span class="p">(</span><span class="n">internal_model_a</span><span class="o">=</span><span class="n">eval_model_a</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span> <span class="n">harden_between_levels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="c1"># Adapter A boundary: bits -&gt; logits (internal) -&gt; bits for gameplay handoff</span>
+<span class="n">comm_bits</span><span class="p">,</span> <span class="n">meas_bits_list</span><span class="p">,</span> <span class="n">out_bits_list</span><span class="p">,</span> <span class="n">_comm_logits_dbg</span> <span class="o">=</span> <span class="n">diag_model_a</span><span class="p">(</span>
+    <span class="n">field_bits</span><span class="p">,</span>
+    <span class="n">explore</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">return_comm_logits</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Internal A tensors from explicit hard-logit input</span>
+<span class="n">field_logits_a</span> <span class="o">=</span> <span class="n">hard_logit</span><span class="p">(</span><span class="n">field_bits</span><span class="p">,</span> <span class="n">BETA</span><span class="p">)</span>
+<span class="n">comm_logits_a</span><span class="p">,</span> <span class="n">meas_logits_a_list</span><span class="p">,</span> <span class="n">out_logits_a_list</span> <span class="o">=</span> <span class="n">eval_model_a</span><span class="o">.</span><span class="n">compute_with_internal</span><span class="p">(</span>
+    <span class="n">field_logits_a</span><span class="p">,</span>
+    <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Values passed A -&gt; B across gameplay boundary are bits; adapter B remaps to logits.</span>
+<span class="n">comm_logits_for_b</span> <span class="o">=</span> <span class="n">hard_logit</span><span class="p">(</span><span class="n">comm_bits</span><span class="p">,</span> <span class="n">BETA</span><span class="p">)</span>
+<span class="n">prev_meas_logits_for_b</span> <span class="o">=</span> <span class="n">hard_logit</span><span class="p">(</span><span class="n">meas_bits_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">BETA</span><span class="p">)</span>
+<span class="n">prev_out_logits_for_b</span> <span class="o">=</span> <span class="n">hard_logit</span><span class="p">(</span><span class="n">out_bits_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">BETA</span><span class="p">)</span>
+<span class="n">gun_logits_b</span> <span class="o">=</span> <span class="n">hard_logit</span><span class="p">(</span><span class="n">gun_bits</span><span class="p">,</span> <span class="n">BETA</span><span class="p">)</span>
+
+<span class="n">shoot_logit_b</span><span class="p">,</span> <span class="n">meas_logits_b_list</span><span class="p">,</span> <span class="n">out_logits_b_list</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">eval_model_b</span><span class="o">.</span><span class="n">compute_with_internal</span><span class="p">(</span>
+    <span class="n">gun_logits_b</span><span class="p">,</span>
+    <span class="n">comm_logits_for_b</span><span class="p">,</span>
+    <span class="p">[</span><span class="n">prev_meas_logits_for_b</span><span class="p">],</span>
+    <span class="p">[</span><span class="n">prev_out_logits_for_b</span><span class="p">],</span>
+    <span class="n">training</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">"Internal logit interface diagnostics (single sample):"</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"field logits into A"</span><span class="p">,</span> <span class="n">field_logits_a</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A measurement logits"</span><span class="p">,</span> <span class="n">meas_logits_a_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A outcome logits"</span><span class="p">,</span> <span class="n">out_logits_a_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A communication logits"</span><span class="p">,</span> <span class="n">comm_logits_a</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"gun logits into B"</span><span class="p">,</span> <span class="n">gun_logits_b</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A-&gt;B prev meas logits"</span><span class="p">,</span> <span class="n">prev_meas_logits_for_b</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A-&gt;B prev out logits"</span><span class="p">,</span> <span class="n">prev_out_logits_for_b</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"A-&gt;B comm logits"</span><span class="p">,</span> <span class="n">comm_logits_for_b</span><span class="p">)</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"B measurement logits"</span><span class="p">,</span> <span class="n">meas_logits_b_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"B outcome logits"</span><span class="p">,</span> <span class="n">out_logits_b_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="n">describe_tensor</span><span class="p">(</span><span class="s2">"shoot logit"</span><span class="p">,</span> <span class="n">shoot_logit_b</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="jp-Cell-outputWrapper">
+<div class="jp-Collapser jp-OutputCollapser jp-Cell-outputCollapser">
+</div>
+<div class="jp-OutputArea jp-Cell-outputArea">
+<div class="jp-OutputArea-child">
+<div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
+<div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
+<pre>Internal logit interface diagnostics (single sample):
+field logits into A      shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+A measurement logits     shape=(1, 16), min=-10.688, max= 9.814, mean|x|= 7.637
+A outcome logits         shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+A communication logits   shape=(1, 1), min= 15.024, max= 15.024, mean|x|= 15.024
+gun logits into B        shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+A-&gt;B prev meas logits    shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+A-&gt;B prev out logits     shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+A-&gt;B comm logits         shape=(1, 1), min= 10.000, max= 10.000, mean|x|= 10.000
+B measurement logits     shape=(1, 16), min=-12.103, max= 4.806, mean|x|= 8.673
+B outcome logits         shape=(1, 16), min=-10.000, max= 10.000, mean|x|= 10.000
+shoot logit              shape=(1, 1), min=-14.189, max=-14.189, mean|x|= 14.189
 </pre>
 </div>
 </div>
@@ -8066,17 +8759,12 @@ model_b sr_mode: sample
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Verification:-neural-vs-classical-assisted-players">Verification: neural vs classical assisted players<a class="anchor-link" href="#Verification:-neural-vs-classical-assisted-players">¶</a></h3><p>This is not a performance benchmark.
-It is a <em>correctness check</em>.</p>
-<p>We compare:
-• Classical AssistedPlayers
-• Neural TrainableAssistedPlayers (sample mode)</p>
-<p>Success criterion:
-Identical win rates and identical decision statistics within sampling noise.</p>
-<p>Failure here means:
-• A broken measurement ordering
-• Incorrect handling of shared resource (SR)
-• Or a mismatch in combine logic</p>
+<h2 id="6.-Run-the-Model-as-a-Player">6. Run the Model as a Player<a class="anchor-link" href="#6.-Run-the-Model-as-a-Player">¶</a></h2><p>The final boundary is the gameplay interface.</p>
+<p><code>LinTrainableAssistedModelA/B</code> work with logits. <code>GameplayModelAAdapter/BAdapter</code> translate between that internal representation and the bit-valued interface expected by the player wrappers. <code>TrainableAssistedPlayers</code> can therefore participate in the same tournament machinery as the hand-written players without knowing anything about logits.</p>
+<p>In short:</p>
+<p><code>Tournament → Player wrapper (bits) → Gameplay adapter → Lin model (logits)</code></p>
+<p>and the reverse path on the way back out.</p>
+<p>With <code>p_rule=1</code> and no channel noise, the tournament score should be close to <code>1.0</code>. If the individual layer accuracies are already essentially perfect but the tournament is not, inspect the representation and assembly boundaries before simply adding more training.</p>
 </div>
 </div>
 </div>
@@ -8085,15 +8773,16 @@ Identical win rates and identical decision statistics within sampling noise.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [ ]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [11]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Force SR sample explicitly for evaluation</span>
-<span class="n">model_a</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">"sample"</span>
-<span class="n">model_b</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">"sample"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="c1"># Route gameplay via adapters (bits at game boundary, logits internally).</span>
+<span class="c1"># Keep SR in gameplay mode for both internals.</span>
+<span class="n">eval_model_a</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">set_sr_mode</span><span class="p">(</span><span class="s2">"stochastic"</span><span class="p">)</span>
+<span class="n">eval_model_b</span><span class="o">.</span><span class="n">sr_layer</span><span class="o">.</span><span class="n">set_sr_mode</span><span class="p">(</span><span class="s2">"stochastic"</span><span class="p">)</span>
 
-
-<span class="n">players</span> <span class="o">=</span> <span class="n">TrainableAssistedPlayers</span><span class="p">(</span><span class="n">layout</span><span class="p">,</span> <span class="n">model_a</span><span class="o">=</span><span class="n">model_a</span><span class="p">,</span> <span class="n">model_b</span><span class="o">=</span><span class="n">model_b</span><span class="p">)</span>
+<span class="n">gameplay_model_a</span> <span class="o">=</span> <span class="n">GameplayModelAAdapter</span><span class="p">(</span><span class="n">internal_model_a</span><span class="o">=</span><span class="n">eval_model_a</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span> <span class="n">harden_between_levels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">gameplay_model_b</span> <span class="o">=</span> <span class="n">GameplayModelBAdapter</span><span class="p">(</span><span class="n">internal_model_b</span><span class="o">=</span><span class="n">eval_model_b</span><span class="p">,</span> <span class="n">beta</span><span class="o">=</span><span class="n">BETA</span><span class="p">,</span> <span class="n">harden_between_levels</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="n">layout_eval</span> <span class="o">=</span> <span class="n">GameLayout</span><span class="p">(</span>
     <span class="n">field_size</span><span class="o">=</span><span class="n">FIELD_SIZE</span><span class="p">,</span>
@@ -8103,6 +8792,11 @@ Identical win rates and identical decision statistics within sampling noise.</p>
     <span class="n">number_of_games_in_tournament</span><span class="o">=</span><span class="mi">2_000</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="n">env</span> <span class="o">=</span> <span class="n">GameEnv</span><span class="p">(</span><span class="n">layout_eval</span><span class="p">)</span>
+<span class="n">players</span> <span class="o">=</span> <span class="n">TrainableAssistedPlayers</span><span class="p">(</span><span class="n">layout_eval</span><span class="p">,</span> <span class="n">model_a</span><span class="o">=</span><span class="n">gameplay_model_a</span><span class="p">,</span> <span class="n">model_b</span><span class="o">=</span><span class="n">gameplay_model_b</span><span class="p">)</span>
+
+<span class="c1"># Match historical stochastic gameplay behavior.</span>
+<span class="n">players</span><span class="o">.</span><span class="n">set_explore</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
+
 <span class="n">t</span> <span class="o">=</span> <span class="n">Tournament</span><span class="p">(</span><span class="n">env</span><span class="p">,</span> <span class="n">players</span><span class="p">,</span> <span class="n">layout_eval</span><span class="p">)</span>
 <span class="n">log</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">tournament</span><span class="p">()</span>
 <span class="n">mean_reward</span><span class="p">,</span> <span class="n">std_err</span> <span class="o">=</span> <span class="n">log</span><span class="o">.</span><span class="n">outcome</span><span class="p">()</span>
@@ -8119,7 +8813,7 @@ Identical win rates and identical decision statistics within sampling noise.</p>
 <div class="jp-OutputArea-child">
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
-<pre>Bootstrap tournament over 2000: 1.0000 ± 0.0000
+<pre>Bootstrap tournament over 2000: 0.9845 ± 0.0028
 </pre>
 </div>
 </div>
@@ -8132,7 +8826,7 @@ Identical win rates and identical decision statistics within sampling noise.</p>
 </div>
 <div class="jp-InputArea jp-Cell-inputArea"><div class="jp-InputPrompt jp-InputArea-prompt">
 </div><div class="jp-RenderedHTMLCommon jp-RenderedMarkdown jp-MarkdownOutput" data-mime-type="text/markdown">
-<h3 id="Save-weights">Save weights<a class="anchor-link" href="#Save-weights">¶</a></h3><p>We save weights (not full <code>.keras</code> serialization) to avoid custom-object config issues.</p>
+<h2 id="7.-Save-the-Bootstrap-Weights">7. Save the Bootstrap Weights<a class="anchor-link" href="#7.-Save-the-Bootstrap-Weights">¶</a></h2><p>The resulting weights provide a known-good initialization for later end-to-end or reinforcement-learning experiments. We save weights rather than full Keras model serialization so the files remain tied to the current model classes and interfaces.</p>
 </div>
 </div>
 </div>
@@ -8141,14 +8835,15 @@ Identical win rates and identical decision statistics within sampling noise.</p>
 <div class="jp-Collapser jp-InputCollapser jp-Cell-inputCollapser">
 </div>
 <div class="jp-InputArea jp-Cell-inputArea">
-<div class="jp-InputPrompt jp-InputArea-prompt">In [9]:</div>
+<div class="jp-InputPrompt jp-InputArea-prompt">In [12]:</div>
 <div class="jp-CodeMirrorEditor jp-Editor jp-InputArea-editor" data-type="inline">
 <div class="cm-editor cm-s-jupyter">
-<div class="highlight hl-ipython3"><pre><span></span><span class="n">model_a_path</span> <span class="o">=</span> <span class="n">models_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"lin_model_a_bootstrap_f</span><span class="si">{</span><span class="n">FIELD_SIZE</span><span class="si">}</span><span class="s2">_m</span><span class="si">{</span><span class="n">COMMS_SIZE</span><span class="si">}</span><span class="s2">_p</span><span class="si">{</span><span class="n">P_HIGH</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.weights.h5"</span>
-<span class="n">model_b_path</span> <span class="o">=</span> <span class="n">models_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"lin_model_b_bootstrap_f</span><span class="si">{</span><span class="n">FIELD_SIZE</span><span class="si">}</span><span class="s2">_m</span><span class="si">{</span><span class="n">COMMS_SIZE</span><span class="si">}</span><span class="s2">_p</span><span class="si">{</span><span class="n">P_HIGH</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.weights.h5"</span>
+<div class="highlight hl-ipython3"><pre><span></span><span class="n">model_a_path</span> <span class="o">=</span> <span class="n">models_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"lin_model_a_bootstrap_f</span><span class="si">{</span><span class="n">FIELD_SIZE</span><span class="si">}</span><span class="s2">_m</span><span class="si">{</span><span class="n">COMMS_SIZE</span><span class="si">}</span><span class="s2">_r</span><span class="si">{</span><span class="n">P_RULE</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.weights.h5"</span>
+<span class="n">model_b_path</span> <span class="o">=</span> <span class="n">models_dir</span> <span class="o">/</span> <span class="sa">f</span><span class="s2">"lin_model_b_bootstrap_f</span><span class="si">{</span><span class="n">FIELD_SIZE</span><span class="si">}</span><span class="s2">_m</span><span class="si">{</span><span class="n">COMMS_SIZE</span><span class="si">}</span><span class="s2">_r</span><span class="si">{</span><span class="n">P_RULE</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">.weights.h5"</span>
 
-<span class="n">model_a</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">model_a_path</span><span class="p">)</span>
-<span class="n">model_b</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">model_b_path</span><span class="p">)</span>
+<span class="c1"># Save evaluated internal models (with explicitly transferred trained layer weights).</span>
+<span class="n">eval_model_a</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">model_a_path</span><span class="p">)</span>
+<span class="n">eval_model_b</span><span class="o">.</span><span class="n">save_weights</span><span class="p">(</span><span class="n">model_b_path</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s2">"Saved weights:"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s2">" -"</span><span class="p">,</span> <span class="n">model_a_path</span><span class="p">)</span>
@@ -8166,8 +8861,8 @@ Identical win rates and identical decision statistics within sampling noise.</p>
 <div class="jp-OutputPrompt jp-OutputArea-prompt"></div>
 <div class="jp-RenderedText jp-OutputArea-output" data-mime-type="text/plain" tabindex="0">
 <pre>Saved weights:
- - notebooks\models\lin_model_a_bootstrap_f4_m1_p1.00.weights.h5
- - notebooks\models\lin_model_b_bootstrap_f4_m1_p1.00.weights.h5
+ - notebooks\models\lin_model_a_bootstrap_f4_m1_r1.00.weights.h5
+ - notebooks\models\lin_model_b_bootstrap_f4_m1_r1.00.weights.h5
 </pre>
 </div>
 </div>

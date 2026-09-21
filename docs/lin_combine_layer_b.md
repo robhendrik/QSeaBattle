@@ -1,94 +1,174 @@
 # LinCombineLayerB
 
-> Role: Learnable mapping (outcomes, comm) -> shoot logit (a single logit output).
+> Role: Trainable Keras layer that combines SR outcome logits and communication logits into a single shoot logit, optionally also returning an intermediate flip logit.
 
 Location: `Q_Sea_Battle.lin_combine_layer_b.LinCombineLayerB`
 
+## Derived constraints
+
+- Symbols: $m$ = comms_size (number of communication channels), $n2$ = number of SR outcome bits/features, $B$ = batch size.
+- Rank constraints: `outcome_batch` and `comm_batch` must be rank-2 tensors when rank is known.
+- Channel usage: only the first communication channel `comm_batch[:, :1]` is used in the current implementation, even if $m > 1$.
+
 ## Constructor
 
-Parameter | Type | Description
---- | --- | ---
-comms_size | int, constraint: $comms\_size \ge 0$, scalar | Number of communication channels $m$; used for shape checks only (no checks are implemented in code).
-hidden_units | int or collections.abc.Sequence[int], constraint: each element castable to int, scalar or shape (k,) | Hidden layer widths; an int becomes a single hidden layer, a sequence becomes multiple layers; each Dense uses ReLU activation.
-name | str or None, constraint: any string or None, scalar | Layer name; if None, defaults to `"LinCombineLayerB"`.
-**kwargs | dict[str, Unknown], constraint: forwarded to `tf.keras.layers.Layer`, shape N/A | Additional keyword arguments passed to the base Keras Layer.
+| Parameter | Type | Description |
+| --- | --- | --- |
+| comms_size | int, constraint $m \ge 1$, scalar | Number of communication channels. Stored for interface compatibility; computation uses only the first channel. |
+| hidden_units | int or Sequence[int], constraints each element is int-castable, scalar or shape (L,) | Hidden-layer widths for the parity/flip MLP. If int, treated as a single hidden layer; if sequence, treated as a stack. Default `(64, 64)`. |
+| name | Optional[str], constraint any string accepted by Keras, scalar | Optional Keras layer name. |
+| dtype | Optional[tf.dtypes.DType], constraint any TensorFlow dtype, scalar | Optional dtype for layer variables and computations; if unset, call-time conversion defaults to `tf.float32`. |
+| **kwargs | Any, unconstrained | Forwarded to `tf.keras.layers.Layer`. |
 
 Preconditions
-- `hidden_units` must be an `int` or a sequence of values convertible to `int`.
-- `outcomes` and `comm` provided to `call(...)` must be convertible to `tf.Tensor`.
-- The last dimension sizes of `outcomes` and `comm` must be compatible for concatenation along axis `-1` after any optional rank-1 expansion.
+
+- `comms_size` is int-castable and must satisfy $m \ge 1$.
 
 Postconditions
+
 - `self.comms_size` is set to `int(comms_size)`.
 - `self.hidden_units` is normalized to `tuple[int, ...]`.
-- An internal MLP is created: `len(self.hidden_units)` Dense layers with ReLU, followed by a final Dense layer with 1 unit and no activation.
+- Sub-layers are not fully instantiated until `build()` is called; internal placeholders are initialized (`_mlp` empty, `_dense_flip` and `_dense_shoot` set to `None`).
 
 Errors
-- Raises `TypeError` / `ValueError` if `hidden_units` contains elements that cannot be converted to `int`.
-- TensorFlow shape errors may be raised at runtime during concatenation or Dense application if tensor shapes are incompatible.
 
-!!! example "Example"
-      ```python
-      import tensorflow as tf
-      from Q_Sea_Battle.lin_combine_layer_b import LinCombineLayerB
+- Raises `ValueError` if `comms_size < 1`.
 
-      B, n2, m = 4, 25, 3
-      layer = LinCombineLayerB(comms_size=m, hidden_units=(64, 32))
+Example
 
-      outcomes = tf.random.uniform((B, n2), dtype=tf.float32)
-      comm = tf.random.uniform((B, m), dtype=tf.float32)
+```python
+import tensorflow as tf
+from Q_Sea_Battle.lin_combine_layer_b import LinCombineLayerB
 
-      shoot_logit = layer(outcomes, comm, training=True)
-      print(shoot_logit.shape)  # (4, 1)
-      ```
+layer = LinCombineLayerB(comms_size=3, hidden_units=(32, 32), dtype=tf.float32)
+
+B, n2, m = 4, 10, 3
+outcome_batch = tf.random.normal((B, n2))
+comm_batch = tf.random.normal((B, m))
+
+shoot_logit = layer(outcome_batch, comm_batch, training=False)          # shape (B, 1)
+shoot_logit2, flip_logit = layer(outcome_batch, comm_batch, return_flip=True)  # both shape (B, 1)
+```
 
 ## Public Methods
 
-### call
+### build
 
-`call(outcomes: tf.Tensor, comm: tf.Tensor, training: bool = False) -> tf.Tensor`
+Signature: `build(input_shape: Any) -> None`
+
+Create sub-layers.
 
 Parameters
-- outcomes: tf.Tensor, dtype Not specified (converted via `tf.convert_to_tensor`), shape (B, n2) or (n2,) where $n2$ is the outcomes feature size.
-- comm: tf.Tensor, dtype Not specified (converted via `tf.convert_to_tensor`), shape (B, m) or (m,) where $m$ is the communication feature size.
-- training: bool, constraint: True or False, scalar; forwarded to Dense layers.
+
+- input_shape: Any, unconstrained | Input shape metadata passed by Keras; not used to enforce a specific shape contract beyond rank-2 expectations in `call()`.
 
 Returns
-- tf.Tensor, dtype Not specified, shape (B, 1) if `outcomes` rank is 2; shape (1,) if `outcomes` rank is 1 (squeezed along axis 0).
 
-Behavior
-- Converts `outcomes` and `comm` to tensors.
-- If `outcomes` has rank 1, expands to shape (1, n2) and remembers to squeeze the output back to rank 1.
-- If `comm` has rank 1, expands to shape (1, m).
-- Concatenates `[outcomes, comm]` along the last axis, applies the hidden Dense layers (ReLU), then applies the final Dense(1) to produce a logit.
+- None
+
+Preconditions
+
+- None specified.
+
+Postconditions
+
+- Creates an MLP (`self._mlp`) consisting of `len(self.hidden_units)` Dense layers with ReLU activation.
+- Creates `self._dense_flip`: `tf.keras.layers.Dense(1)` for producing `flip_logit`.
+- Creates `self._dense_shoot`: `tf.keras.layers.Dense(1)` for producing `shoot_logit` from engineered features `[comm, flip, comm * flip]`.
 
 Errors
-- TensorFlow runtime errors may occur if ranks are not 1 or 2, or if batch dimensions are incompatible for concatenation, or if Dense layers receive incompatible input shapes.
-
-## Data & State
-
-- comms_size: int, constraint: $comms\_size \ge 0$, scalar; stored for shape-check intent (no explicit checks are implemented).
-- hidden_units: tuple[int, ...], constraint: each element is an int, shape (k,); normalized from the constructor input.
-- _mlp: list[tf.keras.layers.Layer], constraint: Dense layers, shape (k,); the hidden layers (each `tf.keras.layers.Dense(u, activation="relu")`).
-- _out: tf.keras.layers.Dense, constraint: units=1 and activation=None, scalar layer instance.
-
-## Planned (design-spec)
 
 - Not specified.
 
+### call
+
+Signature: `call(outcome_batch: tf.Tensor, comm_batch: tf.Tensor, training: bool = False, return_flip: bool = False, **kwargs: Any) -> tf.Tensor | tuple[tf.Tensor, tf.Tensor]`
+
+Run the layer forward pass.
+
+Parameters
+
+- outcome_batch: tf.Tensor, dtype float32 or `self.dtype` after conversion, shape $(B, n2)$ | SR outcome logits.
+- comm_batch: tf.Tensor, dtype float32 or `self.dtype` after conversion, shape $(B, m)$ | Communication logits.
+- training: bool, scalar | Forwarded to sub-layers to control training behavior.
+- return_flip: bool, scalar | If True, returns a 2-tuple `(shoot_logit, flip_logit)`.
+- **kwargs: Any, unconstrained | Unused; accepted for Keras call compatibility.
+
+Returns
+
+- If `return_flip` is False: `shoot_logit`: tf.Tensor, dtype float32 or `self.dtype`, shape $(B, 1)$.
+- If `return_flip` is True: `(shoot_logit, flip_logit)` where each is tf.Tensor, dtype float32 or `self.dtype`, shape $(B, 1)$.
+
+Preconditions
+
+- `outcome_batch` and `comm_batch` must be rank-2 when their rank is known to TensorFlow (`x.shape.rank is not None`).
+- The layer must be built such that `self._dense_flip` and `self._dense_shoot` are not `None`.
+
+Postconditions
+
+- Computes `flip_logit` by applying the hidden Dense stack to `outcome_batch` and then a final Dense(1) head.
+- Computes `comm_scalar = comm_batch[:, :1]` (uses only the first channel).
+- Computes `shoot_features = concat([comm_scalar, flip_logit, comm_scalar * flip_logit], axis=-1)` with shape $(B, 3)$.
+- Computes `shoot_logit` by applying the final Dense(1) head to `shoot_features`.
+
+Errors
+
+- Raises `ValueError` if `outcome_batch` or `comm_batch` has known rank not equal to 2.
+- Raises `RuntimeError` if `self._dense_flip` or `self._dense_shoot` is `None` (layer not built correctly).
+
+### get_config
+
+Signature: `get_config() -> Dict[str, Any]`
+
+Return the layer configuration for Keras serialization.
+
+Parameters
+
+- None
+
+Returns
+
+- Dict[str, Any], unconstrained mapping | Configuration dict including `"comms_size"` (int, $m \ge 1$, scalar) and `"hidden_units"` (tuple[int, ...], shape (L,)) in addition to base Layer config.
+
+Preconditions
+
+- None specified.
+
+Postconditions
+
+- The returned dict includes the superclass configuration updated with `comms_size` and `hidden_units`.
+
+Errors
+
+- Not specified.
+
+## Data & State
+
+- comms_size: int, constraint $m \ge 1$, scalar | Number of communication channels (stored; only first is used in `call()`).
+- hidden_units: tuple[int, ...], constraints elements int, shape (L,) | Normalized hidden layer sizes for the flip MLP.
+- _mlp: list[tf.keras.layers.Layer], shape (L,) | Dense hidden layers created in `build()`.
+- _dense_flip: Optional[tf.keras.layers.Dense], constraint either `None` (pre-build) or Dense with units=1 | Flip-logit output head.
+- _dense_shoot: Optional[tf.keras.layers.Dense], constraint either `None` (pre-build) or Dense with units=1 | Shoot-logit output head.
+
+## Planned (design-spec)
+
+- Not specified (no design notes provided).
+
 ## Deviations
 
-- The module docstring states `comms_size` is "used for shape checks only", but the implementation stores `self.comms_size` without performing any shape validation against `comm`.
+- None identified (no design notes provided to compare).
 
 ## Notes for Contributors
 
-- Keep tensor rank handling consistent: currently only rank-1 inputs are expanded to a batch of 1; other ranks are not explicitly handled.
-- If adding shape checks involving `comms_size`, ensure they work for both batched and unbatched inputs and do not break graph execution.
+- The rank checks in `call()` only trigger when TensorFlow knows the static rank (`x.shape.rank is not None`); dynamic-rank tensors may bypass these checks.
+- Only `comm_batch[:, :1]` is consumed; extending to use all $m$ channels would require changing feature engineering and/or the shoot head input.
+- The call converts inputs via `tf.convert_to_tensor(..., dtype=self.dtype or tf.float32)`; changing default dtype behavior should consider Keras mixed precision policies.
 
 ## Related
 
-- `_normalize_hidden_units(hidden_units: int | Sequence[int]) -> tuple[int, ...]` (module-private helper; not part of the public API).
+- TensorFlow Keras base class: `tf.keras.layers.Layer`
+- Dense layers: `tf.keras.layers.Dense`
 
 ## Changelog
 
-- 0.1: Initial implementation of `LinCombineLayerB` as a small MLP producing a single shoot logit from concatenated `(outcomes, comm)` inputs.
+- Not specified.

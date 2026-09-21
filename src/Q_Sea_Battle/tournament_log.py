@@ -1,8 +1,11 @@
 """Tournament logging utilities for QSeaBattle.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module provides :class:`TournamentLog`, a thin wrapper around a Pandas
+``DataFrame`` used to store one row per played game in a tournament.
+
+The set of columns is defined by :class:`~.game_layout.GameLayout` via
+``game_layout.log_columns``. This class appends rows and then updates selected
+fields (e.g., log-probabilities and identifiers) for the most recently added row.
 """
 
 from __future__ import annotations
@@ -19,9 +22,16 @@ from .game_layout import GameLayout
 class TournamentLog:
     """Structured log for storing QSeaBattle tournament results.
 
+    The log is stored as a Pandas ``DataFrame`` with one row per game. A typical
+    usage pattern is:
+
+    1) Call :meth:`update` to append a new row with core game outputs.
+    2) Call one or more of the ``update_*`` methods to fill in additional fields
+       for that same last row (e.g., identifiers, log-probabilities).
+
     Attributes:
-        game_layout: Layout that defines log columns.
-        log: Pandas DataFrame containing one row per game.
+        game_layout: Layout instance defining the log column names.
+        log: Pandas DataFrame containing one row per logged game.
     """
 
     def __init__(self, game_layout: GameLayout) -> None:
@@ -38,15 +48,28 @@ class TournamentLog:
     # --------------------------------------------------------------------- #
 
     def update(
-                self,
-                field: np.ndarray,
-                gun: np.ndarray,
-                comm: np.ndarray,
-                shoot: int,
-                cell_value: int,
-                reward: float,
-            ) -> None:
-        """Append a new game result to the log."""
+        self,
+        field: np.ndarray,
+        gun: np.ndarray,
+        comm: np.ndarray,
+        shoot: int,
+        cell_value: int,
+        reward: float,
+    ) -> None:
+        """Append a new game result row to the log.
+
+        This method appends a row containing the primary per-game artifacts and
+        sets optional/late-bound fields to ``None``. Those fields can be filled
+        in later by calling the corresponding ``update_*`` methods.
+
+        Args:
+            field: Game field state for the game.
+            gun: Gun state/action representation for the game.
+            comm: Communication representation for the game.
+            shoot: Shot/cell index selected for the game.
+            cell_value: Observed value at the shot cell.
+            reward: Scalar reward for the game.
+        """
         row = {
             "field": field,
             "gun": gun,
@@ -64,15 +87,14 @@ class TournamentLog:
             "prev_outcomes": None,
         }
 
-        # Safe and warning-free append
+        # Assigning via .loc avoids deprecated/inefficient DataFrame.append.
         self.log.loc[len(self.log)] = row
-
 
     def _last_row_index(self) -> int:
         """Return the index of the last logged row.
 
         Returns:
-            Integer index of the last row.
+            Integer index label of the last row.
 
         Raises:
             RuntimeError: If no rows have been logged yet.
@@ -85,15 +107,20 @@ class TournamentLog:
         """Update log-probabilities for the last logged game.
 
         Args:
-            logprob_comm: Log-probability for the communication decision.
-            logprob_shoot: Log-probability for the shoot decision.
+            logprob_comm: Log-probability associated with the communication
+                decision.
+            logprob_shoot: Log-probability associated with the shooting
+                decision.
         """
         idx = self._last_row_index()
         self.log.at[idx, "logprob_comm"] = float(logprob_comm)
         self.log.at[idx, "logprob_shoot"] = float(logprob_shoot)
 
     def update_log_prev(self, prev_meas: Any, prev_out: Any) -> None:
-        """Update previous measurements/outcomes for the last game.
+        """Update previous measurements/outcomes for the last logged game.
+
+        These fields store per-layer history and are treated as opaque objects by
+        the logger.
 
         Args:
             prev_meas: Previous measurements per shared layer.
@@ -103,12 +130,11 @@ class TournamentLog:
         self.log.at[idx, "prev_measurements"] = prev_meas
         self.log.at[idx, "prev_outcomes"] = prev_out
 
-    def update_indicators(
-        self, game_id: int, tournament_id: int, meta_id: int
-    ) -> None:
+    def update_indicators(self, game_id: int, tournament_id: int, meta_id: int) -> None:
         """Update identifier fields for the last logged game.
 
-        Also generates a unique game_uid string.
+        In addition to setting ``game_id``, ``tournament_id``, and ``meta_id``,
+        this method also generates a unique ``game_uid`` string.
 
         Args:
             game_id: Identifier of the game within a tournament.
@@ -119,7 +145,7 @@ class TournamentLog:
         self.log.at[idx, "game_id"] = int(game_id)
         self.log.at[idx, "tournament_id"] = int(tournament_id)
         self.log.at[idx, "meta_id"] = int(meta_id)
-        # Use UUID4 to generate a unique identifier per game.
+        # UUID4 hex string provides a unique identifier per logged game.
         self.log.at[idx, "game_uid"] = uuid.uuid4().hex
 
     # --------------------------------------------------------------------- #
@@ -127,14 +153,16 @@ class TournamentLog:
     # --------------------------------------------------------------------- #
 
     def outcome(self) -> Tuple[float, float]:
-        """Compute aggregate statistics over the tournament.
+        """Compute aggregate reward statistics over the logged games.
 
-        The mean reward is the average of the "reward" column. The
-        standard error is the sample standard deviation divided by the
-        square root of the number of games.
+        The returned values are computed from the ``reward`` column:
+        - Mean reward: arithmetic mean across games.
+        - Standard error: sample standard deviation (ddof=1) divided by
+          ``sqrt(n)``.
 
         Returns:
-            A tuple (mean_reward, std_error) summarising performance.
+            Tuple of (mean_reward, std_error). Returns (0.0, 0.0) if the log is
+            empty.
         """
         if self.log.empty:
             return 0.0, 0.0
@@ -150,4 +178,3 @@ class TournamentLog:
             std_error = std / float(np.sqrt(n))
 
         return mean_reward, std_error
-

@@ -1,97 +1,125 @@
 # PyrMeasurementLayerB
 
-> Role: Trainable Keras layer mapping a gun state tensor to measurement probabilities constrained to $[0,1]$ via a sigmoid output head.
+> Role: Trainable Keras layer that maps a gun-state tensor to measurement logits using a small MLP head.
 
 Location: `Q_Sea_Battle.pyr_measurement_layer_b.PyrMeasurementLayerB`
 
-## Derived constraints
-
-- Let $L$ be the last dimension of `gun_batch`; $L$ must be statically known at build time and must be even.
-- Let $B$ be the batch size (dynamic).
-- Output last dimension is $L/2$.
-
 ## Constructor
 
-Parameter | Type | Description
---- | --- | ---
-hidden_units | int, constraint $\ge 1$ | Number of units in the hidden Dense layer.
-name | Optional[str], default None | Layer name passed to the Keras base class.
-dtype | Optional[tf.dtypes.DType], default None | Layer dtype; used for internal tensor conversion and Dense sublayers.
-**kwargs | Any | Additional keyword arguments forwarded to `tf.keras.layers.Layer`.
+| Parameter | Type | Description |
+| --- | --- | --- |
+| hidden_units | int, constraint $\ge 1$, scalar | Width of the hidden Dense layer (ReLU). |
+| name | Optional[str], nullable, scalar | Optional Keras layer name. |
+| dtype | Optional[tf.dtypes.DType], nullable, scalar | Optional dtype for layer weights and computations. |
+| **kwargs | Any, unconstrained | Forwarded to `tf.keras.layers.Layer` base constructor. |
 
 Preconditions
 
-- `hidden_units >= 1`.
+- `hidden_units` is an `int` with value $\ge 1$.
 
 Postconditions
 
 - `self.hidden_units` is set to `int(hidden_units)`.
-- Sublayers `_dense_hidden` and `_dense_out` are initialized to `None` and are created later in `build()`.
+- `self._dense_hidden`, `self._dense_out`, and `self._built_for_L` are initialized to `None` and are created/set during `build(...)`.
 
 Errors
 
-- `ValueError`: if `hidden_units < 1`.
+- `ValueError`: If `hidden_units < 1`.
 
-!!! example "Example"
-    ```python
-    import tensorflow as tf
-    from Q_Sea_Battle.pyr_measurement_layer_b import PyrMeasurementLayerB
+Example
 
-    layer = PyrMeasurementLayerB(hidden_units=64, dtype=tf.float32)
-    x = tf.random.uniform(shape=(8, 10), dtype=tf.float32)  # L=10 is even
-    y = layer(x, training=True)
-    print(y.shape)  # (8, 5)
-    ```
+```python
+import tensorflow as tf
+from Q_Sea_Battle.pyr_measurement_layer_b import PyrMeasurementLayerB
+
+layer = PyrMeasurementLayerB(hidden_units=64, dtype=tf.float32)
+x = tf.zeros((8, 10), dtype=tf.float32)  # L=10 -> output width 5
+y = layer(x, training=False)
+assert y.shape == (8, 5)
+```
 
 ## Public Methods
 
 ### build
 
-- Signature: `build(input_shape: Any) -> None`
+Signature: `build(input_shape: Any) -> None`
+
+Create sublayers based on the input width $L$ (the last dimension of `input_shape`), and set the output dimension to $L/2$.
 
 Parameters
 
-- input_shape: Any, constraints: convertible to `tf.TensorShape`; shape must have a statically known last dimension $L$ and $L$ must be even.
+- `input_shape`: Any, Keras/TensorFlow shape-like, must have a statically known last dimension $L$ that is even.
 
 Returns
 
-- None: NoneType, no value returned.
+- `None`: NoneType, no value.
 
-Behavior
+Preconditions
 
-- Creates two Dense sublayers based on the inferred gun dimension $L$ from `input_shape`:
-  - Hidden layer: `Dense(self.hidden_units, activation="relu")`
-  - Output layer: `Dense(out_dim, activation="sigmoid")` where `out_dim = L // 2`
-- Records `self._built_for_L = L`.
+- The last dimension $L$ of `input_shape` is statically known (not `None`).
+- $L$ is even ($L \bmod 2 = 0$).
+
+Postconditions
+
+- `self._dense_hidden` is created as `tf.keras.layers.Dense(self.hidden_units, activation="relu")`.
+- `self._dense_out` is created as `tf.keras.layers.Dense(L // 2, activation=None)`.
+- `self._built_for_L` is set to `int(L)`.
+- Base class `build` is called.
 
 Errors
 
-- `ValueError`: if the last dimension of `input_shape` is `None` (not statically known).
-- `ValueError`: if $L$ is odd (so $L/2$ is not an integer).
+- `ValueError`: If the last dimension $L$ is not statically known.
+- `ValueError`: If $L$ is not even.
 
 ### call
 
-- Signature: `call(gun_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
+Signature: `call(gun_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
+
+Run a forward pass producing measurement logits (no sigmoid applied).
 
 Parameters
 
-- gun_batch: tf.Tensor, dtype float32 or `self.dtype` (via conversion), shape $(B, L)$; constraints: rank must be 2; last dimension $L$ must be even (checked at runtime).
-- training: bool, default False; forwarded to internal Dense sublayers.
-- **kwargs: Any; accepted but not specified/used directly in the implementation.
+- `gun_batch`: tf.Tensor, dtype Not specified (converted via `tf.convert_to_tensor(..., dtype=self.dtype or tf.float32)`), shape (B, L).
+- `training`: bool, scalar, forwarded to sublayers.
+- `**kwargs`: Any, unused (present for Keras compatibility).
 
 Returns
 
-- meas_b: tf.Tensor, dtype float32 or `self.dtype`, shape $(B, L/2)$; constraints: values in $[0, 1]$ due to sigmoid activation.
+- `meas_logits`: tf.Tensor, dtype equals `self.dtype` if set else `tf.float32`, shape (B, L/2).
+
+Preconditions
+
+- If `gun_batch` has a statically known rank, it must be rank-2.
+- At runtime, the last dimension $L$ must be even ($L \bmod 2 = 0$).
+- The layer must have been built such that `self._dense_hidden` and `self._dense_out` are not `None`.
+
+Postconditions
+
+- Output is computed as `Dense(L/2)(Dense(hidden_units, relu)(gun_batch))` with logits output.
 
 Errors
 
-- `ValueError`: if `gun_batch` has statically known rank not equal to 2.
-- `tf.errors.InvalidArgumentError`: if runtime check finds $L$ is not even (from `tf.debugging.assert_equal` on `tf.shape(x)[-1] % 2`).
-- `RuntimeError`: if the layer is not built correctly (either `_dense_hidden` or `_dense_out` is `None`).
+- `ValueError`: If `gun_batch` has statically known rank and it is not 2.
+- `RuntimeError`: If `self._dense_hidden` or `self._dense_out` is missing (layer not built correctly).
+- TensorFlow assertion failure: If runtime $L$ is not even (via `tf.debugging.assert_equal(tf.shape(x)[-1] % 2, 0, ...)`).
+
+Example
+
+```python
+import tensorflow as tf
+from Q_Sea_Battle.pyr_measurement_layer_b import PyrMeasurementLayerB
+
+layer = PyrMeasurementLayerB(hidden_units=32)
+gun_batch = tf.random.uniform((4, 12), minval=-0.5, maxval=0.5)  # scaled domain (convention)
+meas_logits = layer(gun_batch, training=True)
+print(meas_logits.shape)  # (4, 6)
+```
 
 ### get_config
 
-- Signature: `get_config() -> Dict[str, Any]`
+Signature: `get_config() -> Dict[str, Any]`
+
+Return the Keras serialization config.
 
 Parameters
 
@@ -99,14 +127,24 @@ Parameters
 
 Returns
 
-- cfg: Dict[str, Any], constraints: includes base layer config plus key `"hidden_units"` with an int value.
+- `cfg`: Dict[str, Any], unconstrained mapping; includes base layer config plus `"hidden_units": self.hidden_units`.
+
+Example
+
+```python
+from Q_Sea_Battle.pyr_measurement_layer_b import PyrMeasurementLayerB
+
+layer = PyrMeasurementLayerB(hidden_units=16)
+cfg = layer.get_config()
+assert cfg["hidden_units"] == 16
+```
 
 ## Data & State
 
-- hidden_units: int, constraint $\ge 1$; persisted in config via `get_config()`.
-- _dense_hidden: Optional[tf.keras.layers.Dense], initialized to None; created in `build()` with `activation="relu"`.
-- _dense_out: Optional[tf.keras.layers.Dense], initialized to None; created in `build()` with `activation="sigmoid"` and units $L/2$.
-- _built_for_L: Optional[int], initialized to None; set to $L$ in `build()`.
+- `hidden_units`: int, constraint $\ge 1$, scalar; number of units in the hidden Dense layer.
+- `_dense_hidden`: Optional[tf.keras.layers.Dense], nullable; created in `build(...)`, then used in `call(...)`.
+- `_dense_out`: Optional[tf.keras.layers.Dense], nullable; created in `build(...)`, then used in `call(...)`.
+- `_built_for_L`: Optional[int], nullable; the input width $L$ used to parameterize the layer during `build(...)`.
 
 ## Planned (design-spec)
 
@@ -118,13 +156,13 @@ Returns
 
 ## Notes for Contributors
 
-- This layer enforces probability outputs via a sigmoid head; avoid changing the public contract `call(gun_batch) -> meas_b` and the $[0,1]$ output constraint.
-- Do not create state in `call()`; sublayers are created in `build()` based on the statically known last dimension $L$.
+- The layer relies on a statically known last dimension during `build(...)`; if you change tracing/build behavior, preserve the requirement that $L$ is known to create the output head with dimension $L/2$.
+- The output is logits (no sigmoid); if you add squashing/noise behavior, document it explicitly and consider whether it belongs outside this layer.
 
 ## Related
 
-- `tf.keras.layers.Layer`
-- `tf.keras.layers.Dense`
+- TensorFlow / Keras base class: `tf.keras.layers.Layer`
+- Dense sublayers used internally: `tf.keras.layers.Dense`
 
 ## Changelog
 

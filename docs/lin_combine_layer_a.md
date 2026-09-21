@@ -1,6 +1,6 @@
 # LinCombineLayerA
 
-> Role: Learnable TensorFlow Keras layer that maps measurement outcomes to communication logits.
+> Role: Learnable mapping from measurement outcomes to communication logits via a minimal MLP and final linear projection.
 
 Location: `Q_Sea_Battle.lin_combine_layer_a.LinCombineLayerA`
 
@@ -8,28 +8,26 @@ Location: `Q_Sea_Battle.lin_combine_layer_a.LinCombineLayerA`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| comms_size | int, constraint: $m \ge 1$, shape: scalar | Number of communication channels ($m$). Stored as `self.comms_size` after `int(...)`. |
-| hidden_units | int or Sequence[int], constraint: each value $u \ge 1$, shape: scalar or $(L,)$ | Hidden layer widths for an MLP; an int creates a single hidden layer, a sequence creates a stack of Dense-ReLU layers. Normalized to `tuple[int, ...]` and stored as `self.hidden_units`. |
-| name | str or None, constraint: if None then defaults to `"LinCombineLayerA"`, shape: scalar | Keras layer name passed to `tf.keras.layers.Layer.__init__`. |
-| **kwargs | dict[str, Any], constraint: must be accepted by `tf.keras.layers.Layer`, shape: mapping | Forwarded to the Keras base layer constructor. |
+| comms_size | int, constraint: convertible via `int(comms_size)`; scalar | Number of communication channels ($m$). |
+| hidden_units | int \| collections.abc.Sequence[int], constraint: if int then one hidden layer; if sequence then one width per hidden layer; scalar / 1D sequence | Hidden-layer configuration for a Dense+ReLU stack; normalized internally to `tuple[int, ...]`. |
+| name | str \| None, constraint: if None defaults to `"LinCombineLayerA"`; scalar | Optional layer name. |
+| **kwargs | Any, constraint: forwarded to `tf.keras.layers.Layer`; shape: N/A | Additional keyword arguments passed to the base `Layer` constructor. |
 
 Preconditions
 
-- `comms_size` must be convertible to `int`.
-- `hidden_units` must be an `int` or a `collections.abc.Sequence` of values convertible to `int`.
+- `comms_size` must be a value acceptable to `int()` and suitable as the `units` argument to `tf.keras.layers.Dense`.
+- `hidden_units` must be an `int` or a sequence of values each acceptable to `int()` and suitable as the `units` argument to `tf.keras.layers.Dense`.
 
 Postconditions
 
-- `self.comms_size: int` is set.
-- `self.hidden_units: tuple[int, ...]` is set.
-- `self._mlp: list[tf.keras.layers.Layer]` is created as a list of `tf.keras.layers.Dense(..., activation="relu")` layers.
-- `self._out: tf.keras.layers.Dense` is created with `units=self.comms_size` and `activation=None`.
+- `self.comms_size` is set to `int(comms_size)`.
+- `self.hidden_units` is set to a `tuple[int, ...]` derived from `hidden_units`.
+- `self._mlp` is a `list[tf.keras.layers.Layer]` of `Dense` layers with `activation="relu"` and widths from `self.hidden_units`.
+- `self._out` is a `tf.keras.layers.Dense` with `units=self.comms_size` and `activation=None`.
 
 Errors
 
-- Raises `TypeError` if `hidden_units` is not an `int` and not a `Sequence`.
-- Raises `ValueError` if any element of `hidden_units` cannot be converted to `int` (or if `comms_size` cannot be converted to `int`), as raised by `int(...)` conversion.
-- Any additional errors may be raised by `tf.keras.layers.Layer.__init__` when invalid `name`/`kwargs` are provided.
+- Not specified (constructor may raise exceptions from `int(...)` conversions and from `tf.keras.layers.Dense` initialization if arguments are invalid).
 
 !!! example "Example"
     ```python
@@ -37,43 +35,41 @@ Errors
     from Q_Sea_Battle.lin_combine_layer_a import LinCombineLayerA
 
     layer = LinCombineLayerA(comms_size=8, hidden_units=(64, 64))
-
-    outcomes = tf.random.uniform(shape=(32, 100), dtype=tf.float32)  # (B, n2)
-    logits = layer(outcomes, training=True)  # (B, m)
+    outcomes = tf.random.uniform((32, 10))  # (B, n2)
+    comm_logits = layer(outcomes, training=True)  # (B, m)
     ```
 
 ## Public Methods
 
 ### call
 
-Signature: `call(self, outcomes: tf.Tensor, training: bool = False) -> tf.Tensor`
+Compute communication logits from measurement outcomes.
 
-Parameters
+Arguments
 
-- outcomes: tf.Tensor, dtype: not specified (converted via `tf.convert_to_tensor`), shape $(B, n2)$ or $(n2,)$.
-- training: bool, constraint: boolean, shape: scalar.
+- outcomes: tf.Tensor, dtype not specified, shape (B, n2) or (n2,), where B is batch size and n2 is the outcomes vector length.
+- training: bool, constraint: standard Keras training flag; scalar.
 
 Returns
 
-- tf.Tensor, dtype: not specified, shape $(B, m)$ if input rank is 2, else shape $(m,)$ if input rank is 1.
+- tf.Tensor, dtype not specified, shape (B, m) if input was batched, otherwise shape (m,), where $m = \text{comms\_size}$.
 
 Behavior
 
-- Converts `outcomes` to a tensor with `tf.convert_to_tensor`.
-- If `outcomes` has rank 1 (shape $(n2,)$), expands to shape $(1, n2)$, runs the MLP and output layer, then squeezes axis 0 to return shape $(m,)$.
-- If `outcomes` has rank 2 (shape $(B, n2)$), returns logits of shape $(B, m)$.
-- Applies each hidden Dense layer in `self._mlp` with `activation="relu"`, then applies `self._out` Dense with `activation=None` (logits).
+- Converts `outcomes` via `tf.convert_to_tensor(outcomes)`.
+- If `outcomes` is rank-1 (shape (n2,)), promotes to shape (1, n2) for processing and then squeezes the leading dimension to preserve the unbatched output contract.
+- Applies each Dense+ReLU layer in `self._mlp` sequentially, then applies `self._out` to produce logits.
 
 Errors
 
-- May raise TensorFlow/Keras shape or rank errors if `outcomes` has rank other than 1 or 2, or if Dense layers cannot be applied to the provided shape/dtype.
+- Not specified (may raise TensorFlow/Keras runtime errors for incompatible shapes, invalid ranks, or layer build issues).
 
 ## Data & State
 
-- self.comms_size: int, constraint: not validated in code beyond `int(...)`, shape: scalar.
-- self.hidden_units: tuple[int, ...], constraint: elements are `int` after normalization, shape: $(L,)$.
-- self._mlp: list[tf.keras.layers.Layer], constraint: list length $L = \text{len}(\text{self.hidden_units})$, shape: list.
-- self._out: tf.keras.layers.Dense, constraint: units $= m$, shape: layer object.
+- comms_size: int, constraint: set to `int(comms_size)`; scalar; number of communication channels ($m$).
+- hidden_units: tuple[int, ...], constraint: each element derived via `int(u)`; shape (L,), where L is the number of hidden layers.
+- _mlp: list[tf.keras.layers.Layer], constraint: each element is a `tf.keras.layers.Dense` with `activation="relu"`; length L.
+- _out: tf.keras.layers.Dense, constraint: `units == comms_size` and `activation is None`; scalar object reference.
 
 ## Planned (design-spec)
 
@@ -81,18 +77,19 @@ Errors
 
 ## Deviations
 
-- Not specified.
+- No deviations identified between the module docstring "Design agreements" and the implemented behavior.
 
 ## Notes for Contributors
 
-- `_normalize_hidden_units(hidden_units)` is a private helper that normalizes `hidden_units` to `tuple[int, ...]`; keep it consistent with any future serialization/config logic if added.
-- The `call` method explicitly supports rank-1 input by expanding and later squeezing; changes to rank handling should preserve the documented input/output shape conventions $(n2,) \leftrightarrow (m,)$ and $(B, n2) \leftrightarrow (B, m)$.
+- The unbatched input path is implemented by rank check (`x.shape.rank == 1`) and explicit expand/squeeze; ensure any future changes preserve the caller-visible output shape contract for both (B, n2) and (n2,) inputs.
+- The helper `_normalize_hidden_units` is internal (name starts with `_`) and normalizes `hidden_units` to `tuple[int, ...]`; changes to its behavior should be reflected in constructor documentation.
 
 ## Related
 
 - TensorFlow Keras base class: `tf.keras.layers.Layer`
 - Dense layers used internally: `tf.keras.layers.Dense`
+- Internal helper: `_normalize_hidden_units` (module-private)
 
 ## Changelog
 
-- 0.1: Initial implementation of `LinCombineLayerA` with configurable hidden MLP and linear output logits.
+- Not specified.

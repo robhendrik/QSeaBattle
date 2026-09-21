@@ -1,8 +1,9 @@
-"""Simple deterministic Player B implementation.
+"""Deterministic Player B implementation for baseline experiments.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module defines :class:`SimplePlayerB`, a deterministic policy that reacts to
+Player A's communication bits when the gun points within the communication
+addressing range. For other target cells, the player shoots stochastically using
+the environment's configured enemy hit probability.
 """
 
 from __future__ import annotations
@@ -16,15 +17,24 @@ from .players_base import PlayerB
 
 
 class SimplePlayerB(PlayerB):
-    """Deterministic Player B reacting to SimplePlayerA messages.
+    """Deterministic Player B reacting to Player A messages.
 
-    If the gun points at one of the first ``m`` cells of the field,
-    this player uses the corresponding communication bit. Otherwise
-    it shoots with probability equal to ``enemy_probability``.
+    Let ``m`` be the number of communication bits (``game_layout.comms_size``).
+    The gun is provided as a one-hot vector over the enemy field cells; the index
+    of its active entry selects either a communication bit or a fallback policy:
+
+    * If the gun index ``i`` satisfies ``i < m``, the action is exactly
+      ``comm[i]``.
+    * Otherwise, the player shoots stochastically with probability
+      ``game_layout.enemy_probability``.
+
+    Notes:
+        This policy assumes the gun input is a valid one-hot vector. If it is
+        not, the selected index is the argmax of the flattened array.
     """
 
     def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise a :class:`SimplePlayerB` instance.
+        """Initialize the player.
 
         Args:
             game_layout: Game configuration for this player.
@@ -34,22 +44,18 @@ class SimplePlayerB(PlayerB):
     def decide(
         self, gun: np.ndarray, comm: np.ndarray, supp: Optional[Any] = None
     ) -> int:
-        """Decide whether to shoot based on the message and gun.
-
-        Behaviour:
-
-        * Let ``i`` be the index of the 1 in the flattened gun vector.
-        * If ``i < m``, return ``comm[i]``.
-        * Otherwise, return 1 with probability ``enemy_probability``
-          and 0 with the remaining probability.
+        """Decide whether to shoot based on the gun and Player A's message.
 
         Args:
-            gun: Flattened one-hot gun vector of length ``n2``.
-            comm: Communication vector from Player A, length ``m``.
+            gun: One-hot gun vector over enemy cells. Expected to be 1D after
+                flattening (via ``ravel()``).
+            comm: Communication vector from Player A. Expected to be 1D after
+                flattening (via ``ravel()``) and to have length
+                ``game_layout.comms_size``.
             supp: Optional supporting information (unused).
 
         Returns:
-            1 to shoot or 0 to not shoot.
+            An integer action: ``1`` to shoot, ``0`` to not shoot.
         """
         flat_gun = np.asarray(gun, dtype=int).ravel()
         comm = np.asarray(comm, dtype=int).ravel()
@@ -57,14 +63,12 @@ class SimplePlayerB(PlayerB):
         m = self.game_layout.comms_size
         p = self.game_layout.enemy_probability
 
-        # Index of the gun (assumes a valid one-hot input).
+        # Target cell index implied by the one-hot gun vector.
         gun_index = int(np.argmax(flat_gun))
 
         if gun_index < m:
-            # Use the bit indicated by the gun position.
+            # Use the communication bit addressed by the gun index.
             return int(comm[gun_index])
 
-        # Otherwise use a Bernoulli(enemy_probability) decision.
-        shoot = int(np.random.rand() < p)
-        return shoot
-
+        # Outside the communication addressing range: fallback stochastic action.
+        return int(np.random.rand() < p)

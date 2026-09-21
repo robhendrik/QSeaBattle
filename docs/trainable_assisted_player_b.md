@@ -1,6 +1,6 @@
 # TrainableAssistedPlayerB
 
-> Role: Trainable Player B wrapper that consumes Player A "previous" tensors plus local measurements to decide whether to shoot, while tracking the last action log-probability.
+> Role: Gameplay-facing Player B policy wrapper that turns a trainable TensorFlow model into a discrete shoot decision (0/1) and tracks the action log-probability for training.
 
 Location: `Q_Sea_Battle.trainable_assisted_player_b.TrainableAssistedPlayerB`
 
@@ -8,159 +8,125 @@ Location: `Q_Sea_Battle.trainable_assisted_player_b.TrainableAssistedPlayerB`
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `game_layout` | `Any`, not specified, shape N/A | Object providing `field_size` and `comms_size` attributes used to derive $n2 = field\_size^2$ and $m = comms\_size$. |
-| `model_b` | `LinTrainableAssistedModelB`, not specified, shape N/A | Trainable model called as `model_b([gun_batch, comm_batch, prev_meas_batch, prev_out_batch])` to produce a shoot logit. |
+| game_layout | Any, constraints: must provide attributes `field_size` and `comms_size` convertible via `int(...)`, shape: N/A | Gameplay layout object used to derive $n2 = field\_size^2$ and $m = comms\_size$. |
+| model_b | LinTrainableAssistedModelB, constraints: callable as `model_b([...])`; may also be an instance of `GameplayModelBAdapter`, shape: N/A | Underlying model for Player B (adapter path returns a bit; legacy path returns a logit). |
 
-Preconditions
+Preconditions: `game_layout.field_size` and `game_layout.comms_size` exist and are convertible to `int`.
 
-- `game_layout` should expose `field_size` and `comms_size` attributes convertible to `int`; otherwise behavior is not specified (will likely raise at runtime).
-- `model_b` must be callable and return a Tensor compatible with shape `(1, 1)` when invoked from `decide()`.
+Postconditions: `self.game_layout` and `self.model_b` are stored; `self.parent` is set to `None`; `self.last_logprob_shoot` is set to `None`; `self.explore` is set to `False`.
 
-Postconditions
-
-- `self.game_layout` is set to `game_layout`.
-- `self.model_b` is set to `model_b`.
-- `self.parent` is set to `None`.
-- `self.last_logprob_shoot` is set to `None`.
-- `self.explore` is set to `False`.
-
-Errors
-
-- Not specified by constructor code.
+Errors: Not specified.
 
 !!! example "Example"
     ```python
     from Q_Sea_Battle.trainable_assisted_player_b import TrainableAssistedPlayerB
-
-    # game_layout must provide .field_size and .comms_size; model_b must be a LinTrainableAssistedModelB
+    
     player_b = TrainableAssistedPlayerB(game_layout=layout, model_b=model_b)
+    player_b.parent = parent  # parent.previous must be set by Player A before decide()
     ```
 
 ## Public Methods
 
 ### decide(gun, comm, supp=None, explore=None)
 
-Decide whether to shoot (`0` or `1`) based on `gun` + `comm` + `parent.previous` tensors.
+Decide whether to shoot (0/1) from gun bits, comm bits, and tensors stored on `parent.previous`.
 
-Parameters
+| Parameter | Type | Description |
+| --- | --- | --- |
+| gun | np.ndarray, dtype int or float, constraints: values must be exactly in {0,1}, shape (n2,) | Local gun measurement bits, where $n2 = field\_size^2$. |
+| comm | np.ndarray, dtype int or float, constraints: no value constraint enforced; shape (m,) | Received communication bits, where $m = comms\_size$. |
+| supp | Any or None, constraints: unused, shape: N/A | Accepted for API compatibility; ignored. |
+| explore | bool or None, constraints: if provided overrides `self.explore`, shape: N/A | If True, sample stochastically; if False, act greedily; if None, uses `self.explore`. |
 
-- `gun`: `np.ndarray`, dtype int, values in `{0,1}`, shape `(n2,)`, where $n2 = field\_size^2$.
-- `comm`: `np.ndarray`, dtype not specified, shape `(m,)`, where $m = comms\_size$; values are validated for shape only (docstring notes ints in `{0,1}` or floats in `[0,1]` for DRU).
-- `supp`: `Any | None`, ignored, shape N/A.
-- `explore`: `bool | None`, if not `None` overrides `self.explore`, shape N/A.
+Returns: int, constraints: in {0,1}, shape: scalar Python `int`; the shoot decision.
 
-Returns
+Preconditions: `self.parent` is not `None` and `self.parent.previous` is not `None`; `gun.shape == (n2,)`; `comm.shape == (m,)`; `gun` contains only 0/1 values; `self.parent.previous` is a 2-tuple `(prev_meas_list, prev_out_list)` where each element is a list/tuple or a single tensor/array convertible into a list of length >= 1.
 
-- `int`, constraints `{0,1}`, shape `()`.
+Postconditions: Returns a discrete shoot bit in {0,1}; updates `self.last_logprob_shoot` to the log-probability (Python `float`) of the action actually taken under the Bernoulli distribution parameterized by the model logit(s); may print runtime warnings if `parent.previous` tensors/arrays appear non-binary within tolerance.
 
-Preconditions
-
-- `self.parent` is not `None` and `self.parent.previous` is not `None`.
-- `getattr(self.game_layout, "field_size")` and `getattr(self.game_layout, "comms_size")` exist and are convertible to `int`.
-- `gun.shape == (n2,)` and `gun` contains only `0/1`.
-- `comm.shape == (m,)`.
-- `self.parent.previous` is a tuple-like `(prev_meas_list, prev_out_list)` where each is a `list` (enforced before later normalization).
-- `len(prev_meas_list) >= 1` and `len(prev_out_list) >= 1`.
-
-Postconditions
-
-- Computes `shoot_logit = self.model_b([gun_batch, comm_batch, prev_meas_batch, prev_out_batch])` where `gun_batch` has shape `(1, n2)` and `comm_batch` has shape `(1, m)`.
-- Sets `self.last_logprob_shoot` to the log-probability (Python `float`) of the returned action under the computed logits.
-- Returns `shoot` as greedy (`shoot_prob >= 0.5`) if not exploring, else samples via `Uniform(0,1) < shoot_prob`.
-
-Errors
-
-- `ValueError`: if `gun` shape mismatches `(n2,)`.
-- `ValueError`: if `gun` contains values other than `0/1`.
-- `ValueError`: if `comm` shape mismatches `(m,)`.
-- `RuntimeError`: if `self.parent is None` or `self.parent.previous is None`.
-- `TypeError`: if `self.parent.previous` is not `(list, list)` at the initial type check.
-- `ValueError`: if either list in `self.parent.previous` has length `< 1`.
+Errors:
+- ValueError: if `gun` has wrong shape; if `comm` has wrong shape; if `gun` contains values outside {0,1}; if `parent.previous` lists have length < 1; if adapter path returns a `shoot_bit` not in {0,1}.
+- RuntimeError: if `parent.previous` is missing (Player A must act first).
+- TypeError: if elements of `prev_meas_list`/`prev_out_list` do not have a `.shape` (i.e., are not tensors/arrays).
 
 !!! example "Example"
     ```python
     import numpy as np
-
-    # Assume player_b.parent has been set and player_a has already populated parent.previous
-    n2 = int(player_b.game_layout.field_size) ** 2
-    m = int(player_b.game_layout.comms_size)
-
-    gun = np.zeros((n2,), dtype=int)
-    comm = np.zeros((m,), dtype=int)
-
+    
+    # Assume:
+    # - layout.field_size and layout.comms_size are set
+    # - player_a has already populated parent.previous
+    gun = np.zeros((layout.field_size ** 2,), dtype=np.int32)
+    comm = np.zeros((layout.comms_size,), dtype=np.int32)
+    
+    player_b.parent = parent
     shoot = player_b.decide(gun=gun, comm=comm, explore=True)
-    logp = player_b.get_log_prob()
     ```
 
 ### get_log_prob()
 
-Return log-probability of the last taken shoot action (as set by `decide()`).
+Return the log-probability of the most recent shoot decision.
 
-Parameters
+Returns: float, constraints: finite float not guaranteed/validated, shape: scalar Python `float`; the most recently stored log-probability.
 
-- None.
+Preconditions: `decide()` has been called since the last `reset()` such that `self.last_logprob_shoot` is not `None`.
 
-Returns
+Postconditions: Does not modify state.
 
-- `float`, constraints not specified (log-probability), shape `()`.
+Errors:
+- RuntimeError: if no log-probability is available (i.e., `self.last_logprob_shoot is None`).
 
-Preconditions
-
-- `self.last_logprob_shoot` is not `None` (i.e., `decide()` has been called since the last `reset()`).
-
-Errors
-
-- `RuntimeError`: if `self.last_logprob_shoot is None`.
+!!! example "Example"
+    ```python
+    shoot = player_b.decide(gun=gun, comm=comm)
+    logp = player_b.get_log_prob()
+    ```
 
 ### reset()
 
-Reset internal state.
+Reset per-episode/per-turn cached state.
 
-Parameters
+Returns: None, constraints: N/A, shape: N/A.
 
-- None.
+Preconditions: None.
 
-Returns
+Postconditions: Sets `self.last_logprob_shoot` to `None`.
 
-- `None`, shape N/A.
+Errors: Not specified.
 
-Postconditions
-
-- `self.last_logprob_shoot` is set to `None`.
-
-Errors
-
-- Not specified.
+!!! example "Example"
+    ```python
+    player_b.reset()
+    ```
 
 ## Data & State
 
-- `game_layout`: `Any`, constraints not specified, shape N/A; must provide `field_size` and `comms_size` attributes used by `decide()`.
-- `model_b`: `LinTrainableAssistedModelB`, constraints not specified, shape N/A; called by `decide()` to produce a shoot logit tensor.
-- `parent`: `Any | None`, constraints not specified, shape N/A; expected (by `decide()`) to provide `.previous` containing prior tensors from Player A.
-- `last_logprob_shoot`: `float | None`, constraints not specified, shape `()`; updated by `decide()`, cleared by `reset()`.
-- `explore`: `bool`, constraints `{False, True}`, shape `()`; default `False`, optionally overridden per-call via `decide(..., explore=...)`.
+- `game_layout`: Any, constraints: must expose `field_size` and `comms_size` used by `decide()`, shape: N/A.
+- `model_b`: LinTrainableAssistedModelB, constraints: callable; may be a `GameplayModelBAdapter` instance for adapter path behavior, shape: N/A.
+- `parent`: Any or None, constraints: when non-None must provide attribute `previous`; `previous` must be a 2-tuple `(prev_meas_list, prev_out_list)`, shape: N/A.
+- `last_logprob_shoot`: float or None, constraints: set by `decide()` and cleared by `reset()`, shape: scalar Python `float`.
+- `explore`: bool, constraints: default False; used as default exploration flag in `decide()` when `explore` argument is None, shape: scalar.
 
 ## Planned (design-spec)
 
-- Not specified (no design notes provided).
+Not specified.
 
 ## Deviations
 
-- The docstring claims `parent` is of type `TrainableAssistedPlayers` and is set by `TrainableAssistedPlayers.players()`, but the module only types it as `Any | None` and does not define or enforce this contract.
-- `parent.previous` is initially required to be `(list, list)` via an explicit `isinstance(..., list)` check, yet later code contains normalization for non-list/tuple values ("linear case: single tensor → list of length 1") that is unreachable if the earlier check fails; these two behaviors conflict.
+Not specified.
 
 ## Notes for Contributors
 
-- Symbols used: $n2 = field\_size^2$ and $m = comms\_size$ are derived inside `decide()` from `self.game_layout`.
-- `decide()` expects `self.parent.previous` to be populated before it is called; ensure Player A executes first in the calling sequence.
-- `bernoulli_log_prob_from_logits` may be imported from `.logit_utils` or fall back to a local implementation; changing either affects `last_logprob_shoot` semantics.
+- `decide()` supports two execution paths: adapter path when `model_b` is a `GameplayModelBAdapter`, and legacy path otherwise; keep both paths consistent in return types and the `(B, D)` rank-2 expectations enforced by `_ensure_rank2(...)`.
+- `parent.previous` is treated as shared state populated by Player A; changing its structure requires coordinated changes across the gameplay pipeline.
+- The module may emit print-based warnings for non-binary values in previous tensors; this is intended as a non-breaking gameplay safety check and must not mutate data.
 
 ## Related
 
-- `Q_Sea_Battle.trainable_assisted_player_b.bernoulli_log_prob_from_logits` (imported if available; otherwise locally defined fallback)
-- `Q_Sea_Battle.trainable_assisted_player_b.LinTrainableAssistedModelB` (dependency)
-- `Q_Sea_Battle.trainable_assisted_player_b.PlayerB` (base class, imported if available; otherwise fallback)
+- `Q_Sea_Battle.trainable_assisted_player_b.bernoulli_log_prob_from_logits` (imported if available; otherwise fallback defined in-module)
+- `Q_Sea_Battle.trainable_assisted_player_b.GameplayModelBAdapter`
+- `Q_Sea_Battle.trainable_assisted_player_b.LinTrainableAssistedModelB`
 
 ## Changelog
 
-- 0.1: Initial version (per module docstring).
+- Not specified.

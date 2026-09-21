@@ -1,21 +1,22 @@
 # Players
 
-> Role: Factory and container for a pair of QSeaBattle players.
+> Role: Factory/container that holds a shared `GameLayout` and constructs paired Player A and Player B instances.
+
 Location: `Q_Sea_Battle.players_base.Players`
 
 ## Constructor
 
-| Parameter | Type | Description |
-| --- | --- | --- |
-| game_layout | Optional[GameLayout], constraint: None or instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: scalar | Optional shared configuration; if None, a default `GameLayout` is created. |
+Parameter | Type | Description
+--- | --- | ---
+game_layout | Optional[GameLayout], shape () | Shared configuration for both players; if `None`, a default `GameLayout` is created.
 
 Preconditions
 
-- Not specified.
+- `game_layout` is `None` or an instance of `Q_Sea_Battle.game_layout.GameLayout`, shape ().
 
 Postconditions
 
-- `self.game_layout` is set to the provided `game_layout` if not None, otherwise to a newly created `GameLayout`.
+- `self.game_layout` is a `GameLayout`, shape (), equal to `game_layout` if provided; otherwise a newly created default `GameLayout`.
 
 Errors
 
@@ -25,16 +26,17 @@ Example
 
 ```python
 from Q_Sea_Battle.players_base import Players
+from Q_Sea_Battle.game_layout import GameLayout
 
-players_facade = Players()
-player_a, player_b = players_facade.players()
+players = Players()  # uses default GameLayout
+custom = Players(GameLayout())
 ```
 
 ## Public Methods
 
 ### players
 
-Create the concrete Player A and Player B instances using the shared `GameLayout`.
+Create Player A and Player B instances sharing the container's `game_layout`.
 
 Parameters
 
@@ -42,7 +44,7 @@ Parameters
 
 Returns
 
-- Tuple["PlayerA", "PlayerB"], constraint: 2-tuple of player instances, shape: (2,).
+- Tuple["PlayerA", "PlayerB"], shape (2,): Tuple `(player_a, player_b)` constructed as `_PlayerA(self.game_layout)` and `_PlayerB(self.game_layout)`.
 
 Errors
 
@@ -53,13 +55,13 @@ Example
 ```python
 from Q_Sea_Battle.players_base import Players
 
-p = Players()
-player_a, player_b = p.players()
+container = Players()
+player_a, player_b = container.players()
 ```
 
 ### reset
 
-Reset any internal state across both players.
+Reset any container-level state.
 
 Parameters
 
@@ -67,7 +69,7 @@ Parameters
 
 Returns
 
-- None, constraint: always `None`, shape: scalar.
+- None, shape (): Always returns `None`.
 
 Errors
 
@@ -78,13 +80,13 @@ Example
 ```python
 from Q_Sea_Battle.players_base import Players
 
-p = Players()
-p.reset()
+container = Players()
+container.reset()
 ```
 
 ## Data & State
 
-- game_layout: GameLayout, constraint: instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: scalar; shared configuration used by both players.
+- `game_layout`: GameLayout, shape (): Shared configuration used by both players.
 
 ## Planned (design-spec)
 
@@ -96,13 +98,15 @@ p.reset()
 
 ## Notes for Contributors
 
-- This module also provides deprecated attribute access for `PlayerA` and `PlayerB` via module-level `__getattr__`, emitting `DeprecationWarning` and caching the resolved symbols in `globals()`.
+!!! note "Deprecated legacy names are handled at module level"
+    This module also defines a module-level `__getattr__(name: str) -> Any` that provides deprecated access to `PlayerA` and `PlayerB` with a `DeprecationWarning` and caches the resolved symbol in `globals()`. This is not part of the `Players` class API but affects public imports from `Q_Sea_Battle.players_base`.
 
 ## Related
 
-- `Q_Sea_Battle.player_base_a.PlayerA` (concrete baseline implementation imported as `_PlayerA` internally)
-- `Q_Sea_Battle.player_base_b.PlayerB` (concrete baseline implementation imported as `_PlayerB` internally)
 - `Q_Sea_Battle.game_layout.GameLayout`
+- `Q_Sea_Battle.player_base_a.PlayerA` (imported internally as `_PlayerA`)
+- `Q_Sea_Battle.player_base_b.PlayerB` (imported internally as `_PlayerB`)
+- Module-level deprecated accessors: `Q_Sea_Battle.players_base.PlayerA`, `Q_Sea_Battle.players_base.PlayerB` via `__getattr__`
 
 ## Changelog
 

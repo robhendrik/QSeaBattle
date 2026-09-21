@@ -1,8 +1,14 @@
-"""Game layout dataclass and configuration for QSeaBattle.
+"""Game layout configuration for QSeaBattle.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module defines :class:`GameLayout`, an immutable dataclass that captures the
+parameters for a single QSeaBattle game and its surrounding tournament setup.
+
+Notes:
+    * The playing field is a square grid with side length ``field_size``.
+      Internally, the field is often treated as a flattened vector with length
+      ``n2 = field_size ** 2``.
+    * ``n2`` is required to be a power of two. This constraint is typically used
+      by downstream components that rely on bit/partition-friendly dimensions.
 """
 
 from __future__ import annotations
@@ -15,23 +21,23 @@ from typing import Dict, List
 class GameLayout:
     """Immutable configuration for a QSeaBattle game.
 
-    This dataclass holds the parameters that define a single game and
-    its surrounding tournament configuration. Instances are validated
-    at creation time and treated as read-only.
+    The layout specifies board dimensions, communication size, probabilities used
+    by the game generator and channel model, and the tournament log schema.
+    Instances are validated on creation and are intended to be treated as
+    read-only.
 
     Attributes:
-        field_size: Size of one dimension of the square field ``n``.
-            The flattened field has length ``n2 = field_size ** 2``. The
-            value of ``n2`` must be a power of 2.
-        comms_size: Length of the communication vector ``m``. Must
-            divide ``n2``.
-        enemy_probability: Probability that a cell in the field equals 1.
-            Must lie in the interval [0.0, 1.0].
-        channel_noise: Probability that a bit is flipped in the channel.
-            Must lie in the interval [0.0, 1.0].
-        number_of_games_in_tournament: Number of games per tournament.
+        field_size: Side length ``n`` of the square field. The flattened field
+            has length ``n2 = field_size ** 2`` and ``n2`` must be a power of two.
+        comms_size: Length ``m`` of the communication vector. Must be a positive
+            divisor of ``n2``.
+        enemy_probability: Probability that a generated field cell equals 1.
+            Must be in ``[0.0, 1.0]``.
+        channel_noise: Bit-flip probability for the channel. Must be in
+            ``[0.0, 1.0]``.
+        number_of_games_in_tournament: Number of games played per tournament.
             Must be a positive integer.
-        log_columns: List of column names for the tournament log.
+        log_columns: Column names used when logging tournament/game events.
     """
 
     field_size: int = 4
@@ -60,13 +66,16 @@ class GameLayout:
     )
 
     def __post_init__(self) -> None:
-        """Validate parameters after initialisation.
+        """Validate parameters after dataclass initialization.
 
         Raises:
-            TypeError: If types of core attributes are incorrect.
-            ValueError: If values violate basic constraints from the spec.
+            TypeError: If a field has an unexpected type.
+            ValueError: If a field violates a basic constraint (e.g., invalid
+                probability range, incompatible sizes).
         """
-        # Basic type checks for the core integer parameters.
+        # Basic type checks for the core integer parameters. These are validated
+        # explicitly because other components assume integer arithmetic (e.g.,
+        # modulus checks and bitwise operations).
         if not isinstance(self.field_size, int):
             raise TypeError("field_size must be an int.")
         if not isinstance(self.comms_size, int):
@@ -79,7 +88,8 @@ class GameLayout:
 
         n2 = self.field_size ** 2
 
-        # n2 must be a power of two (n2 = 2^k).
+        # Require n2 to be a power of two: n2 = 2^k. This is checked using the
+        # standard bit trick for positive integers.
         if not self._is_power_of_two(n2):
             raise ValueError(
                 f"field_size ** 2 must be a power of 2, got field_size={self.field_size}, n2={n2}."
@@ -114,17 +124,16 @@ class GameLayout:
 
     @classmethod
     def from_dict(cls, parameters: Dict) -> "GameLayout":
-        """Create a GameLayout instance from a dictionary of parameters.
+        """Create a validated :class:`GameLayout` from a mapping.
 
-        Unknown keys in the input dictionary are ignored. Missing keys
-        are filled with the dataclass defaults, and the resulting
-        instance is validated via ``__post_init__``.
+        Unknown keys are ignored. Missing keys fall back to dataclass defaults.
+        The returned instance is validated via :meth:`__post_init__`.
 
         Args:
-            parameters: Dictionary with parameter overrides.
+            parameters: Mapping of field names to override values.
 
         Returns:
-            A new validated GameLayout instance.
+            A new validated layout instance.
         """
         allowed_keys = set(cls.__dataclass_fields__.keys())
         filtered: Dict = {
@@ -133,25 +142,21 @@ class GameLayout:
         return cls(**filtered)
 
     def to_dict(self) -> Dict:
-        """Return a dictionary representation of this layout.
-
-        The dictionary contains all dataclass fields and their current
-        values.
+        """Convert this layout to a dictionary.
 
         Returns:
-            A dictionary with all layout parameters.
+            A dictionary containing all dataclass fields and their current values.
         """
         return {name: getattr(self, name) for name in self.__dataclass_fields__}
 
     @staticmethod
     def _is_power_of_two(value: int) -> bool:
-        """Return True if value is a power of two.
+        """Check whether an integer is a positive power of two.
 
         Args:
             value: Integer to test.
 
         Returns:
-            True if ``value`` is a positive power of two, False otherwise.
+            ``True`` if ``value`` is a positive power of two, otherwise ``False``.
         """
         return value > 0 and (value & (value - 1)) == 0
-

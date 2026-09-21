@@ -1,14 +1,16 @@
-"""Classical PR-assisted resource for assisted players.
+"""PR-assisted shared resource (SR) for two-party correlations.
 
-This module provides the same functionality as :class:`SharedRandomness` in
-``shared_randomness.py``, but uses the updated naming convention:
+This module defines :class:`PRAssisted`, a classical PR-assisted shared resource
+queried by two parties (A and B) at most once each per round. The first query in
+a round returns a uniformly random bit-string; the second query returns a
+bit-string correlated with the first according to the parties' measurement
+settings and the parameter ``p_rule``.
 
-- Module: ``pr_assisted.py``
-- Class: :class:`PRAssisted`
+The implementation also supports an optional per-round *replay* mode for
+deterministic verification: prescribed outcomes can be returned instead of
+sampling stochastically. Replay is additive (it does not change default
+stochastic behavior when disabled) and is cleared by :meth:`PRAssisted.reset`.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
 """
 
 from __future__ import annotations
@@ -19,76 +21,108 @@ import numpy as np
 
 
 class PRAssisted:
-    """Two-party PR-assisted resource with biased correlations.
+    """Two-party PR-assisted shared resource with biased correlations.
 
-    This helper models a shared box queried twice per *round*:
+    The resource is stateful within a *round*:
 
-    * The first call (by either party A or B) returns a uniformly random
-      0/1 string.
-    * The second call returns a 0/1 string that is correlated with the
-      first according to the measurement settings and ``p_high``.
+    - The first call (by either party A or B) returns a uniformly random
+      0/1 outcome string.
+    - The second call returns a 0/1 outcome string correlated with the first,
+      using the per-bit measurement settings and the correlation parameter
+      ``p_rule``.
 
-    The box is stateful within a round (tracking whether A/B already
-    measured and what the previous measurement/outcome were) but can be
-    reset between rounds.
+    Each party may query at most once per round. Use :meth:`reset` between
+    rounds to clear state.
 
-    Notes:
-        This class is functionally identical to ``SharedRandomness`` in
-        ``shared_randomness.py``. Only the module/class names and
-        documentation have been updated.
+    Replay mode:
+        Replay can be enabled per round via :meth:`set_replay_round`. When
+        enabled, outcomes are taken from prescribed vectors rather than sampled
+        stochastically. Replay configuration is cleared by :meth:`reset` (and by
+        :meth:`clear_replay_round`).
+
+    Attributes:
+        length: Number of bits per measurement/outcome string.
+        p_rule: Correlation parameter in ``[0.0, 1.0]``.
+        a_measured: Whether party A has queried this round.
+        b_measured: Whether party B has queried this round.
+        prev_party: Party label ("a" or "b") for the first query this round.
+        prev_measurement: Measurement vector from the first query (shape
+            ``(length,)``).
+        prev_outcome: Outcome vector from the first query (shape ``(length,)``).
     """
 
-    def __init__(self, length: int, p_high: float) -> None:
+    def __init__(self, length: int, p_rule: float) -> None:
         """Initialise the PR-assisted resource.
 
         Args:
-            length: Number of bits in each measurement/outcome string.
-            p_high: Correlation parameter in [0.0, 1.0].
+            length: Number of bits in each measurement/outcome string. Must be
+                >= 1.
+            p_rule: Correlation parameter in ``[0.0, 1.0]`` controlling how
+                likely the second outcome matches (or flips) the first, per
+                index, as a function of the two measurement settings.
 
         Raises:
             TypeError: If argument types are incorrect.
-            ValueError: If ``length`` < 1 or ``p_high`` is outside [0, 1].
+            ValueError: If ``length`` < 1 or ``p_rule`` is outside ``[0, 1]``.
         """
         if not isinstance(length, int):
             raise TypeError("length must be an int")
         if length < 1:
             raise ValueError("length must be >= 1")
 
-        if not isinstance(p_high, (int, float)):
-            raise TypeError("p_high must be a float")
-        if not (0.0 <= float(p_high) <= 1.0):
-            raise ValueError("p_high must be in the interval [0.0, 1.0]")
+        if not isinstance(p_rule, (int, float)):
+            raise TypeError("p_rule must be a float")
+        if not (0.0 <= float(p_rule) <= 1.0):
+            raise ValueError("p_rule must be in the interval [0.0, 1.0]")
 
         self.length: int = length
-        self.p_high: float = float(p_high)
+        self.p_rule: float = float(p_rule)
 
-        # Measurement bookkeeping
+        # Measurement bookkeeping (per round).
         self.a_measured: bool = False
         self.b_measured: bool = False
 
-        # Store previous measurement and outcome for the second query.
+        # Cache the first query so the second query can correlate with it.
         self.prev_party: Optional[str] = None  # "a" | "b" | None
         self.prev_measurement: Optional[np.ndarray] = None
         self.prev_outcome: Optional[np.ndarray] = None
 
-        # Random number generator; in a larger system this can be seeded
-        # from a global seed for full reproducibility.
+        # Replay mode state (per round; when disabled, stochastic behavior is
+        # unchanged).
+        self._replay_enabled: bool = False
+        self._replay_a_outcome: Optional[np.ndarray] = None
+        self._replay_b_outcome: Optional[np.ndarray] = None
+        self._replay_first_party: Optional[str] = None
+        self._replay_consumed_a: bool = False
+        self._replay_consumed_b: bool = False
+
+        # Local RNG. In an integrated training/evaluation setup this may be
+        # seeded externally for reproducibility.
         self._rng = np.random.default_rng()
 
     # ------------------------------------------------------------------
     # Public API
     # ------------------------------------------------------------------
     def measurement_a(self, measurement: np.ndarray) -> np.ndarray:
-        """Perform a measurement by party A.
+        """Query the resource for party A.
+
+        The first query of a round returns a uniformly random 0/1 vector. The
+        second query returns a vector correlated with the first query according
+        to :meth:`_second_measurement`.
 
         Args:
-            measurement: 1D array of shape ``(length,)`` with 0/1 entries.
+            measurement: Party A measurement setting as a 1D NumPy array of
+                shape ``(length,)`` containing only 0/1 values.
 
         Returns:
-            1D array of 0/1 outcomes with the same shape as ``measurement``.
+            A 1D NumPy array of dtype ``int`` and shape ``(length,)`` with 0/1
+            outcomes.
 
         Raises:
-            ValueError: If A already measured or if the measurement is invalid.
+            ValueError: If party A already queried this round or if the
+                measurement is invalid.
+            RuntimeError: If replay mode is enabled but the prescribed outcome
+                is missing, or if a ``first_party`` constraint is violated.
         """
         if self.a_measured:
             raise ValueError("Party A has already measured on this resource")  # noqa: TRY003
@@ -96,24 +130,57 @@ class PRAssisted:
         meas = self._validate_measurement(measurement)
         self.a_measured = True
 
+        # Replay mode: return prescribed outcome (does not enforce correlation).
+        if self._replay_enabled:
+            if self._replay_first_party is not None and not self.b_measured:
+                if self._replay_first_party != "a":
+                    raise RuntimeError(
+                        f"Replay mode requires first measurement from {self._replay_first_party!r}, "
+                        f"but A measured first"
+                    )
+
+            if self._replay_a_outcome is None:
+                raise RuntimeError(
+                    "Replay mode enabled but no outcome prescribed for party A"
+                )
+
+            outcome = self._replay_a_outcome.copy()
+            self._replay_consumed_a = True
+
+            # Preserve the same round bookkeeping as stochastic mode so that the
+            # second call still sees a "first measurement" cached.
+            self.prev_party = "a"
+            self.prev_measurement = meas.copy()
+            self.prev_outcome = outcome.copy()
+
+            return outcome
+
+        # Stochastic mode.
         if not self.b_measured:
-            # First measurement on this box.
             return self._first_measurement("a", meas)
 
-        # B measured first; this is the second measurement.
         return self._second_measurement("a", meas, self.prev_measurement, self.prev_outcome)
 
     def measurement_b(self, measurement: np.ndarray) -> np.ndarray:
-        """Perform a measurement by party B.
+        """Query the resource for party B.
+
+        The first query of a round returns a uniformly random 0/1 vector. The
+        second query returns a vector correlated with the first query according
+        to :meth:`_second_measurement`.
 
         Args:
-            measurement: 1D array of shape ``(length,)`` with 0/1 entries.
+            measurement: Party B measurement setting as a 1D NumPy array of
+                shape ``(length,)`` containing only 0/1 values.
 
         Returns:
-            1D array of 0/1 outcomes with the same shape as ``measurement``.
+            A 1D NumPy array of dtype ``int`` and shape ``(length,)`` with 0/1
+            outcomes.
 
         Raises:
-            ValueError: If B already measured or if the measurement is invalid.
+            ValueError: If party B already queried this round or if the
+                measurement is invalid.
+            RuntimeError: If replay mode is enabled but the prescribed outcome
+                is missing, or if a ``first_party`` constraint is violated.
         """
         if self.b_measured:
             raise ValueError("Party B has already measured on this resource")  # noqa: TRY003
@@ -121,35 +188,121 @@ class PRAssisted:
         meas = self._validate_measurement(measurement)
         self.b_measured = True
 
+        # Replay mode: return prescribed outcome (does not enforce correlation).
+        if self._replay_enabled:
+            if self._replay_first_party is not None and not self.a_measured:
+                if self._replay_first_party != "b":
+                    raise RuntimeError(
+                        f"Replay mode requires first measurement from {self._replay_first_party!r}, "
+                        f"but B measured first"
+                    )
+
+            if self._replay_b_outcome is None:
+                raise RuntimeError(
+                    "Replay mode enabled but no outcome prescribed for party B"
+                )
+
+            outcome = self._replay_b_outcome.copy()
+            self._replay_consumed_b = True
+
+            # Preserve the same round bookkeeping as stochastic mode.
+            self.prev_party = "b"
+            self.prev_measurement = meas.copy()
+            self.prev_outcome = outcome.copy()
+
+            return outcome
+
+        # Stochastic mode.
         if not self.a_measured:
-            # First measurement on this box.
             return self._first_measurement("b", meas)
 
-        # A measured first; this is the second measurement.
         return self._second_measurement("b", meas, self.prev_measurement, self.prev_outcome)
 
     def reset(self) -> None:
-        """Reset internal measurement state for reuse of the resource."""
+        """Reset the resource for the next round.
+
+        Clears per-round measurement bookkeeping and disables/clears replay
+        configuration.
+        """
         self.a_measured = False
         self.b_measured = False
         self.prev_party = None
         self.prev_measurement = None
         self.prev_outcome = None
+        self.clear_replay_round()
+
+    def set_replay_round(
+        self,
+        *,
+        a_outcome: Optional[np.ndarray] = None,
+        b_outcome: Optional[np.ndarray] = None,
+        first_party: Optional[str] = None,
+    ) -> None:
+        """Enable replay mode for the current round.
+
+        When replay is enabled, :meth:`measurement_a` and :meth:`measurement_b`
+        return the prescribed outcomes (if provided) instead of sampling.
+
+        Args:
+            a_outcome: Optional prescribed outcome for party A. Must be a 1D
+                0/1 vector of shape ``(length,)``.
+            b_outcome: Optional prescribed outcome for party B. Must be a 1D
+                0/1 vector of shape ``(length,)``.
+            first_party: Optional party label ("a" or "b"). If provided, enforces
+                which party must make the first query in this round.
+
+        Raises:
+            ValueError: If outcome shapes/values are invalid or ``first_party``
+                is not in ``{"a", "b", None}``.
+        """
+        if first_party is not None and first_party not in ("a", "b"):
+            raise ValueError("first_party must be 'a', 'b', or None")
+
+        validated_a = None
+        validated_b = None
+
+        if a_outcome is not None:
+            validated_a = self._validate_replay_outcome(a_outcome)
+
+        if b_outcome is not None:
+            validated_b = self._validate_replay_outcome(b_outcome)
+
+        self._replay_enabled = True
+        self._replay_a_outcome = validated_a
+        self._replay_b_outcome = validated_b
+        self._replay_first_party = first_party
+        self._replay_consumed_a = False
+        self._replay_consumed_b = False
+
+    def clear_replay_round(self) -> None:
+        """Disable replay mode and clear replay configuration for this round."""
+        self._replay_enabled = False
+        self._replay_a_outcome = None
+        self._replay_b_outcome = None
+        self._replay_first_party = None
+        self._replay_consumed_a = False
+        self._replay_consumed_b = False
+
+    def replay_enabled(self) -> bool:
+        """Whether replay mode is enabled for the current round."""
+        return self._replay_enabled
 
     # ------------------------------------------------------------------
     # Internal helpers
     # ------------------------------------------------------------------
     def _validate_measurement(self, measurement: np.ndarray) -> np.ndarray:
-        """Validate and normalise the measurement vector.
+        """Validate and normalize a measurement vector.
 
         Args:
-            measurement: Array-like measurement specification.
+            measurement: Array-like measurement setting.
 
         Returns:
-            A 1D NumPy array of dtype ``int`` with 0/1 values.
+            A 1D NumPy array of dtype ``int`` and shape ``(length,)`` containing
+            only 0/1 values.
 
         Raises:
-            ValueError: If the shape or value constraints are violated.
+            ValueError: If the measurement is not 1D, has the wrong length, or
+                contains values other than 0/1.
         """
         meas = np.asarray(measurement, dtype=int)
         if meas.ndim != 1:
@@ -160,19 +313,49 @@ class PRAssisted:
             raise ValueError("measurement must contain only 0/1 values")
         return meas
 
+    def _validate_replay_outcome(self, outcome: np.ndarray) -> np.ndarray:
+        """Validate and normalize a replay outcome vector.
+
+        Args:
+            outcome: Array-like prescribed outcome.
+
+        Returns:
+            A 1D NumPy array of dtype ``int`` and shape ``(length,)`` containing
+            only 0/1 values.
+
+        Raises:
+            ValueError: If the outcome is not 1D, has the wrong length, or
+                contains values other than 0/1.
+        """
+        out = np.asarray(outcome, dtype=int)
+        if out.ndim != 1:
+            raise ValueError("replay outcome must be 1D")
+        if out.shape[0] != self.length:
+            raise ValueError(f"replay outcome must have length {self.length}")
+        if not np.all(np.logical_or(out == 0, out == 1)):
+            raise ValueError("replay outcome must contain only 0/1 values")
+        return out
+
     def _random_string(self, n: int) -> np.ndarray:
-        """Generate a random 0/1 string of length ``n``."""
+        """Sample a uniformly random 0/1 vector.
+
+        Args:
+            n: Number of bits.
+
+        Returns:
+            1D NumPy array of dtype ``int`` with shape ``(n,)``.
+        """
         return self._rng.integers(0, 2, size=n, dtype=int)
 
     def _first_measurement(self, party: str, current_measurement: np.ndarray) -> np.ndarray:
-        """Handle the first measurement on the resource.
+        """Handle the first query in a round.
 
         Args:
-            party: ``"a"`` or ``"b"``.
-            current_measurement: 1D measurement vector of length ``length``.
+            party: Party label, "a" or "b".
+            current_measurement: 1D measurement vector of shape ``(length,)``.
 
         Returns:
-            Random 0/1 outcome array of length ``length``.
+            A uniformly random 0/1 outcome vector of shape ``(length,)``.
         """
         outcome = self._random_string(self.length)
 
@@ -189,34 +372,36 @@ class PRAssisted:
         previous_measurement: Optional[np.ndarray],
         previous_outcome: Optional[np.ndarray],
     ) -> np.ndarray:
-        """Handle the second measurement with biased correlations.
+        """Handle the second query in a round with biased correlations.
 
-        The per-index rule is:
+        Per index ``i``, the correlation between the second outcome bit and the
+        first outcome bit depends on the pair of measurement settings:
 
-        * If (previous_measurement[i], current_measurement[i]) is in
-          (0, 0), (0, 1) or (1, 0) then the outcome equals the previous
-          outcome with probability ``p_high`` and its complement with
-          probability ``1 - p_high``.
-        * If it is (1, 1) then the outcome equals the previous outcome
-          with probability ``1 - p_high`` and its complement with
-          probability ``p_high``.
+        - For settings (0,0), (0,1), (1,0): the second bit equals the first bit
+          with probability ``p_rule``; otherwise it is flipped.
+        - For settings (1,1): the second bit equals the first bit with
+          probability ``1 - p_rule``; otherwise it is flipped.
 
-        All indices are treated independently.
+        Indices are treated independently.
 
         Args:
-            party: ``"a"`` or ``"b"`` (unused, kept for clarity).
-            current_measurement: Measurement vector for the second party.
-            previous_measurement: Measurement vector from the first party.
-            previous_outcome: Outcome vector from the first party.
+            party: Party label, "a" or "b" (unused; symmetric behavior).
+            current_measurement: Measurement vector for the second query (shape
+                ``(length,)``).
+            previous_measurement: Measurement vector from the first query (shape
+                ``(length,)``).
+            previous_outcome: Outcome vector from the first query (shape
+                ``(length,)``).
 
         Returns:
-            1D array of 0/1 outcomes for the second measurement.
+            1D NumPy array of dtype ``int`` and shape ``(length,)`` for the
+            second outcome.
 
         Raises:
-            RuntimeError: If called without a first measurement.
-            ValueError: If input shapes are inconsistent.
+            RuntimeError: If called without a cached first measurement/outcome.
+            ValueError: If measurement/outcome shapes are inconsistent.
         """
-        del party  # symmetric behaviour; party label is for diagnostics only
+        del party  # Symmetric behavior; kept in signature for call-site clarity.
 
         if previous_measurement is None or previous_outcome is None:
             raise RuntimeError("Second measurement called without a first measurement")  # noqa: TRY003
@@ -231,20 +416,17 @@ class PRAssisted:
         curr_meas = current_measurement
         prev_out = previous_outcome
 
-        # Determine per index whether we are in the high- or low-correlation
-        # configuration based on (prev_meas[i], curr_meas[i]).
-        # High-probability case: (0,0), (0,1), (1,0).
+        # Map each (prev_meas[i], curr_meas[i]) pair to the probability that the
+        # second outcome bit matches the first.
         high_mask = (
             ((prev_meas == 0) & (curr_meas == 0))
             | ((prev_meas == 0) & (curr_meas == 1))
             | ((prev_meas == 1) & (curr_meas == 0))
         )
-        # Low-probability case is the remaining combination (1,1).
-        same_prob = np.where(high_mask, self.p_high, 1.0 - self.p_high)
+        same_prob = np.where(high_mask, self.p_rule, 1.0 - self.p_rule)
 
-        base_outcome = prev_out
         u = self._rng.random(self.length)
         keep_mask = u < same_prob
 
-        outcome = np.where(keep_mask, base_outcome, 1 - base_outcome).astype(int)
+        outcome = np.where(keep_mask, prev_out, 1 - prev_out).astype(int)
         return outcome

@@ -1,48 +1,39 @@
 # PyrMeasurementLayerA
 
-> Role: Trainable Keras layer that maps a rank-2 field batch to rank-2 measurement probabilities with output dimension $L/2$.
+> Role: Trainable Keras layer mapping a cropped field state tensor to measurement logits via a 2-layer MLP.
 
 Location: `Q_Sea_Battle.pyr_measurement_layer_a.PyrMeasurementLayerA`
-
-## Derived constraints
-
-- Let $L$ be the last dimension of `field_batch`; $L$ must be statically known at build time and must be even.
-- Output last dimension is $L/2$; output values are in $[0, 1]$ due to a sigmoid activation.
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| hidden_units | int, constraint $\ge 1$, scalar | Number of units in the hidden Dense layer. |
-| name | str \| None, scalar | Layer name passed to `tf.keras.layers.Layer`. |
-| dtype | tf.dtypes.DType \| None, scalar | Dtype for the layer and its sublayers; if `None`, call-time conversion defaults to `tf.float32`. |
-| **kwargs | Any, variadic mapping | Forwarded to `tf.keras.layers.Layer` constructor. |
+| hidden_units | int, constraint $\ge 1$, scalar | Width of the hidden Dense layer. |
+| name | Optional[str], constraint: Keras layer name or None, scalar | Optional Keras layer name. |
+| dtype | Optional[tf.dtypes.DType], constraint: valid TensorFlow dtype or None, scalar | Optional dtype for the layer and its sublayers. |
+| **kwargs | Any, constraint: forwarded to `tf.keras.layers.Layer`, variadic | Additional keyword arguments forwarded to the Keras base `Layer`. |
 
 ### Preconditions
 
-- `hidden_units >= 1`.
+- `hidden_units` is an `int` with constraint $\ge 1$, scalar.
 
 ### Postconditions
 
-- The instance is created with `trainable=True`.
-- The sublayers are not created until `build()` is called; internal sublayer references are initialized to `None`.
+- `self.hidden_units` is set to `int(hidden_units)`, scalar.
+- The sublayers `self._dense_hidden` and `self._dense_out` remain `None` until `build(...)` is called.
 
 ### Errors
 
-- `ValueError`: if `hidden_units < 1`.
+- Raises `ValueError` if `hidden_units < 1`.
 
 ### Example
 
-!!! example "Constructing the layer"
+!!! example "Instantiate the layer"
     ```python
     import tensorflow as tf
     from Q_Sea_Battle.pyr_measurement_layer_a import PyrMeasurementLayerA
 
     layer = PyrMeasurementLayerA(hidden_units=64, dtype=tf.float32)
-
-    x = tf.zeros([8, 10], dtype=tf.float32)  # B=8, L=10 (even)
-    y = layer(x, training=False)
-    print(y.shape)  # (8, 5)
     ```
 
 ## Public Methods
@@ -51,79 +42,97 @@ Location: `Q_Sea_Battle.pyr_measurement_layer_a.PyrMeasurementLayerA`
 
 - Signature: `build(input_shape: Any) -> None`
 
-Parameters:
+Creates sublayers based on the input width $L$ (the last dimension of `input_shape`), producing an output width $L/2$.
 
-- `input_shape`: Any, constraint: convertible to `tf.TensorShape`, shape: not specified; expected to describe an input with statically known last dimension $L$.
+#### Arguments
 
-Returns:
+- `input_shape`: Any, constraint: convertible to `tf.TensorShape` with statically known last dimension $L$, shape (Not specified).
 
-- `None`.
+#### Returns
 
-Preconditions:
+- `None`, constraint: no return value, scalar.
 
-- The last dimension $L$ of `input_shape` is statically known (`shape[-1] is not None`).
-- $L$ is even.
+#### Preconditions
 
-Postconditions:
+- `input_shape` can be converted to `tf.TensorShape`.
+- The last dimension $L$ of `input_shape` is statically known.
+- $L$ is even so that $L/2$ is an integer.
 
-- Creates two sublayers:
-  - `Dense(hidden_units, activation="relu", name="dense_hidden")`
-  - `Dense(L/2, activation="sigmoid", name="dense_out")`
-- Records `_built_for_L = L`.
+#### Postconditions
 
-Errors:
+- Creates `self._dense_hidden`: `tf.keras.layers.Dense`, output shape (B, hidden_units) when called on rank-2 input.
+- Creates `self._dense_out`: `tf.keras.layers.Dense`, output shape (B, L/2) when called on the hidden activations.
+- Sets `self._built_for_L` to `int(L)`, scalar.
+- Calls `super().build(input_shape)`.
 
-- `ValueError`: if the last dimension is unknown at build time.
-- `ValueError`: if $L$ is not even.
+#### Errors
+
+- Raises `ValueError` if the last dimension $L$ is not statically known.
+- Raises `ValueError` if $L$ is not even.
 
 ### call
 
 - Signature: `call(field_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
 
-Parameters:
+Runs the forward pass: `(B, L) -> (B, hidden_units) -> (B, L/2)` and returns logits (no sigmoid).
 
-- `field_batch`: tf.Tensor, dtype float32 (or `self.dtype` if set), shape (B, L); constraint: rank must be 2 and $L$ must be even.
-- `training`: bool, scalar; forwarded to the Dense sublayers.
-- `**kwargs`: Any, variadic mapping; accepted but not used by this implementation.
+#### Arguments
 
-Returns:
+- `field_batch`: tf.Tensor, dtype float32 (if `self.dtype` is None) or `self.dtype` (via `tf.convert_to_tensor`), shape (B, L).
+- `training`: bool, constraint: standard Keras training flag, scalar.
+- `**kwargs`: Any, constraint: unused (accepted for Keras compatibility), variadic.
 
-- `meas_a`: tf.Tensor, dtype float32 (or `self.dtype` if set), shape (B, L/2); constraint: values in $[0, 1]$ (sigmoid output).
+#### Returns
 
-Preconditions:
+- `meas_logits`: tf.Tensor, dtype float32 (if `self.dtype` is None) or `self.dtype`, shape (B, L/2).
 
-- `field_batch` must be rank-2.
-- The last dimension $L$ must be even.
-- The layer must have been built such that internal sublayers exist.
+#### Preconditions
 
-Postconditions:
+- If `field_batch` has a statically known rank, it is rank-2 (B, L).
+- The last dimension $L$ is even (enforced with a runtime assertion).
 
-- Produces measurement probabilities via an MLP: hidden ReLU Dense followed by sigmoid Dense.
+#### Postconditions
 
-Errors:
+- Returns `meas_logits = self._dense_out(self._dense_hidden(x))`, where `x` is `field_batch` converted to a tensor with dtype `self.dtype` or `tf.float32`.
 
-- `ValueError`: if `field_batch` has a statically known rank that is not 2.
-- `tf.errors.InvalidArgumentError` (or framework equivalent): if `tf.shape(field_batch)[-1] % 2 != 0` at runtime due to `tf.debugging.assert_equal`.
-- `RuntimeError`: if internal sublayers are missing (layer not built correctly).
+#### Errors
+
+- Raises `ValueError` if the input rank is statically known and not 2.
+- Raises `RuntimeError` if the layer is missing sublayers (`self._dense_hidden` or `self._dense_out` is `None`).
+- May raise TensorFlow assertion errors if the runtime check fails: $L \bmod 2 = 0$.
 
 ### get_config
 
 - Signature: `get_config() -> Dict[str, Any]`
 
-Parameters:
+Returns the serializable layer configuration, including `hidden_units`.
+
+#### Arguments
 
 - None.
 
-Returns:
+#### Returns
 
-- `Dict[str, Any]`, mapping containing the base Keras layer config plus `{"hidden_units": int}`.
+- `cfg`: Dict[str, Any], constraint: Keras-serializable configuration dictionary, shape (Not applicable).
+
+#### Preconditions
+
+- None specified.
+
+#### Postconditions
+
+- The returned dict includes key `"hidden_units"` with value `self.hidden_units`.
+
+#### Errors
+
+- Not specified.
 
 ## Data & State
 
-- `hidden_units`: int, constraint $\ge 1$, scalar; stored constructor hyperparameter.
-- `_dense_hidden`: tf.keras.layers.Dense \| None; created in `build()`, otherwise `None`.
-- `_dense_out`: tf.keras.layers.Dense \| None; created in `build()`, otherwise `None`.
-- `_built_for_L`: int \| None; the input last dimension $L$ the layer was built for, set in `build()`.
+- `hidden_units`: int, constraint $\ge 1$, scalar; number of hidden units in the intermediate Dense layer.
+- `_dense_hidden`: Optional[tf.keras.layers.Dense], constraint: `None` before `build(...)`, scalar reference; hidden Dense sublayer created in `build(...)`.
+- `_dense_out`: Optional[tf.keras.layers.Dense], constraint: `None` before `build(...)`, scalar reference; output Dense sublayer created in `build(...)`.
+- `_built_for_L`: Optional[int], constraint: `None` before `build(...)`, scalar; input width $L$ used to build the layer.
 
 ## Planned (design-spec)
 
@@ -135,15 +144,14 @@ Returns:
 
 ## Notes for Contributors
 
-- Sublayers must be created in `build()` (not in `call()`), and `call()` must not create state.
-- The output is probabilities (sigmoid), not logits, to satisfy downstream validation of outcomes in $[0, 1]$.
-- The contract requires `field_batch` shape (B, L) and output shape (B, L/2); ensure any future changes preserve this public API.
+- Sublayers are intentionally created in `build(...)` because the output dimension depends on the input width $L$.
+- The output head produces logits (no sigmoid); downstream components are expected to apply any sigmoid/DRU/etc. as needed.
+- The runtime even-width constraint is enforced in `call(...)` using `tf.debugging.assert_equal`, which can catch dynamic-shape mismatches even if `build(...)` succeeded.
 
 ## Related
 
 - `tf.keras.layers.Layer`
 - `tf.keras.layers.Dense`
-- `tf.debugging.assert_equal`
 
 ## Changelog
 

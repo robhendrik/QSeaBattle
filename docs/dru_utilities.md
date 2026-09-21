@@ -1,10 +1,12 @@
 # dru_utilities
-> Role: DRU (Discretize / Regularize Unit) utilities for transforming communication message logits into differentiable probabilities during training and discrete bits during execution.
+
+> Role: Discretize / Regularize Unit (DRU) utilities for transforming agent communication logits during training (differentiable) and execution (discrete).
+
 Location: `Q_Sea_Battle.dru_utilities`
 
 ## Overview
 
-This module implements helper functions for the Discretize / Regularize Unit (DRU) used in DIAL-style training of communicating agents. It provides a differentiable mapping (`dru_train`) that adds Gaussian noise and applies a logistic nonlinearity during centralized training, and a discretizing mapping (`dru_execute`) that hard-thresholds logits to bits for decentralized execution. The module is intentionally free of trainable parameters and supports both NumPy arrays and TensorFlow tensors.
+This module implements Discretize / Regularize Unit (DRU) transforms used in DIAL-style communication learning. It exposes a differentiable mapping for centralized training (`dru_train`) that adds Gaussian noise in logit space and applies a logistic nonlinearity, and a non-differentiable mapping for decentralized execution (`dru_execute`) that thresholds logits into hard bits. The DRU is parameter-free; behavior depends on the input logits and the provided noise/threshold settings.
 
 ## Public API
 
@@ -13,113 +15,108 @@ This module implements helper functions for the Discretize / Regularize Unit (DR
 #### `_is_tf_tensor(x: Any) -> bool`
 
 **Signature:** `_is_tf_tensor(x: Any) -> bool`  
-**Purpose:** Return `True` if `x` is a TensorFlow tensor.  
-**Arguments:**  
-- `x` (`Any`): Value to test.  
-**Returns:**  
-- `bool`: `True` if `tf.is_tensor(x)` is `True`, otherwise `False`.  
-**Errors:**  
-- Not specified.  
+**Purpose:** Return whether `x` is a TensorFlow tensor.  
+**Arguments:** `x` (Any): Value to test.  
+**Returns:** `bool`: `True` if `x` is a TensorFlow tensor; otherwise `False`.  
+**Errors:** Not specified.  
 **Example:**
 ```python
 import tensorflow as tf
 from Q_Sea_Battle.dru_utilities import _is_tf_tensor
 
-x = tf.constant([1.0, 2.0])
-assert _is_tf_tensor(x) is True
+_is_tf_tensor(tf.constant([1.0, 2.0]))  # True
+_is_tf_tensor([1.0, 2.0])               # False
 ```
 
 #### `dru_train(message_logits: ArrayLike, sigma: float = 2.0, clip_range: Tuple[float, float] | None = (-10.0, 10.0)) -> ArrayLike`
 
 **Signature:** `dru_train(message_logits: ArrayLike, sigma: float = 2.0, clip_range: Tuple[float, float] | None = (-10.0, 10.0)) -> ArrayLike`  
-**Purpose:** Apply the differentiable DRU mapping used during centralized training: additive Gaussian noise on logits followed by a logistic/sigmoid transformation, optionally clipping the noisy logits for numerical stability.  
-**Arguments:**  
-- `message_logits` (`ArrayLike`): Logits for communication dimensions; may be a scalar, NumPy array, or TensorFlow tensor of shape `(..., m)`.  
-- `sigma` (`float`, default `2.0`): Standard deviation of Gaussian noise added to logits; must be non-negative.  
-- `clip_range` (`Tuple[float, float] | None`, default `(-10.0, 10.0)`): Optional `(min, max)` to clip noisy logits before applying the logistic; if `None`, no clipping is applied.  
-**Returns:**  
-- `ArrayLike`: Same type and shape as `message_logits`, with values in `(0, 1)`; TensorFlow outputs are differentiable with respect to `message_logits`.  
-**Errors:**  
-- `ValueError`: If `sigma < 0.0`.  
+**Purpose:** Apply the differentiable DRU mapping used during centralized training by adding Gaussian noise in logit space and applying a logistic (sigmoid) nonlinearity to produce continuous values in `(0, 1)`.  
+**Arguments:** `message_logits` (ArrayLike): Message logits; may be a scalar, NumPy array, or TensorFlow tensor.  
+**Arguments:** `sigma` (float): Standard deviation of additive Gaussian noise in logit space; must be non-negative; `0` disables noise.  
+**Arguments:** `clip_range` (Tuple[float, float] | None): Optional `(min, max)` range to clip noisy logits before applying the logistic; if `None`, no clipping is applied.  
+**Returns:** `ArrayLike`: Values in `(0, 1)` with the same shape as `message_logits`; return type matches the input family (NumPy vs TensorFlow).  
+**Errors:** `ValueError`: If `sigma` is negative.  
 **Example:**
 ```python
 import numpy as np
 import tensorflow as tf
 from Q_Sea_Battle.dru_utilities import dru_train
 
-# NumPy usage
-logits_np = np.array([0.0, 2.0, -2.0], dtype=np.float32)
-probs_np = dru_train(logits_np, sigma=0.0)  # deterministic sigmoid
+# NumPy: continuous relaxation in (0, 1)
+logits_np = np.array([-2.0, 0.0, 2.0], dtype=np.float32)
+probs_np = dru_train(logits_np, sigma=0.0)
 print(probs_np)
 
-# TensorFlow usage (differentiable)
-logits_tf = tf.constant([[0.0, 1.0, -1.0]], dtype=tf.float32)
-with tf.GradientTape() as tape:
-    tape.watch(logits_tf)
-    probs_tf = dru_train(logits_tf, sigma=0.0)
-grads = tape.gradient(probs_tf, logits_tf)
-print(probs_tf, grads)
+# TensorFlow: differentiable path
+logits_tf = tf.constant([-2.0, 0.0, 2.0], dtype=tf.float32)
+probs_tf = dru_train(logits_tf, sigma=1.0, clip_range=(-10.0, 10.0))
+print(probs_tf)
 ```
 
 #### `dru_execute(message_logits: ArrayLike, threshold: float = 0.0) -> ArrayLike`
 
 **Signature:** `dru_execute(message_logits: ArrayLike, threshold: float = 0.0) -> ArrayLike`  
-**Purpose:** Apply the discretizing DRU mapping used during decentralized execution: element-wise hard thresholding of logits to bits.  
-**Arguments:**  
-- `message_logits` (`ArrayLike`): Logits for communication dimensions; may be a scalar, NumPy array, or TensorFlow tensor of shape `(..., m)`.  
-- `threshold` (`float`, default `0.0`): Logit-space threshold used to produce discrete bits; `0.0` corresponds to probability threshold `0.5`.  
-**Returns:**  
-- `ArrayLike`: For NumPy inputs, a NumPy array of `int` with values in `{0, 1}` and the same shape as `message_logits`. For TensorFlow inputs, a `tf.Tensor` of `tf.float32` with values in `{0.0, 1.0}`.  
-**Errors:**  
-- Not specified.  
+**Purpose:** Apply the discrete DRU mapping used during decentralized execution by thresholding logits element-wise into hard binary bits.  
+**Arguments:** `message_logits` (ArrayLike): Message logits; may be a scalar, NumPy array, or TensorFlow tensor.  
+**Arguments:** `threshold` (float): Logit threshold used to produce discrete bits.  
+**Returns:** `ArrayLike`: Discrete bits with the same shape as `message_logits`; NumPy input returns `np.ndarray` of `int` values in `{0, 1}`, TensorFlow input returns `tf.Tensor` of dtype `tf.float32` with values in `{0.0, 1.0}`.  
+**Errors:** Not specified.  
 **Example:**
 ```python
 import numpy as np
 import tensorflow as tf
 from Q_Sea_Battle.dru_utilities import dru_execute
 
-logits_np = np.array([-0.1, 0.0, 0.2], dtype=np.float32)
-bits_np = dru_execute(logits_np, threshold=0.0)
-print(bits_np)  # [0 0 1]
+logits_np = np.array([-0.1, 0.0, 0.1], dtype=np.float32)
+bits_np = dru_execute(logits_np, threshold=0.0)  # [0, 0, 1]
+print(bits_np)
 
-logits_tf = tf.constant([-0.1, 0.0, 0.2], dtype=tf.float32)
-bits_tf = dru_execute(logits_tf, threshold=0.0)
-print(bits_tf)  # tf.Tensor([0. 0. 1.], shape=(3,), dtype=float32)
+logits_tf = tf.constant([-0.1, 0.0, 0.1], dtype=tf.float32)
+bits_tf = dru_execute(logits_tf, threshold=0.0)  # [0.0, 0.0, 1.0]
+print(bits_tf)
 ```
 
 ### Constants
 
-- None.
+No public constants are defined in this module.
 
 ### Types
 
-- `ArrayLike = Union[float, np.ndarray, tf.Tensor]`
+#### `ArrayLike`
+
+**Definition:** `ArrayLike = Union[float, np.ndarray, tf.Tensor]`  
+**Purpose:** Input/output type for DRU functions; supports scalar floats, NumPy arrays, and TensorFlow tensors.
 
 ## Dependencies
 
-- `numpy` (`np`): Used for NumPy-based computation and sampling Gaussian noise in the NumPy path.
-- `tensorflow` (`tf`): Used for TensorFlow-based computation, noise sampling in the TensorFlow path, and differentiable sigmoid mapping.
-- `typing`: Uses `Any`, `Tuple`, and `Union` for type annotations.
-- `Q_Sea_Battle.logit_utilities.logit_to_prob`: Used to convert logits to probabilities in the NumPy path (and referenced in documentation for consistency).
+- `numpy` (`np`): Used for NumPy execution path, noise sampling, clipping, and array conversion.  
+- `tensorflow` (`tf`): Used for TensorFlow execution path, noise sampling, clipping, and sigmoid.  
+- `typing`: Uses `Any`, `Tuple`, and `Union` for type annotations.  
+- `Q_Sea_Battle.logit_utilities.logit_to_prob`: Used to compute probabilities from logits on the NumPy path.  
+- `sys`: Used to append `"./src"` to `sys.path` (module-level side effect).
 
 ## Planned (design-spec)
 
-- Not specified.
+Not specified.
 
 ## Deviations
 
-- The module docstring states that the logistic nonlinearity is implemented via `Q_Sea_Battle.logit_utilities.logit_to_prob` for consistency, but the TensorFlow path uses `tf.nn.sigmoid` directly (documented as equivalent to `logit_to_prob` when using logits).
+- The module mutates `sys.path` at import time by appending `"./src"`, which is a global side effect and may affect import resolution outside this module.  
+- `dru_train` uses `tf.nn.sigmoid` for TensorFlow inputs but uses `logit_to_prob` for NumPy inputs; numerical equivalence depends on the implementation of `logit_to_prob` (not specified here).  
+- `dru_execute` returns different dtypes by backend (NumPy `int` vs TensorFlow `tf.float32`), which callers may need to normalize.
 
 ## Notes for Contributors
 
-- Randomness/reproducibility: `dru_train` relies on global seeds for `np.random` and `tf.random` set elsewhere; tests should set seeds explicitly when deterministic behavior is required.
-- Keep TensorFlow operations on-tensor in the TensorFlow path to preserve gradient flow through `message_logits`.
-- Avoid adding trainable parameters to this module; it is intended to be a fixed transformation given inputs and noise settings.
+- Reproducibility: `dru_train` draws randomness from `np.random` or `tf.random` depending on the input type; seeding must be handled externally via NumPy and TensorFlow global seeds.  
+- Gradient flow: Only the TensorFlow path in `dru_train` is intended to be differentiable with respect to `message_logits`; `dru_execute` is intended for inference/execution.  
+- If modifying clipping behavior, ensure the default `clip_range` remains compatible with both TensorFlow and NumPy paths and update both implementations consistently.
 
 ## Related
 
-- `Q_Sea_Battle.logit_utilities.logit_to_prob` (used for stable/log-consistent probability computations in the NumPy path).
+- `Q_Sea_Battle.logit_utilities.logit_to_prob`: Utility used to map logits to probabilities on the NumPy path.  
+- DIAL-style communication training: The DRU mapping is described as following a common DIAL formulation (details not specified in this module).
 
 ## Changelog
 
-- 0.1: Initial implementation of DRU utilities (`dru_train`, `dru_execute`) and helper `_is_tf_tensor`.
+- Unknown: Initial version information not specified in the module.

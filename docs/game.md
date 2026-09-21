@@ -1,22 +1,20 @@
 # Game
 
-> Role: Orchestrates a single QSeaBattle game between two players by coordinating a `GameEnv` and a `Players` factory.
-
+> Role: Orchestrates a single sequential QSeaBattle episode by coordinating environment resets, observation sampling, Player A communication, channel noise, Player B action, and reward evaluation.
 Location: `Q_Sea_Battle.game.Game`
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| `game_env` | `GameEnv`, not specified, shape N/A | Game environment instance. |
-| `players` | `Players`, not specified, shape N/A | Players factory providing Player A and B. |
+| game_env | GameEnv, constraints: instance of `.game_env.GameEnv`, shape: N/A | Environment instance providing observations, channel noise, and reward evaluation. |
+| players | Players, constraints: instance of `.players_base.Players`, shape: N/A | Factory providing the two player instances and supporting reset between games. |
 
 Preconditions
 
-- `game_env` is not `None`.
-- `players` is not `None`.
-- `game_env` provides methods: `reset()`, `provide()`, `apply_channel_noise(comm)`, `evaluate(shoot)`.
-- `players` provides methods: `reset()`, `players()` returning two player objects with method `decide(...)`.
+- `game_env` must provide `reset()`, `provide()`, `apply_channel_noise(comm)`, and `evaluate(shoot)` methods.
+- `players` must provide `reset()` and `players()` methods returning two player objects with `decide(...)`.
+- Observation and communication objects are expected to be NumPy arrays, but dtype/shape constraints are not specified.
 
 Postconditions
 
@@ -25,49 +23,66 @@ Postconditions
 
 Errors
 
-- Not specified (constructor contains no explicit validation or exception handling).
+- Not specified; any exceptions raised by `game_env` or `players` methods may propagate.
 
-Example
-
-```python
-from Q_Sea_Battle.game import Game
-from Q_Sea_Battle.game_env import GameEnv
-from Q_Sea_Battle.players_base import Players
-
-game_env = GameEnv(...)  # Not specified
-players = Players(...)   # Not specified
-
-game = Game(game_env=game_env, players=players)
-```
+!!! example "Example"
+    ```python
+    from Q_Sea_Battle.game import Game
+    
+    game = Game(game_env=game_env, players=players)
+    ```
 
 ## Public Methods
 
-### `play() -> Tuple[float, np.ndarray, np.ndarray, np.ndarray, int]`
+### `play()`
 
-Play a single game round by resetting environment and players, obtaining player instances, providing `(field, gun)` from the environment, having Player A produce a communication, applying channel noise, having Player B decide whether to shoot, and evaluating the reward.
+Run a single game and return its outcome.
+
+Control flow
+
+- Resets the environment and players.
+- Instantiates concrete Player A and Player B via `self.players.players()`.
+- Obtains `(field, gun)` observations from `self.game_env.provide()`.
+- Player A computes `comm = player_a.decide(field, supp=None)`.
+- Environment applies channel noise: `comm_noisy = self.game_env.apply_channel_noise(comm)`.
+- Player B computes `shoot = player_b.decide(gun, comm_noisy, supp=None)`.
+- Environment evaluates reward: `reward = self.game_env.evaluate(shoot)`.
+- Returns `(reward, field, gun, comm_noisy, int(shoot))`.
 
 Returns
 
-- `reward`: `float`, not specified, shape N/A.
-- `field`: `np.ndarray`, not specified, shape not specified (documented as flattened in docstring).
-- `gun`: `np.ndarray`, not specified, shape not specified (documented as flattened in docstring).
-- `comm`: `np.ndarray`, not specified, shape not specified (returned value is the noisy communication; documented as flattened in docstring).
-- `shoot`: `int`, constraints not specified, shape N/A (constructed as `int(shoot)` from Player B decision).
+- `reward`: float, constraints: not specified, shape: scalar.
+- `field`: np.ndarray, dtype: not specified, constraints: flattened field observation, shape: not specified.
+- `gun`: np.ndarray, dtype: not specified, constraints: flattened gun observation, shape: not specified.
+- `comm_noisy`: np.ndarray, dtype: not specified, constraints: communication after channel noise, shape: not specified.
+- `shoot`: int, constraints: cast from Player B action, shape: scalar.
+
+Preconditions
+
+- `self.game_env.reset()` and `self.players.reset()` must be callable.
+- `self.players.players()` must return `(player_a, player_b)`.
+- `player_a.decide(field, supp=None)` must accept `supp=None` and return a value acceptable to `self.game_env.apply_channel_noise`.
+- `player_b.decide(gun, comm_noisy, supp=None)` must accept `supp=None` and produce an action acceptable to `self.game_env.evaluate`.
+- `self.game_env.provide()` must return exactly two values `(field, gun)`.
+
+Postconditions
+
+- The environment has been reset and evaluated once for the produced action.
+- The players have been reset and each queried once for a decision.
 
 Errors
 
-- Not specified (method contains no explicit exception handling; may propagate exceptions raised by `GameEnv`, `Players`, or player instances).
+- Not specified; any exceptions raised by `reset`, `players`, `provide`, `decide`, `apply_channel_noise`, or `evaluate` may propagate.
 
-Example
-
-```python
-reward, field, gun, comm, shoot = game.play()
-```
+!!! example "Example"
+    ```python
+    reward, field, gun, comm_noisy, shoot = game.play()
+    ```
 
 ## Data & State
 
-- `game_env`: `GameEnv`, not specified, shape N/A; stored reference to the environment used for `reset()`, `provide()`, `apply_channel_noise(...)`, and `evaluate(...)`.
-- `players`: `Players`, not specified, shape N/A; stored reference to the players factory used for `reset()` and `players()`.
+- `game_env`: GameEnv, constraints: assigned from constructor argument, shape: N/A.
+- `players`: Players, constraints: assigned from constructor argument, shape: N/A.
 
 ## Planned (design-spec)
 
@@ -75,12 +90,12 @@ reward, field, gun, comm, shoot = game.play()
 
 ## Deviations
 
-- The `play()` docstring states it returns `(reward, field, gun, comm, shoot)`, where `comm` refers to the communication; the implementation returns `comm_noisy` (noisy communication) in the `comm` position.
+- Not specified.
 
 ## Notes for Contributors
 
-- `play()` assumes `GameEnv.provide()` returns `(field, gun)` in a format compatible with `player_a.decide(field, supp=None)` and `player_b.decide(gun, comm_noisy, supp=None)`; the precise dtypes/shapes are not enforced in code.
-- `shoot` is cast to `int` on return; if `player_b.decide(...)` returns a non-scalar or non-castable object, `int(shoot)` will raise.
+- The orchestrator assumes `provide()` returns `(field, gun)` in that order and that both are already flattened; if this changes in `GameEnv`, update `Game.play()` accordingly.
+- Player A is called with `decide(field, supp=None)` while Player B is called with `decide(gun, comm_noisy, supp=None)`; keep this asymmetric interface consistent with the `Players`/player implementations.
 
 ## Related
 
@@ -89,4 +104,4 @@ reward, field, gun, comm, shoot = game.play()
 
 ## Changelog
 
-- 0.1: Initial implementation of single-game orchestration via `Game.play()`.
+- Not specified.

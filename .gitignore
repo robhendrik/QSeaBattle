@@ -1,204 +1,33 @@
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
+# Ignore everything by default
+/*
 
-# PyInstaller
-*.manifest
-*.spec
+# Keep source/project content
+!/docs/
+!/docs/**
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
+!/src/
+!/src/**
 
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.nox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-*.py,cover
-.hypothesis/
-.pytest_cache/
-cover/
+!/notebooks/
+!/notebooks/**
 
-# Translations
-*.mo
-*.pot
+!/tests/
+!/tests/**
 
-# Django stuff:
-*.log
-local_settings.py
-db.sqlite3
-db.sqlite3-journal
+!/presentation/
+!/presentation/**
 
-# Flask stuff:
-instance/
-.webassets-cache
+!/tools/
+!/tools/**
 
-# Scrapy stuff:
-.scrapy
+# Keep repository/configuration files
+!/.github/
+!/.github/**
 
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-.pybuilder/
-target/
-
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IPython
-profile_default/
-ipython_config.py
-
-# pyenv
-.python-version
-
-# pipenv
-Pipfile.lock
-
-# poetry
-poetry.lock
-
-# pdm
-.pdm.toml
-
-# PEP 582
-__pypackages__/
-
-# Celery stuff
-celerybeat-schedule
-celerybeat.pid
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pyre type checker
-.pyre/
-
-# pytype static type analyzer
-.pytype/
-
-# Cython debug symbols
-cython_debug/
-
-# PyCharm
-.idea/
-
-# Project-specific exclusions
-# Virtual environments
-venvs/
-
-# Temporary directories (case-insensitive)
-[Tt]emp/
-[Tt]emp*/
-[Aa]rchive/
-
-# Pickle files
-*.pkl
-*.pickle
-
-# Model files (common ML file types)
-*.h5
-*.hdf5
-*.joblib
-
-# dataset
-*.snapshot
-
-# Data files (you may want to adjust based on your needs)
-*.csv
-*.json
-*.parquet
-
-# Logs
-*.log
-
-# Old files
-archive/
-
-# WIP
-# WIP/
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Windows
-$RECYCLE.BIN/
-Desktop.ini
-
-# VS Code
-.vscode/
-
-# Backup files
-*~
-*.bak
-*.swp
-*.swo
-
-# Movie frames
-movie_frames/
-
-# Notebooks output (optional - uncomment if you don't want to track outputs)
-# *.ipynb
-
-# Keep these directories synchronized (explicitly tracked)
-# src/
-# tests/
-# docs/
-# tutorials/
+!/.gitignore
+!/README.md
+!/LICENSE
+!/requirements.txt
+!/requirements-docs.txt
+!/pytest.ini
+!/mkdocs.yml

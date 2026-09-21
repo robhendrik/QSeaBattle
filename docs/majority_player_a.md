@@ -1,124 +1,98 @@
 # MajorityPlayerA
 
-> Role: Player A that encodes segment-wise majority information from a flattened binary field into a deterministic communication vector.
+> Role: Deterministic Player A strategy that encodes per-segment majority bits from the field into the communication vector.
 
 Location: `Q_Sea_Battle.majority_player_a.MajorityPlayerA`
 
 ## Derived constraints
 
-- Let field_size be `self.game_layout.field_size` (int, not specified), then $n2 = \text{field\_size}^2$ (int).
-- Let comms_size be `self.game_layout.comms_size` (int, not specified), then $m = \text{comms\_size}$ (int).
-- Segment length is $\text{segment\_len} = n2 // m$ (int); the implementation assumes $m$ divides $n2$ (comment: enforced by `GameLayout`).
+- Let `field_size = game_layout.field_size`, `comms_size = game_layout.comms_size`, `n2 = field_size ** 2`, and `m = comms_size`. The implementation assumes $m$ divides $n2$, so `segment_len = n2 // m` is an integer and each segment has equal length.
+- The communication vector has shape `(m,)` and dtype `int`, with each entry in `{0, 1}`.
 
 ## Constructor
 
 | Parameter | Type | Description |
-|---|---|---|
-| game_layout | GameLayout, constraints: not specified, shape: N/A | Game configuration for this player; stored/used via the `PlayerA` base class and accessed as `self.game_layout`. |
+| --- | --- | --- |
+| game_layout | GameLayout, constraints: not specified, shape: N/A | Game configuration for this player. |
 
 Preconditions
 
-- `game_layout` is a `GameLayout` instance (not validated here).
-- Additional constraints are not specified in this class.
+- Not specified.
 
 Postconditions
 
-- The instance is initialized by delegating to `PlayerA.__init__(game_layout)`.
+- `self.game_layout` is initialized via `PlayerA.__init__(game_layout)` (exact state details not specified in this module).
 
 Errors
 
-- Not specified (any exceptions would come from `PlayerA.__init__` or invalid `game_layout` usage elsewhere).
+- Not specified.
 
-!!! example "Example"
-    ```python
-    from Q_Sea_Battle.game_layout import GameLayout
-    from Q_Sea_Battle.majority_player_a import MajorityPlayerA
-    
-    layout = GameLayout(field_size=4, comms_size=4)  # exact signature not specified here
-    player = MajorityPlayerA(layout)
-    ```
+Example
+
+```python
+from Q_Sea_Battle.majority_player_a import MajorityPlayerA
+from Q_Sea_Battle.game_layout import GameLayout
+
+gl = GameLayout(...)  # Not specified here
+player = MajorityPlayerA(gl)
+```
 
 ## Public Methods
 
-### decide(field, supp=None)
+### decide
 
-Encode majority statistics in the communication vector.
+Compute the communication vector from the field by taking a per-segment majority (ties map to 1).
 
 Parameters
 
-- field: np.ndarray, dtype: any (converted to int), constraints: interpreted as 0/1 values by documentation but not validated, shape: any (flattened internally to 1D via `.ravel()`).
-- supp: Optional[Any], constraints: unused, shape: N/A.
+- `field`: np.ndarray, dtype: any (converted via `np.asarray(..., dtype=int)`), shape: any (flattened via `ravel()`); values are treated as integers when computing per-segment sums.
+- `supp`: Optional[Any], constraints: may be None, shape: N/A; optional supporting information (not used).
 
 Returns
 
-- np.ndarray, dtype int, constraints: values in {0, 1}, shape (m,), where $m = \text{comms\_size}$.
-
-Behavior
-
-- Converts `field` to `flat_field = np.asarray(field, dtype=int).ravel()`.
-- Computes $n2 = \text{field\_size}^2$ and $m = \text{comms\_size}$ from `self.game_layout`.
-- Sets `segment_len = n2 // m`.
-- For each segment $i \in [0, m)$, slices `flat_field[start:end]` where `start = i * segment_len` and `end = start + segment_len`, then sets `comm[i] = 1` if `ones >= zeros` else `0`, with `ones = int(segment.sum())` and `zeros = segment_len - ones`.
-- Returns the resulting `comm`.
-
-Preconditions
-
-- `self.game_layout.field_size` and `self.game_layout.comms_size` exist and are usable as integers.
-- The implementation assumes $m$ divides $n2$.
-- `field` must contain at least `n2` elements after flattening; otherwise segment slices may be shorter than `segment_len`, affecting majority computation (not checked).
-
-Postconditions
-
-- Returns a newly allocated vector `comm` of length `m`.
+- np.ndarray, dtype int, constraints: values in `{0,1}`, shape `(m,)` where `m = game_layout.comms_size`; each entry is the majority bit of the corresponding contiguous field segment with ties mapped to 1.
 
 Errors
 
-- May raise exceptions from `np.asarray(..., dtype=int)` for non-coercible inputs.
-- May raise `ZeroDivisionError` if `m == 0` (not prevented here).
-- May raise attribute errors if `self.game_layout` is missing required attributes.
+- Not specified.
 
-!!! example "Example"
-    ```python
-    import numpy as np
-    from Q_Sea_Battle.majority_player_a import MajorityPlayerA
-    from Q_Sea_Battle.game_layout import GameLayout
-    
-    layout = GameLayout(field_size=4, comms_size=4)  # exact signature not specified here
-    player = MajorityPlayerA(layout)
-    
-    field = np.array([
-        1, 0, 1, 0,
-        0, 0, 1, 1,
-        1, 1, 0, 0,
-        0, 1, 0, 1,
-    ])
-    comm = player.decide(field)
-    ```
+Example
+
+```python
+import numpy as np
+from Q_Sea_Battle.majority_player_a import MajorityPlayerA
+from Q_Sea_Battle.game_layout import GameLayout
+
+gl = GameLayout(...)  # Not specified here
+player = MajorityPlayerA(gl)
+
+field = np.random.randint(0, 2, size=(gl.field_size, gl.field_size))
+comm = player.decide(field)
+```
 
 ## Data & State
 
-- Inherited state from `PlayerA` (not defined in this module).
-- Uses `self.game_layout` (type: GameLayout, constraints: not specified, shape: N/A) as established by the base class.
-- No additional attributes are defined by `MajorityPlayerA`.
+- Inherits from `PlayerA`; stored attributes are not specified in this module beyond using `self.game_layout` in `decide`.
+- Uses `self.game_layout.field_size` and `self.game_layout.comms_size` during `decide`.
 
 ## Planned (design-spec)
 
-- Not specified (no design notes provided).
+- Not specified.
 
 ## Deviations
 
-- No deviations identified (no design notes provided to compare against code).
+- Not specified.
 
 ## Notes for Contributors
 
-- The method `decide` computes `n2` from `field_size` rather than from the actual length of `field`; if `field` does not match the expected size, behavior is not validated and may silently produce incorrect segment statistics.
-- Majority tie-breaking is implemented as `1` when `ones >= zeros`.
+- The method `decide` flattens the provided `field` and only uses the first `n2 = field_size ** 2` values when slicing segments; any additional trailing values in `flat_field` beyond `n2` are ignored by the current slicing pattern (no explicit validation is performed in this module).
+- The implementation relies on a comment-level assumption that `comms_size` divides `n2`; if this invariant can be violated elsewhere, consider adding explicit validation in `decide` or in `GameLayout`.
 
 ## Related
 
-- `Q_Sea_Battle.players_base.PlayerA` (base class; behavior not documented here).
-- `Q_Sea_Battle.game_layout.GameLayout` (provides `field_size` and `comms_size`).
+- `Q_Sea_Battle.game_layout.GameLayout`
+- `Q_Sea_Battle.players_base.PlayerA`
 
 ## Changelog
 
-- 0.1: Initial implementation (module docstring version).
+- Not specified.

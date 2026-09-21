@@ -1,11 +1,19 @@
-"""
-QSeaBattle package initialisation (clean layered public API).
+# Author: Rob Hendriks
 
-Design goals:
-- Keep core gameplay API always importable.
-- Avoid importing TensorFlow / heavy / experimental modules at import-time.
-- Provide lazy access to optional components via __getattr__.
-- Avoid name collisions (e.g., Lin vs Pyr imitation utilities).
+"""
+QSeaBattle package initialization.
+
+This module defines a layered public API:
+
+- Layer 0 (core): Lightweight gameplay and baseline components that should remain
+  importable without optional ML dependencies.
+- Layer 1+ (optional): Heavier and/or experimental components (e.g., TensorFlow-
+  based models, imitation utilities, dataset tooling) that are exposed via lazy
+  imports to keep package import-time stable.
+
+Lazy imports are implemented via ``__getattr__`` (PEP 562). Optional modules are
+imported only when their exported symbols are accessed, so failures in optional
+dependencies surface at access time rather than at package import time.
 
 Author: Rob Hendriks
 Version: 0.2 (layered API)
@@ -32,7 +40,7 @@ from .simple_players import SimplePlayers
 from .majority_players import MajorityPlayers
 
 from .pr_assisted import PRAssisted
-from .pr_assisted_layer import PRAssistedLayer
+#from .pr_assisted_layer import PRAssistedLayer
 from .pr_assisted_players import PRAssistedPlayers
 from .pr_assisted_player_a import PRAssistedPlayerA
 from .pr_assisted_player_b import PRAssistedPlayerB
@@ -54,6 +62,11 @@ from .dru_utilities import dru_train, dru_execute
 # Layer 1+: Optional/ML/Imitation API (lazy-loaded)
 # -----------------------------------------------------------------------------
 # Mapping: exported_name -> (module_path, attribute_name)
+#
+# Notes:
+# - Keys are the public names exposed from this package namespace.
+# - Values identify where the implementation lives and which attribute to load.
+# - Imports are deferred to keep base gameplay usable without ML dependencies.
 _LAZY: Dict[str, Tuple[str, str]] = {
     # Neural net players (TF)
     "NeuralNetPlayers": (".neural_net_players", "NeuralNetPlayers"),
@@ -65,21 +78,25 @@ _LAZY: Dict[str, Tuple[str, str]] = {
     "TrainableAssistedPlayerA": (".trainable_assisted_player_a", "TrainableAssistedPlayerA"),
     "TrainableAssistedPlayerB": (".trainable_assisted_player_b", "TrainableAssistedPlayerB"),
 
-    # Lin trainable assisted models + layers (TF)
-    "LinTrainableAssistedModelA": (".lin_trainable_assisted_model_a", "LinTrainableAssistedModelA"),
-    "LinTrainableAssistedModelB": (".lin_trainable_assisted_model_b", "LinTrainableAssistedModelB"),
-    "LinMeasurementLayerA": (".lin_measurement_layer_a", "LinMeasurementLayerA"),
-    "LinCombineLayerA": (".lin_combine_layer_a", "LinCombineLayerA"),
-    "LinMeasurementLayerB": (".lin_measurement_layer_b", "LinMeasurementLayerB"),
-    "LinCombineLayerB": (".lin_combine_layer_b", "LinCombineLayerB"),
+    # LIN modules
+        "LinMeasurementLayerA": (".lin_measurement_layer_a", "LinMeasurementLayerA"),
+        "LinMeasurementLayerB": (".lin_measurement_layer_b", "LinMeasurementLayerB"),
+        "LinCombineLayerA": (".lin_combine_layer_a", "LinCombineLayerA"),
+        "LinCombineLayerB": (".lin_combine_layer_b", "LinCombineLayerB"),
+        "LinInternalModelA": (".lin_internal_model_a", "LinInternalModelA"),
+        "LinInternalModelB": (".lin_internal_model_b", "LinInternalModelB"),
+        "LinTrainableAssistedModelA": (".lin_trainable_assisted_model_a", "LinTrainableAssistedModelA"),
+        "LinTrainableAssistedModelB": (".lin_trainable_assisted_model_b", "LinTrainableAssistedModelB"),
+    
 
-    # Pyr trainable assisted models + layers (TF)
-    "PyrTrainableAssistedModelA": (".pyr_trainable_assisted_model_a", "PyrTrainableAssistedModelA"),
-    "PyrTrainableAssistedModelB": (".pyr_trainable_assisted_model_b", "PyrTrainableAssistedModelB"),
-    "PyrMeasurementLayerA": (".pyr_measurement_layer_a", "PyrMeasurementLayerA"),
-    "PyrCombineLayerA": (".pyr_combine_layer_a", "PyrCombineLayerA"),
-    "PyrMeasurementLayerB": (".pyr_measurement_layer_b", "PyrMeasurementLayerB"),
-    "PyrCombineLayerB": (".pyr_combine_layer_b", "PyrCombineLayerB"),
+    # PR/PYR modules
+        "PRAssistedReplay": (".pr_assisted_replay", "PRAssistedReplay"),
+        "PyrMeasurementLayerA": (".pyr_measurement_layer_a", "PyrMeasurementLayerA"),
+        "PyrMeasurementLayerB": (".pyr_measurement_layer_b", "PyrMeasurementLayerB"),
+        "PyrCombineLayerA": (".pyr_combine_layer_a", "PyrCombineLayerA"),
+        "PyrCombineLayerB": (".pyr_combine_layer_b", "PyrCombineLayerB"),
+        "PyrInternalModelA": (".pyr_internal_model_a", "PyrInternalModelA"),
+        "PyrInternalModelB": (".pyr_internal_model_b", "PyrInternalModelB"),
 
     # Neural-net imitation utilities (TF)
     "make_segments": (".neural_net_imitation_utilities", "make_segments"),
@@ -87,31 +104,45 @@ _LAZY: Dict[str, Tuple[str, str]] = {
     "generate_majority_dataset_model_a": (".neural_net_imitation_utilities", "generate_majority_dataset_model_a"),
     "generate_majority_dataset_model_b": (".neural_net_imitation_utilities", "generate_majority_dataset_model_b"),
 
-    # Lin imitation utilities (avoid collisions by prefixing)
-    "lin_generate_measurement_dataset_a": (".lin_trainable_assisted_imitation_utilities", "generate_measurement_dataset_a"),
-    "lin_generate_measurement_dataset_b": (".lin_trainable_assisted_imitation_utilities", "generate_measurement_dataset_b"),
-    "lin_generate_combine_dataset_a": (".lin_trainable_assisted_imitation_utilities", "generate_combine_dataset_a"),
-    "lin_generate_combine_dataset_b": (".lin_trainable_assisted_imitation_utilities", "generate_combine_dataset_b"),
-    "lin_to_tf_dataset": (".lin_trainable_assisted_imitation_utilities", "to_tf_dataset"),
-    "transfer_layer_weights": (".lin_trainable_assisted_imitation_utilities", "transfer_layer_weights"),
+    # LIN dataset utilities
+        "generate_lin_dataset": (".lin_dataset_generation_utilities", "generate_lin_dataset"),
+        "convert_lin_layer_measure_a": (".lin_dataset_conversion_utilities", "convert_layer_measure_a"),
+        "convert_lin_layer_combine_a": (".lin_dataset_conversion_utilities", "convert_layer_combine_a"),
+        "convert_lin_layer_measure_b": (".lin_dataset_conversion_utilities", "convert_layer_measure_b"),
+        "convert_lin_layer_combine_b": (".lin_dataset_conversion_utilities", "convert_layer_combine_b"),
+        "convert_lin_internal_model_a": (".lin_dataset_conversion_utilities", "convert_internal_model_a"),
+        "convert_lin_internal_model_b": (".lin_dataset_conversion_utilities", "convert_internal_model_b"),
+        "convert_lin_full_system": (".lin_dataset_conversion_utilities", "convert_full_system"),
 
-    # Pyr imitation utilities (avoid collisions by prefixing)
-    "pyr_generate_measurement_dataset_a": (".pyr_trainable_assisted_imitation_utilities", "generate_measurement_dataset_a"),
-    "pyr_generate_measurement_dataset_b": (".pyr_trainable_assisted_imitation_utilities", "generate_measurement_dataset_b"),
-    "pyr_generate_combine_dataset_a": (".pyr_trainable_assisted_imitation_utilities", "generate_combine_dataset_a"),
-    "pyr_generate_combine_dataset_b": (".pyr_trainable_assisted_imitation_utilities", "generate_combine_dataset_b"),
-    "pyr_to_tf_dataset": (".pyr_trainable_assisted_imitation_utilities", "to_tf_dataset"),
-    "transfer_pyr_model_b_layer_weights": (".pyr_trainable_assisted_imitation_utilities", "transfer_pyr_model_b_layer_weights"),
-    "transfer_pyr_model_a_layer_weights": (".pyr_trainable_assisted_imitation_utilities", "transfer_pyr_model_a_layer_weights"),
+    # PYR dataset utilities
+        "generate_pyr_dataset": (".pyr_dataset_generation_utilities", "generate_pyr_dataset"),
+        "save_npz": (".pyr_dataset_generation_utilities", "save_npz"),
+        "convert_layer_measure_a": (".pyr_dataset_conversion_utilities", "convert_layer_measure_a"),
+        "convert_layer_combine_a": (".pyr_dataset_conversion_utilities", "convert_layer_combine_a"),
+        "convert_layer_measure_b": (".pyr_dataset_conversion_utilities", "convert_layer_measure_b"),
+        "convert_layer_combine_b": (".pyr_dataset_conversion_utilities", "convert_layer_combine_b"),
+        "convert_internal_model_a": (".pyr_dataset_conversion_utilities", "convert_internal_model_a"),
+        "convert_internal_model_b": (".pyr_dataset_conversion_utilities", "convert_internal_model_b"),
+        "convert_full_system": (".pyr_dataset_conversion_utilities", "convert_full_system"),
 }
 
 
 def __getattr__(name: str) -> Any:
-    """
-    Lazy attribute resolver.
+    """Resolve lazily exported attributes.
 
-    This keeps `import Q_Sea_Battle` stable even if optional ML modules are missing
-    or temporarily broken. Import errors will occur only when accessing that symbol.
+    This keeps ``import Q_Sea_Battle`` robust even when optional ML modules are
+    not installed or are temporarily broken. Import errors (or other exceptions
+    raised during import) occur only when the corresponding symbol is accessed.
+
+    Args:
+        name: Attribute name requested from the package namespace.
+
+    Returns:
+        The resolved attribute from the lazily imported module.
+
+    Raises:
+        AttributeError: If ``name`` is not part of the eagerly imported public
+            API and is not registered as a lazy export.
     """
     spec = _LAZY.get(name)
     if spec is None:
@@ -120,12 +151,13 @@ def __getattr__(name: str) -> Any:
     mod_path, attr = spec
     mod = import_module(mod_path, package=__name__)
     value = getattr(mod, attr)
-    globals()[name] = value  # cache for future access
+    globals()[name] = value  # Cache for subsequent attribute access.
     return value
 
 
 def __dir__() -> list[str]:
-    # Expose a friendly dir() including lazy exports
+    """Return a directory listing that includes lazy exports."""
+    # Expose a friendly dir() including lazy exports.
     return sorted(set(list(globals().keys()) + list(_LAZY.keys())))
 
 

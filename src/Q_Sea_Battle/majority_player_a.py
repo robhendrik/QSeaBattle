@@ -1,8 +1,16 @@
 """Majority-based deterministic Player A implementation.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module defines :class:`MajorityPlayerA`, a deterministic Player A strategy
+that encodes a coarse summary of the field into the communication vector by
+taking per-segment majorities.
+
+The flattened field (of length ``field_size ** 2``) is partitioned into
+``comms_size`` contiguous, equal-length segments. For each segment, a single
+communication bit is produced:
+- 1 if the number of ones is greater than or equal to the number of zeros
+- 0 otherwise
+
+Ties are resolved in favor of 1.
 """
 
 from __future__ import annotations
@@ -16,17 +24,23 @@ from .players_base import PlayerA
 
 
 class MajorityPlayerA(PlayerA):
-    """Player A encoding majority information over field segments.
+    """Player A that encodes per-segment majority bits into the comms vector.
 
-    The flattened field of length ``n2`` is split into ``m``
-    contiguous segments of equal length ``segment_len = n2 // m``.
-    For each segment, the communication bit is set to 1 if the
-    number of ones is greater than or equal to the number of zeros
-    in that segment, else 0.
+    The field is flattened and split into ``m = game_layout.comms_size``
+    contiguous segments, each of length ``segment_len = n2 // m`` where
+    ``n2 = game_layout.field_size ** 2``.
+
+    For segment ``i``, the outgoing communication bit is:
+
+        ``comm[i] = 1`` if ``#ones >= #zeros`` else ``0``.
+
+    Notes:
+        This implementation assumes ``m`` divides ``n2``. The code comments
+        indicate this is enforced by :class:`~.game_layout.GameLayout`.
     """
 
     def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise a :class:`MajorityPlayerA` instance.
+        """Initialize the player.
 
         Args:
             game_layout: Game configuration for this player.
@@ -34,22 +48,25 @@ class MajorityPlayerA(PlayerA):
         super().__init__(game_layout)
 
     def decide(self, field: np.ndarray, supp: Optional[Any] = None) -> np.ndarray:
-        """Encode majority statistics in the communication vector.
+        """Compute the communication vector from the field.
 
         Args:
-            field: Flattened field array of 0/1 values. Any shape is
-                accepted and flattened internally.
-            supp: Optional supporting information (unused).
+            field: Field values. Any input shape is accepted; it is converted
+                with ``np.asarray(..., dtype=int)`` and flattened with
+                ``ravel()``. Values are treated as integers when computing the
+                per-segment sums.
+            supp: Optional supporting information. Not used by this strategy.
 
         Returns:
-            Communication vector of length ``m`` where each entry
-            encodes the majority of a field segment.
+            A NumPy array of dtype ``int`` with shape ``(m,)``, where
+            ``m = game_layout.comms_size``. Each entry is the majority bit of
+            the corresponding contiguous field segment, with ties mapped to 1.
         """
         flat_field = np.asarray(field, dtype=int).ravel()
         n2 = self.game_layout.field_size ** 2
         m = self.game_layout.comms_size
 
-        # Basic assumption: comms_size divides n2 (enforced by GameLayout).
+        # Assumes comms_size divides n2 (comment indicates GameLayout enforces).
         segment_len = n2 // m
 
         comm = np.zeros(m, dtype=int)
@@ -59,6 +76,7 @@ class MajorityPlayerA(PlayerA):
             segment = flat_field[start:end]
             ones = int(segment.sum())
             zeros = segment_len - ones
+            # Tie-break: ones >= zeros maps to 1.
             comm[i] = 1 if ones >= zeros else 0
 
         return comm

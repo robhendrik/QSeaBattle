@@ -1,30 +1,24 @@
 # GameEnv
 
-> Role: Core environment for generating game state (field, gun), providing player inputs, evaluating rewards, and applying communication channel noise.
+> Role: Lightweight, single-instance QSeaBattle environment that samples a binary enemy field and one-hot query location, provides flattened observations, evaluates Player B’s binary decision, and optionally applies bit-flip channel noise.
+
 Location: `Q_Sea_Battle.game_env.GameEnv`
-
-## Derived constraints
-
-- Let `field_size = n` from `self.game_layout.field_size`; then `n2 = n * n` and the flattened `field` and `gun` are shape `(n2,)`.
-- `field` values are integers in `{0,1}` and shape `(n, n)`.
-- `gun` is a one-hot integer array in `{0,1}` with exactly one `1` and shape `(n, n)`.
-- Let `comms_size = m`; then `comm` vectors passed to `apply_channel_noise` are intended to have shape `(m,)` with values in `{0,1}` (length is not validated by the implementation).
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_layout | Optional[GameLayout], nullable, shape N/A | Optional game configuration; if `None`, a default `GameLayout()` is constructed. |
+| game_layout | Optional[GameLayout], constraints: None or GameLayout instance, shape: scalar | Optional game configuration; if `None`, constructs a default `GameLayout()` and stores it in `self.game_layout`. |
 
 Preconditions
 
-- None.
+- `game_layout` is `None` or a `GameLayout` instance.
 
 Postconditions
 
-- `self.game_layout` is set to the provided `GameLayout` or a new default instance.
-- `self.field` is `None`.
-- `self.gun` is `None`.
+- `self.game_layout`: GameLayout, shape: scalar, is set to `game_layout` or a newly constructed `GameLayout()`.
+- `self.field`: Optional[np.ndarray], dtype Unknown (uninitialized), shape: scalar optional, is set to `None`.
+- `self.gun`: Optional[np.ndarray], dtype Unknown (uninitialized), shape: scalar optional, is set to `None`.
 
 Errors
 
@@ -34,20 +28,23 @@ Example
 
 ```python
 from Q_Sea_Battle.game_env import GameEnv
+from Q_Sea_Battle.game_layout import GameLayout
 
-env = GameEnv()
+env = GameEnv(GameLayout())
 env.reset()
 field_flat, gun_flat = env.provide()
-r = env.evaluate(1)
+reward = env.evaluate(1)
 ```
 
 ## Public Methods
 
 ### reset
 
-Signature: `reset(self) -> None`
+Reset the environment state for a new game by sampling a new random `field` and a new random one-hot `gun` position.
 
-Reset the environment state for a new game by creating a new random field and a new random one-hot gun position.
+Signature
+
+- `reset(self) -> None`
 
 Arguments
 
@@ -55,33 +52,29 @@ Arguments
 
 Returns
 
-- `None`, shape N/A.
+- `None`, constraints: always `None`, shape: scalar.
 
 Preconditions
 
-- `self.game_layout.field_size` is expected to be usable as an integer `n` such that arrays of shape `(n, n)` and length `n2 = n * n` can be created.
-- `self.game_layout.enemy_probability` is expected to be usable as a float probability for Bernoulli sampling.
+- `self.game_layout.field_size` is used as `n` (constraint not specified in code).
+- `self.game_layout.enemy_probability` is used as Bernoulli parameter `p` (constraint not specified in code).
 
 Postconditions
 
-- `self.field`: `np.ndarray, dtype int, values {0,1}, shape (field_size, field_size)`.
-- `self.gun`: `np.ndarray, dtype int, values {0,1}, shape (field_size, field_size)`, with exactly one element equal to `1`.
+- `self.field`: np.ndarray, dtype int, values in `{0,1}`, shape `(n, n)`.
+- `self.gun`: np.ndarray, dtype int, values in `{0,1}` with exactly one `1`, shape `(n, n)`.
 
 Errors
 
 - Not specified.
-
-Example
-
-```python
-env.reset()
-```
 
 ### provide
 
-Signature: `provide(self) -> Tuple[np.ndarray, np.ndarray]`
+Provide flattened copies of the internal `field` and `gun` arrays.
 
-Provide inputs to the players by returning the current `field` and `gun` arrays in flattened form (copies).
+Signature
+
+- `provide(self) -> Tuple[np.ndarray, np.ndarray]`
 
 Arguments
 
@@ -89,105 +82,71 @@ Arguments
 
 Returns
 
-- `Tuple[np.ndarray, np.ndarray]`: `(field, gun)` where each is `np.ndarray, dtype int, values {0,1}, shape (n2,)` with `n2 = field_size * field_size`.
-
-Preconditions
-
-- `reset()` has been called successfully so that `self.field` and `self.gun` are not `None`.
-
-Postconditions
-
-- Returns copies of internal arrays; mutating the returned arrays does not mutate `self.field` / `self.gun`.
+- `Tuple[np.ndarray, np.ndarray]`: `(field, gun)` where `field` is `np.ndarray, dtype int, constraints: copy of internal field values in {0,1}, shape (n2,)` and `gun` is `np.ndarray, dtype int, constraints: copy of internal gun values in {0,1}, shape (n2,)`, with $n2 = n \cdot n$.
 
 Errors
 
 - `RuntimeError`: If `self.field is None` or `self.gun is None` (environment not reset).
-
-Example
-
-```python
-env.reset()
-field_flat, gun_flat = env.provide()
-```
 
 ### evaluate
 
-Signature: `evaluate(self, shoot: int) -> float`
+Evaluate Player B’s shooting decision against the true `field` value at the one-hot `gun` location.
 
-Evaluate the reward for a shooting decision.
+Signature
+
+- `evaluate(self, shoot: int) -> float`
 
 Arguments
 
-- `shoot`: `int, values {0,1}, shape N/A`. (The implementation casts via `int(shoot)`; other values are not validated.)
+- `shoot`: int, constraints: intended to be binary `{0,1}` but cast with `int(shoot)`, shape: scalar.
 
 Returns
 
-- `float, values {0.0, 1.0}, shape N/A`: `1.0` if the decision matches the true cell value at the gun position, otherwise `0.0`.
+- `float`, constraints: returns `1.0` if `int(shoot)` equals the selected cell value, else `0.0`, shape: scalar.
 
 Preconditions
 
-- `reset()` has been called successfully so that `self.field` and `self.gun` are not `None`.
-- `self.gun` contains exactly one `1` so that exactly one field cell is selected.
-
-Postconditions
-
-- No mutation of `self.field` or `self.gun` is performed.
+- Environment has been reset (`self.field` and `self.gun` are not `None`).
+- `self.gun` contains exactly one `1` (enforced).
 
 Errors
 
 - `RuntimeError`: If `self.field is None` or `self.gun is None` (environment not reset).
-- `RuntimeError`: If `self.gun` does not contain exactly one `1` (i.e., selected cell count is not 1).
-
-Example
-
-```python
-env.reset()
-reward = env.evaluate(0)
-```
+- `RuntimeError`: If `self.gun` does not contain exactly one `1`.
 
 ### apply_channel_noise
 
-Signature: `apply_channel_noise(self, comm: np.ndarray) -> np.ndarray`
+Apply independent bit-flip noise to a communication vector using `self.game_layout.channel_noise`.
 
-Apply independent bit-flip noise to a communication vector with per-bit flip probability `channel_noise`.
+Signature
+
+- `apply_channel_noise(self, comm: np.ndarray) -> np.ndarray`
 
 Arguments
 
-- `comm`: `np.ndarray, dtype int convertible, intended values {0,1}, intended shape (comms_size,)` where `comms_size = m`. The implementation converts using `np.asarray(comm, dtype=int)` and does not validate values or length.
+- `comm`: np.ndarray, dtype Unknown (converted via `np.asarray(comm, dtype=int)`), constraints: convertible to integer array, shape: arbitrary `S` (same shape returned).
 
 Returns
 
-- `np.ndarray, dtype int, shape comm.shape`: Noisy communication vector.
-- If `channel_noise <= 0.0`, returns an unchanged copy of `comm` (after conversion to `dtype int`).
-- If `channel_noise >= 1.0`, returns `1 - comm` (bitwise flip for 0/1 semantics).
-- Otherwise flips each entry independently with probability `channel_noise`.
+- `np.ndarray`, dtype int, constraints: same shape as input `comm` after conversion, each element possibly flipped $0 \leftrightarrow 1$ according to `channel_noise`, shape: `S`.
 
-Preconditions
+Behavior
 
-- `self.game_layout.channel_noise` is expected to be usable as a float `c`.
-
-Postconditions
-
-- Returns a new array (copy) for `c <= 0.0` and for `0.0 < c < 1.0`.
-- For `c >= 1.0`, the expression `1 - comm` produces a new array.
+- Converts `comm` to `np.ndarray, dtype int`.
+- Let `c = float(self.game_layout.channel_noise)`.
+- If `c <= 0.0`, returns an unchanged copy.
+- If `c >= 1.0`, returns `1 - comm` (deterministic full flip).
+- Otherwise, flips each element independently with probability `c`.
 
 Errors
 
 - Not specified.
 
-Example
-
-```python
-env.reset()
-comm = np.array([0, 1, 1, 0], dtype=int)
-noisy = env.apply_channel_noise(comm)
-```
-
 ## Data & State
 
-- `game_layout`: `GameLayout, non-null, shape N/A`. Configuration object used to read `field_size`, `enemy_probability`, and `channel_noise`.
-- `field`: `Optional[np.ndarray], nullable`. When set: `np.ndarray, dtype int, values {0,1}, shape (field_size, field_size)`.
-- `gun`: `Optional[np.ndarray], nullable`. When set: `np.ndarray, dtype int, values {0,1}, shape (field_size, field_size)`, intended to be one-hot with exactly one `1`.
+- `game_layout`: GameLayout, constraints: instance of `GameLayout`, shape: scalar; used to obtain `field_size`, `enemy_probability`, and `channel_noise`.
+- `field`: Optional[np.ndarray], dtype int when set, constraints: values in `{0,1}`, shape `(n, n)`; `None` before `reset()`.
+- `gun`: Optional[np.ndarray], dtype int when set, constraints: values in `{0,1}` with exactly one `1`, shape `(n, n)`; `None` before `reset()`.
 
 ## Planned (design-spec)
 
@@ -195,17 +154,18 @@ noisy = env.apply_channel_noise(comm)
 
 ## Deviations
 
-- No design notes were provided; no deviations can be assessed.
+- Not specified.
 
 ## Notes for Contributors
 
-- `provide()` returns flattened copies; if new methods return views instead, explicitly document mutation and aliasing behavior.
-- `apply_channel_noise()` assumes 0/1 semantics but does not validate `comm` contents; if validation is added, document the resulting errors and constraints.
+- `provide()` intentionally returns flattened copies to prevent external mutation of internal state; preserve this copy semantics if refactoring.
+- `evaluate()` enforces the one-hot property of `gun` at runtime; if future changes alter `gun` representation, update both selection logic and validation accordingly.
+- `apply_channel_noise()` treats `channel_noise <= 0.0` and `>= 1.0` as special cases; maintain these branches for clarity and determinism.
 
 ## Related
 
-- `Q_Sea_Battle.game_layout.GameLayout` (configuration dependency; imported as `from .game_layout import GameLayout`).
+- `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- Version: 0.1 (module docstring).
+- Not specified.

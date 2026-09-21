@@ -1,8 +1,21 @@
-"""Factory and utilities for neural network-based players.
+"""Neural-network player factory, persistence, and training utilities.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module provides :class:`NeuralNetPlayers`, a :class:`~.players_base.Players`
+implementation that constructs and owns a matched pair of neural players:
+
+* :class:`~.neural_net_player_a.NeuralNetPlayerA` (Player A), which produces a
+  communication vector as logits given the current field.
+* :class:`~.neural_net_player_b.NeuralNetPlayerB` (Player B), which decides
+  whether to shoot (single logit) given the communicated logits and a gun
+  position encoding.
+
+The factory centralizes model construction and (de)serialization so that all
+player instances share the same underlying Keras models.
+
+Notes:
+    This module enables eager execution for TensorFlow functions via
+    ``tf.config.run_functions_eagerly(True)`` to simplify debugging and to make
+    per-step behavior easier to inspect.
 """
 
 from __future__ import annotations
@@ -26,21 +39,21 @@ from .neural_net_player_b import NeuralNetPlayerB, _gun_one_hot_to_index
 class NeuralNetPlayers(Players):
     """Factory for neural-network-based Player A and Player B.
 
-    This class owns a pair of Keras models:
+    The factory owns a pair of Keras models and hands references to them to the
+    created players:
 
-    * ``model_a``: maps a scaled flattened field of length ``n2`` to
-      communication logits of length ``m``.
-    * ``model_b``: maps a compact representation consisting of the normalised
-      gun index (scalar) concatenated with the communication vector of length
-      ``m`` to a single shoot logit.
+    * ``model_a``: maps a scaled, flattened field (length ``n2``) to a
+      communication vector of logits (length ``m``).
+    * ``model_b``: maps a compact representation consisting of the normalized
+      gun index (scalar) concatenated with the communication logits (length
+      ``m``) to a single shoot logit.
 
-    The same models are shared by all created :class:`NeuralNetPlayerA` and
-    :class:`NeuralNetPlayerB` instances.
+    Logits are used throughout the internal model interfaces. Logical bit values
+    represented as logits are determined by the logit sign.
 
-    Training for imitation learning / RL-style updates is done via the new
-    specialised methods :meth:`train_model_a` and :meth:`train_model_b`. The
-    legacy :meth:`train` method is retained for backwards compatibility but
-    currently acts as a no-op and issues a warning.
+    The legacy :meth:`train` method is retained for backward compatibility but
+    is currently a no-op and emits a warning. Use :meth:`train_model_a` and
+    :meth:`train_model_b` instead.
     """
 
     #: Whether Tournament should attempt to read log-probabilities via
@@ -54,17 +67,16 @@ class NeuralNetPlayers(Players):
         model_b: Optional[tf.keras.Model] = None,
         explore: bool = False,
     ) -> None:
-        """Initialise a :class:`NeuralNetPlayers` factory.
+        """Initialize a :class:`NeuralNetPlayers` factory.
 
         Args:
-            game_layout: Optional :class:`GameLayout` instance. If ``None``, a
-                default layout is constructed.
+            game_layout: Optional :class:`~.game_layout.GameLayout`. If ``None``,
+                a default layout is constructed.
             model_a: Optional pre-constructed communication model for Player A.
-                If ``None``, a default architecture is created when first
-                needed.
-            model_b: Optional pre-constructed shoot model for Player B. If
-                ``None``, a default architecture is created when first needed.
-            explore: Initial exploration flag propagated to child players.
+                If ``None``, a default architecture is created on first use.
+            model_b: Optional pre-constructed shoot model for Player B.
+                If ``None``, a default architecture is created on first use.
+            explore: Exploration flag propagated to created players.
         """
         if game_layout is None:
             game_layout = GameLayout()  # type: ignore[call-arg]
@@ -85,9 +97,12 @@ class NeuralNetPlayers(Players):
     def players(self) -> Tuple[PlayerA, PlayerB]:
         """Create or return a neural Player A/B pair.
 
-        If players do not yet exist, they are created using the current
-        models. If the models do not yet exist, default architectures are
-        created based on the :class:`GameLayout`.
+        Players are created lazily and cached. If models are not provided at
+        construction time, default architectures are built based on the current
+        :class:`~.game_layout.GameLayout`.
+
+        Returns:
+            A tuple ``(player_a, player_b)``.
         """
         if self.model_a is None:
             self.model_a = self._build_model_a()
@@ -110,10 +125,10 @@ class NeuralNetPlayers(Players):
         return self._playerA, self._playerB
 
     def reset(self) -> None:
-        """Reset internal state of the neural players.
+        """Reset per-game state of the created players.
 
-        This clears per-game log-probabilities but does not modify the
-        underlying Keras models.
+        This clears per-game state such as accumulated log-probabilities, but
+        does not modify the underlying Keras model parameters.
         """
         if self._playerA is not None:
             self._playerA.reset()
@@ -121,12 +136,11 @@ class NeuralNetPlayers(Players):
             self._playerB.reset()
 
     def set_explore(self, flag: bool) -> None:
-        """Set the exploration behaviour for both players.
+        """Set exploration behavior for both created players.
 
         Args:
-            flag:
-                If ``True``, players act stochastically. If ``False``, they
-                act deterministically by thresholding probabilities.
+            flag: If ``True``, players act stochastically. If ``False``, players
+                act deterministically (e.g., by thresholding probabilities).
         """
         self.explore = flag
         if self._playerA is not None:
@@ -138,7 +152,12 @@ class NeuralNetPlayers(Players):
     # Model persistence
     # ------------------------------------------------------------------
     def store_models(self, filenameA: str, filenameB: str) -> None:
-        """Store the underlying Keras models to disk."""
+        """Serialize the underlying Keras models to disk.
+
+        Args:
+            filenameA: Output path for Player A's model.
+            filenameB: Output path for Player B's model.
+        """
         if self.model_a is None:
             self.model_a = self._build_model_a()
         if self.model_b is None:
@@ -150,8 +169,12 @@ class NeuralNetPlayers(Players):
     def load_models(self, filenameA: str, filenameB: str) -> None:
         """Load Keras models from disk and attach them to this factory.
 
-        Existing child players, if any, are updated to reference the new
-        models.
+        Any already-created players are updated in-place to reference the newly
+        loaded models.
+
+        Args:
+            filenameA: Path to a serialized Player A model.
+            filenameB: Path to a serialized Player B model.
         """
         self.model_a = tf.keras.models.load_model(filenameA)
         self.model_b = tf.keras.models.load_model(filenameB)
@@ -167,14 +190,13 @@ class NeuralNetPlayers(Players):
     def train(self, dataset, training_settings):  # type: ignore[override]
         """Legacy training API (no-op).
 
-        Historically this method trained both models jointly from a single
+        Historically, this method trained both models jointly from a single
         dataset. The recommended interface is now :meth:`train_model_a` and
-        :meth:`train_model_b`, which make the training data requirements more
-        explicit and better suited to imitation learning from the majority
-        player.
+        :meth:`train_model_b`, which separate data requirements and match the
+        current imitation-learning workflow.
 
-        For backwards compatibility this method currently issues a warning and
-        returns without performing any training.
+        For backward compatibility, this method emits a warning and returns
+        without performing training.
         """
         warnings.warn(
             "NeuralNetPlayers.train() is deprecated. Use train_model_a() and "
@@ -188,7 +210,21 @@ class NeuralNetPlayers(Players):
     # New training APIs
     # ------------------------------------------------------------------
     def train_model_a(self, dataset, training_settings):
-        """Train the communication model (model_a) on a dataset."""
+        """Train the communication model (``model_a``).
+
+        Expected dataset columns:
+            - ``field``: per-sample field array.
+            - ``comm``: per-sample teacher communication vector.
+            - ``sample_weight`` (optional): per-sample weight if enabled.
+
+        The model is trained with binary cross-entropy from logits.
+
+        Args:
+            dataset: Pandas DataFrame-like object providing the required columns.
+            training_settings: Mapping of training hyperparameters. Supported
+                keys include ``epochs``, ``batch_size``, ``learning_rate``,
+                ``verbose``, and ``use_sample_weight``.
+        """
         if self.model_a is None:
             self.model_a = self._build_model_a()
 
@@ -233,7 +269,24 @@ class NeuralNetPlayers(Players):
         )
 
     def train_model_b(self, dataset, training_settings):
-        """Train the shoot model (model_b) on a dataset."""
+        """Train the shoot model (``model_b``).
+
+        Expected dataset columns:
+            - ``gun``: one-hot gun position over the flattened field.
+            - ``comm``: communication logits or targets (length ``m``).
+            - ``shoot``: binary shoot label (shape ``(N, 1)`` after reshape).
+            - ``sample_weight`` (optional): per-sample weight if enabled.
+
+        The gun one-hot vector is converted to a normalized scalar index via
+        :func:`~.neural_net_player_b._gun_one_hot_to_index` and concatenated
+        with the communication vector before training.
+
+        Args:
+            dataset: Pandas DataFrame-like object providing the required columns.
+            training_settings: Mapping of training hyperparameters. Supported
+                keys include ``epochs``, ``batch_size``, ``learning_rate``,
+                ``verbose``, and ``use_sample_weight``.
+        """
         if self.model_b is None:
             self.model_b = self._build_model_b()
 
@@ -285,7 +338,12 @@ class NeuralNetPlayers(Players):
     # Internal model builders
     # ------------------------------------------------------------------
     def _build_model_a(self) -> tf.keras.Model:
-        """Build the default communication model for Player A."""
+        """Build the default communication model for Player A.
+
+        Returns:
+            A Keras model that maps ``field_scaled`` (shape ``(n2,)``) to
+            communication logits (shape ``(m,)``).
+        """
         n2 = self.game_layout.field_size ** 2
         m = self.game_layout.comms_size
 
@@ -313,7 +371,12 @@ class NeuralNetPlayers(Players):
         return model
 
     def _build_model_b(self) -> tf.keras.Model:
-        """Build the default shoot model for Player B."""
+        """Build the default shoot model for Player B.
+
+        Returns:
+            A Keras model that maps ``gunidx_comm`` (shape ``(1 + m,)``) to a
+            single shoot logit (shape ``(1,)``).
+        """
         m = self.game_layout.comms_size
         in_dim = 1 + m
 

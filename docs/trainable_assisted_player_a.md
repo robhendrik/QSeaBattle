@@ -1,136 +1,136 @@
 # TrainableAssistedPlayerA
 
-> Role: Player A wrapper that computes communication bits from a binary field using a trainable model, optionally sampling for exploration, and stores intermediate tensors on its parent for Player B.
+> Role: Wrap a trainable/adapter Model A to produce boundary communication bits for gameplay, compute their log-probability, and store intermediate tensors for Player B.
 
 Location: `Q_Sea_Battle.trainable_assisted_player_a.TrainableAssistedPlayerA`
 
 ## Derived constraints
 
-- Let field_size be `int(game_layout.field_size)`, comms_size be `int(game_layout.comms_size)`, $n2 = field\_size^2$, and $m = comms\_size$.
-- decide() requires field to be `np.ndarray, dtype int {0,1}, shape (n2,)` and returns `np.ndarray, dtype int {0,1}, shape (m,)`.
+- Define symbols used below: field_size is `game_layout.field_size` (int, not validated), comms_size is `game_layout.comms_size` (int, not validated), $n2 = \text{field\_size}^2$, and $m = \text{comms\_size}$.
+- `decide()` requires `field` to be a flat binary vector with shape $(n2,)$ and values in {0,1}.
+- `decide()` returns a flat binary vector with shape $(m,)$ and dtype `int32`.
+- `get_log_prob()` is only valid after at least one successful `decide()` since the last `reset()`.
 
 ## Constructor
 
 Parameter | Type | Description
 --- | --- | ---
-game_layout | Any, constraints: must provide attributes `field_size` and `comms_size` readable via `getattr`, shape: N/A | Game layout object used to derive $n2$ and $m$.
-model_a | LinTrainableAssistedModelA, constraints: must provide `compute_with_internal(field_batch)` returning `(comm_logits, meas_list, out_list)`, shape: N/A | Trainable model used to compute communication logits and internal tensors.
+game_layout | Any, constraints: must expose attributes `field_size` and `comms_size` convertible to `int`, shape: N/A | Game layout descriptor used to derive $n2$ and $m$ in `decide()`.
+model_a | `LinTrainableAssistedModelA`, constraints: may also be an instance of `GameplayModelAAdapter` at runtime, shape: N/A | Underlying model/adapter used to compute communication outputs and intermediates.
 
 Preconditions
 
-- game_layout must have attributes `field_size` and `comms_size` convertible to int.
+- `game_layout.field_size` and `game_layout.comms_size` must exist and be convertible to `int` for `decide()` to function (not validated in `__init__`).
+- `model_a` must support either the adapter call interface (if it is a `GameplayModelAAdapter`) or `compute_with_internal(field_batch)` (legacy path); this is not validated in `__init__`.
 
 Postconditions
 
-- self.game_layout is set to game_layout.
-- self.model_a is set to model_a.
-- self.parent is set to None.
-- self.last_logprob_comm is set to None.
-- self.explore is set to False.
+- `self.game_layout` is set to `game_layout`.
+- `self.model_a` is set to `model_a`.
+- `self.parent` is set to `None`.
+- `self.last_logprob_comm` is set to `None`.
+- `self.explore` is set to `False`.
 
 Errors
 
-- Not specified (constructor does not explicitly raise; attribute access failures may surface later in decide()).
+- Not specified (constructor performs no explicit validation and raises no explicit exceptions).
 
 Example
 
-!!! example "Constructing a TrainableAssistedPlayerA"
-    ```python
-    from Q_Sea_Battle.trainable_assisted_player_a import TrainableAssistedPlayerA
-    from Q_Sea_Battle.lin_trainable_assisted_model_a import LinTrainableAssistedModelA
+```python
+from Q_Sea_Battle.trainable_assisted_player_a import TrainableAssistedPlayerA
+from Q_Sea_Battle.lin_trainable_assisted_model_a import LinTrainableAssistedModelA
 
-    game_layout = ...  # must define field_size and comms_size
-    model_a = LinTrainableAssistedModelA(...)
-    player_a = TrainableAssistedPlayerA(game_layout=game_layout, model_a=model_a)
-    ```
+# game_layout must have .field_size and .comms_size attributes.
+player_a = TrainableAssistedPlayerA(game_layout=game_layout, model_a=model_a)  # model_a: LinTrainableAssistedModelA
+```
 
 ## Public Methods
 
 ### decide(field, supp=None, explore=None)
 
-Decide communication bits based on the field, either greedily (threshold at 0.5) or by sampling independent Bernoulli bits, and record the log-probability of the chosen bits under the model logits.
+Decide boundary communication bits based on the current field, optionally storing intermediates on `parent.previous` and caching the action log-probability for later retrieval.
 
 Parameter | Type | Description
 --- | --- | ---
-field | np.ndarray, dtype int {0,1}, shape (n2,) | Flattened binary field input; must have shape $(n2,)$ and contain only 0/1.
-supp | Any \| None, constraints: ignored, shape: N/A | Ignored support argument.
-explore | bool \| None, constraints: if not None overrides `self.explore`, shape: N/A | Optional override controlling exploration (sampling) vs greedy selection.
+field | `np.ndarray`, dtype: any numeric (validated by value), constraints: values in {0,1}, shape $(n2,)$ | Flat binary field observation where $n2 = \text{field\_size}^2$.
+supp | Any \| None, constraints: unused, shape: N/A | Present for interface compatibility; ignored.
+explore | bool \| None, constraints: if not `None` overrides `self.explore`, shape: N/A | If `True`, use stochastic sampling; if `False`, use greedy thresholding; `None` uses `self.explore`.
 
 Returns
 
-- np.ndarray, dtype int {0,1}, shape (m,) communication bits.
+- `np.ndarray`, dtype `int32`, constraints: values in {0,1}, shape $(m,)$: Boundary communication bits, where $m = \text{comms\_size}$.
 
 Preconditions
 
-- field must satisfy `field.shape == (n2,)` where $n2 = field\_size^2$.
-- field must contain only values in {0,1}.
-- model_a.compute_with_internal must accept `tf.Tensor, dtype float32, shape (1, n2)` and return `comm_logits` compatible with shape `(1, m)`.
+- `field` must have exact shape $(n2,)$ where $n2 = \text{int}(game\_layout.field\_size)^2$.
+- `field` must contain only 0/1 values.
+- `game_layout` must expose `field_size` and `comms_size`.
+- Adapter path: if `self.model_a` is a `GameplayModelAAdapter`, it must be callable as `self.model_a(field_batch, explore=..., return_comm_logits=True)` and return `(comm_bits_tf, meas_list, out_list, comm_logits)`.
+- Legacy path: otherwise, `self.model_a` must implement `compute_with_internal(field_batch)` and return `(comm_logits, meas_list, out_list)` where `comm_logits` is compatible with shape $(1, m)$.
 
 Postconditions
 
-- self.last_logprob_comm is set to the scalar log-probability (Python float) of the returned bits under independent Bernoulli with the computed logits.
-- If self.parent is not None, then `self.parent.previous` is set to `(meas_list, out_list)` as returned by the model.
+- Sets `self.last_logprob_comm` to `float` log-probability of the chosen boundary bits under independent Bernoulli bits parameterized by logits (sum across the last dimension), for the most recent call.
+- If `self.parent is not None`, sets `self.parent.previous = (meas_list, out_list)` (the values returned by the underlying adapter/model).
+- Returns boundary bits as a flat array of shape $(m,)$.
 
 Errors
 
-- ValueError if field shape is not `(n2,)`.
-- ValueError if field contains values other than 0/1.
+- `ValueError`: if `field.shape != (n2,)`.
+- `ValueError`: if `field` contains values other than 0 or 1.
+- `ValueError`: legacy path only, if `comm_logits` has statically known width not equal to $m$.
+- Other exceptions may be raised by TensorFlow/NumPy operations or by the underlying `model_a` (not specified).
 
 Example
 
-!!! example "Deciding communication bits"
-    ```python
-    import numpy as np
+```python
+import numpy as np
 
-    field_size = int(getattr(player_a.game_layout, "field_size"))
-    n2 = field_size ** 2
-    field = np.zeros((n2,), dtype=np.int32)
+# field must be flat binary shape (n2,)
+field = np.zeros((game_layout.field_size * game_layout.field_size,), dtype=np.int32)
 
-    comm_bits = player_a.decide(field, explore=True)
-    ```
+player_a.explore = False
+comm_bits = player_a.decide(field)  # np.ndarray int32 shape (m,)
+
+logp = player_a.get_log_prob()  # float
+prev = player_a.get_prev()      # typically (meas_list, out_list) or None
+```
 
 ### get_log_prob()
 
-Return the log-probability of the last taken communication action.
-
-Parameters
-
-- None.
+Return the cached log-probability of the last communication decision produced by `decide()`.
 
 Returns
 
-- float, constraints: finite scalar expected, shape: scalar.
+- `float`, constraints: finite real number (not validated), shape: scalar: Log-probability of the last boundary communication bits.
 
 Preconditions
 
-- decide() must have been called since the last reset() such that self.last_logprob_comm is not None.
+- `decide()` must have been called successfully since the last `reset()`.
 
 Postconditions
 
-- No state change.
+- Does not modify object state.
 
 Errors
 
-- RuntimeError if self.last_logprob_comm is None (e.g., decide() has not been called since reset()).
+- `RuntimeError`: if `self.last_logprob_comm is None` (i.e., `decide()` has not been called since `reset()`).
 
 Example
 
-!!! example "Reading last log-probability"
-    ```python
-    lp = player_a.get_log_prob()
-    ```
+```python
+comm_bits = player_a.decide(field)
+logp = player_a.get_log_prob()
+```
 
 ### get_prev()
 
-Return the parent previous tensors if available.
-
-Parameters
-
-- None.
+Return the stored intermediate tensors intended for Player B, if available.
 
 Returns
 
-- Any | None, constraints: if not None then a 2-tuple `(meas_list, out_list)` as stored on `self.parent.previous`, shape: N/A.
+- `Any | None`, constraints: if not `None`, equals `parent.previous`, shape: Not specified: Typically a tuple `(meas_list, out_list)` as set by `decide()`, or `None` if unavailable.
 
 Preconditions
 
@@ -138,40 +138,7 @@ Preconditions
 
 Postconditions
 
-- No state change.
-
-Errors
-
-- Not specified (method is non-blocking and returns None when unavailable).
-
-Example
-
-!!! example "Accessing previous tensors"
-    ```python
-    prev = player_a.get_prev()
-    if prev is not None:
-        meas_list, out_list = prev
-    ```
-
-### reset()
-
-Reset internal state.
-
-Parameters
-
-- None.
-
-Returns
-
-- None.
-
-Preconditions
-
-- None.
-
-Postconditions
-
-- self.last_logprob_comm is set to None.
+- Does not modify object state.
 
 Errors
 
@@ -179,18 +146,45 @@ Errors
 
 Example
 
-!!! example "Resetting"
-    ```python
-    player_a.reset()
-    ```
+```python
+prev = player_a.get_prev()
+if prev is not None:
+    meas_list, out_list = prev
+```
+
+### reset()
+
+Reset per-episode/per-rollout state.
+
+Returns
+
+- `None`, shape: N/A.
+
+Preconditions
+
+- None.
+
+Postconditions
+
+- Sets `self.last_logprob_comm = None`.
+
+Errors
+
+- Not specified.
+
+Example
+
+```python
+player_a.reset()
+```
 
 ## Data & State
 
-- game_layout: Any, constraints: should provide `field_size` and `comms_size`, shape: N/A; set at construction.
-- model_a: LinTrainableAssistedModelA, constraints: must implement `compute_with_internal`, shape: N/A; set at construction.
-- parent: Any | None, constraints: if not None may be expected to have attribute `previous`, shape: N/A; default None and intended to be set externally.
-- last_logprob_comm: float | None, constraints: None before decide() or after reset(), otherwise scalar float, shape: scalar.
-- explore: bool, constraints: when True decide() samples, when False decide() is greedy, shape: scalar.
+- `game_layout`: Any, constraints: must expose `field_size` and `comms_size` for `decide()`, shape: N/A.
+- `model_a`: `LinTrainableAssistedModelA`, constraints: may be a `GameplayModelAAdapter` instance at runtime, shape: N/A.
+- `parent`: Any \| None, constraints: if not `None` should expose writable attribute `previous`, shape: N/A.
+- `last_logprob_comm`: float \| None, constraints: `None` until first successful `decide()` after `reset()`, shape: scalar.
+- `explore`: bool, constraints: default `False`; may be overridden per-call via `decide(..., explore=...)`, shape: scalar.
 
 ## Planned (design-spec)
 
@@ -198,19 +192,20 @@ Example
 
 ## Deviations
 
-- Not specified (no design notes provided to compare against).
+- Module docstring states that the exact contract for `decide()`, `get_log_prob()`, and stored `previous` payload is defined in project design documentation; this class enforces only shape/value checks on `field` and stores `(meas_list, out_list)` as returned by the underlying model/adapter without further schema validation.
 
 ## Notes for Contributors
 
-- decide() computes $n2$ and $m$ dynamically from game_layout on each call; changes to game_layout at runtime will affect validation and output dimensionality.
-- get_prev() reads `self.parent.previous` via getattr and returns None if unavailable; callers should handle None.
+- Two code paths exist: adapter path (`GameplayModelAAdapter`) where boundary bits are produced by the adapter, and legacy path where this class converts logits to boundary bits via sampling (`explore=True`) or thresholding (`explore=False`).
+- `_warn_if_not_binary_list()` prints gameplay safety diagnostics if intermediate lists contain non-binary values; it does not raise and does not modify inputs.
+- The log-probability is computed under independent Bernoulli bits parameterized by logits and summed over the last dimension; ensure any adapter returning `comm_logits` aligns with that assumption.
 
 ## Related
 
-- LinTrainableAssistedModelA
-- PlayerA (base class, imported from `.players` if available; otherwise a fallback stub exists in-module)
-- bernoulli_log_prob_from_logits (imported from `.logit_utils` if available; otherwise a fallback implementation exists in-module)
+- `Q_Sea_Battle.trainable_assisted_player_a.bernoulli_log_prob_from_logits`
+- `Q_Sea_Battle.lin_trainable_assisted_model_a.LinTrainableAssistedModelA`
+- `Q_Sea_Battle.gameplay_adapters.GameplayModelAAdapter`
 
 ## Changelog
 
-- 0.1: Initial implementation per module docstring.
+- Not specified.

@@ -1,13 +1,13 @@
 # SimplePlayers
 
-> Role: Factory that produces a matched `(SimplePlayerA, SimplePlayerB)` pair sharing a `GameLayout`.
+> Role: Factory that produces a paired `(PlayerA, PlayerB)` set as `(SimplePlayerA, SimplePlayerB)` sharing a single `GameLayout`.
 Location: `Q_Sea_Battle.simple_players.SimplePlayers`
 
 ## Constructor
 
 | Parameter | Type | Description |
-|---|---|---|
-| game_layout | GameLayout \| None, constraint: may be `None` | Optional shared configuration; if `None`, a default `GameLayout` is created by the base class. |
+| --- | --- | --- |
+| game_layout | GameLayout \| None, optional | Optional shared game configuration; if `None`, the base `Players` class creates a default `GameLayout`. |
 
 Preconditions
 
@@ -15,29 +15,30 @@ Preconditions
 
 Postconditions
 
-- `self.game_layout` is initialized via the base `Players` constructor (exact initialization behavior is defined by `Players`).
+- The instance is initialized via `Players.__init__(game_layout)` and has a `game_layout` associated with it (exact state shape/ownership not specified in this module).
 
 Errors
 
 - Not specified.
 
-!!! example "Example"
-    ```python
-    from Q_Sea_Battle.simple_players import SimplePlayers
+Example
 
-    factory = SimplePlayers()
-    player_a, player_b = factory.players()
-    ```
+```python
+from Q_Sea_Battle.simple_players import SimplePlayers
+
+factory = SimplePlayers()
+player_a, player_b = factory.players()
+```
 
 ## Public Methods
 
 ### players
 
-Create a `(SimplePlayerA, SimplePlayerB)` pair that shares the same `GameLayout`.
+Instantiate and return the concrete player pair.
 
 Returns
 
-- `Tuple[PlayerA, PlayerB]`, constraint: length exactly `2`, shape: `(2,)` as a fixed-size 2-tuple of `(player_a, player_b)`.
+- Tuple[PlayerA, PlayerB], shape (2,): A tuple `(player_a, player_b)` containing `SimplePlayerA` and `SimplePlayerB` instances that share `self.game_layout`.
 
 Preconditions
 
@@ -45,21 +46,22 @@ Preconditions
 
 Postconditions
 
-- Returns two newly created player objects, both constructed with `self.game_layout`.
+- Both returned players reference the same `GameLayout` instance via `self.game_layout`.
 
 Errors
 
 - Not specified.
 
-!!! example "Example"
-    ```python
-    factory = SimplePlayers()
-    player_a, player_b = factory.players()
-    ```
+Example
+
+```python
+factory = SimplePlayers()
+player_a, player_b = factory.players()
+```
 
 ## Data & State
 
-- `game_layout`: `GameLayout`, constraints: not specified in this module; provided/managed by the base class `Players`.
+- Inherited state from `Players` (not specified in this module), including `self.game_layout: GameLayout` as implied by usage.
 
 ## Planned (design-spec)
 
@@ -67,22 +69,19 @@ Errors
 
 ## Deviations
 
-- None identified (no design notes provided beyond empty placeholder).
+- None identified between code and provided design notes.
 
 ## Notes for Contributors
 
-- This class delegates `GameLayout` initialization to `Players.__init__`; changes to default layout behavior should be implemented in `Players`, not here.
-- The concrete player types are hard-coded as `SimplePlayerA` and `SimplePlayerB` within `players()`.
+- The key invariant is that both `SimplePlayerA` and `SimplePlayerB` must be constructed with the same `self.game_layout` object (shared instance), not merely equivalent configurations.
 
 ## Related
 
 - `Q_Sea_Battle.players_base.Players`
-- `Q_Sea_Battle.players_base.PlayerA`
-- `Q_Sea_Battle.players_base.PlayerB`
-- `Q_Sea_Battle.game_layout.GameLayout`
 - `Q_Sea_Battle.simple_player_a.SimplePlayerA`
 - `Q_Sea_Battle.simple_player_b.SimplePlayerB`
+- `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- 0.1: Initial version (module docstring).
+- Not specified.

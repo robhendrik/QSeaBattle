@@ -1,166 +1,160 @@
 # PyrCombineLayerB
 
-> Role: Trainable Keras layer mapping (gun, sr_outcome, comm) -> (next_gun logits, next_comm logits) for the next pyramid level.
+> Role: Trainable Keras layer that concatenates current gun state, SR outcome logits, and comm logit to produce next-level gun logits and an updated comm logit.
 
 Location: `Q_Sea_Battle.pyr_combine_layer_b.PyrCombineLayerB`
 
 ## Derived constraints
 
-- Let $L$ be the last dimension of `gun_batch` (the gun feature size). Constraint: $L$ must be statically known at build time and even; the layer outputs gun logits with last dimension $L/2$.
-- All inputs to `call(...)` must be rank-2 tensors: shape $(B, D)$ for batch size $B$ and feature dimension $D$.
+- Let $L$ be the last dimension of `gun_batch`; $L$ must be statically known at build time and must be even.
+- Let $B$ be the batch size (dynamic); all inputs to `call` must be rank-2 with leading dimension $B$.
+- `sr_outcome_batch` last dimension must equal $L/2$ (checked at runtime).
+- `comm_batch` last dimension must equal $1$ (checked at runtime).
+- Outputs have shapes `(B, L/2)` for `next_gun_logits` and `(B, 1)` for `next_comm_logit`.
 
 ## Constructor
 
 Parameter | Type | Description
 --- | --- | ---
-hidden_units | int, constraint $>= 1$ | Width of the intermediate dense layer.
-name | str or None, optional | Keras layer name.
-dtype | tf.dtypes.DType or None, optional | Layer dtype; if None, `call()` converts inputs to `tf.float32` unless overridden elsewhere.
-**kwargs | dict[str, Any] | Forwarded to `tf.keras.layers.Layer` base constructor.
+hidden_units | int, constraint $\ge 1$, scalar | Number of hidden units in the intermediate Dense layer.
+name | Optional[str], scalar | Layer name.
+dtype | Optional[tf.dtypes.DType], scalar | Layer dtype; inputs are converted to this dtype (or float32 if `None`).
+**kwargs | Any, scalar | Passed to the base Keras `Layer` constructor.
 
 Preconditions
 
-- `hidden_units` must be an integer value $>= 1$.
+- `hidden_units` is an `int` with `hidden_units >= 1`.
 
 Postconditions
 
 - `self.hidden_units` is set to `int(hidden_units)`.
-- Internal sublayers (`_dense_hidden`, `_dense_gun`, `_dense_comm`) are initialized to `None` and are created later in `build(...)`.
+- No sublayers are created until `build()` is called; `_dense_hidden`, `_dense_gun`, `_dense_comm`, and `_built_for_L` are initialized to `None`.
 
 Errors
 
-- Raises `ValueError` if `hidden_units < 1`.
+- `ValueError`: if `hidden_units < 1`.
 
 Example
 
-```python
-import tensorflow as tf
-from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
+!!! example "Instantiate the layer"
+      ```python
+      import tensorflow as tf
+      from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
 
-layer = PyrCombineLayerB(hidden_units=64)
-```
+      layer = PyrCombineLayerB(hidden_units=64, dtype=tf.float32)
+      ```
 
 ## Public Methods
 
-### build(input_shape)
+### build
 
-Creates sublayers based on the statically known gun dimension $L$.
+- Signature: `build(input_shape: Any) -> None`
 
-Parameters
+Creates sublayers using the statically-known gun width $L$ derived from `input_shape` (Keras may pass only the first input shape for multi-input layers).
 
-- input_shape: Any, constraints: must be convertible to `tf.TensorShape` and have a statically known last dimension $L$.
+Arguments
+
+- `input_shape`: Any, constraint convertible to `tf.TensorShape`, scalar; interpreted as the gun input shape, whose last dimension is $L$.
 
 Returns
 
-- None
+- `None`.
 
 Preconditions
 
-- `input_shape` must have a statically known last dimension $L`.
+- `input_shape` must have a statically known last dimension $L$.
 - $L$ must be even.
 
 Postconditions
 
-- Creates the following sublayers (all with `dtype=self.dtype`): `dense_hidden` (Dense, units=`hidden_units`, activation="relu"), `dense_gun` (Dense, units=$L/2$, activation=None), `dense_comm` (Dense, units=1, activation=None).
-- Stores `self._built_for_L = L`.
+- Creates and assigns the following sublayers:
+  - `_dense_hidden`: `tf.keras.layers.Dense`, units=`hidden_units`, activation=`"relu"`, dtype=`self.dtype`.
+  - `_dense_gun`: `tf.keras.layers.Dense`, units=`L/2`, activation=`None`, dtype=`self.dtype`.
+  - `_dense_comm`: `tf.keras.layers.Dense`, units=`1`, activation=`None`, dtype=`self.dtype`, `kernel_initializer=RandomNormal(stddev=0.01)`, `bias_initializer="zeros"`.
+- Sets `_built_for_L` to `int(L)`.
+- Calls `super().build(input_shape)`.
 
 Errors
 
-- Raises `ValueError` if `gun_batch` last dimension $L$ is not statically known.
-- Raises `ValueError` if $L$ is not even.
+- `ValueError`: if the last dimension of `input_shape` is not statically known.
+- `ValueError`: if $L$ is odd.
 
-Example
+### call
 
-```python
-import tensorflow as tf
-from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
+- Signature: `call(gun_batch: tf.Tensor, sr_outcome_batch: tf.Tensor, comm_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> Tuple[tf.Tensor, tf.Tensor]`
 
-layer = PyrCombineLayerB(hidden_units=32)
-layer.build((None, 8))  # L=8 -> next_gun dim is 4
-```
+Runs a forward pass in logit space (no sigmoid). Concatenates inputs, applies a hidden Dense layer, then produces next gun logits and a residual-updated comm logit.
 
-### call(gun_batch, sr_outcome_batch, comm_batch, training=False, **kwargs)
+Arguments
 
-Forward pass combining gun, SR outcome, and communication bit into next-level logits.
-
-Parameters
-
-- gun_batch: tf.Tensor, dtype float32 or `self.dtype`, shape (B, L), constraints: rank-2; last dim $L$; $L$ even (enforced at build time).
-- sr_outcome_batch: tf.Tensor, dtype float32 or `self.dtype`, shape (B, L/2), constraints: rank-2; last dim must equal `tf.shape(gun_batch)[-1] // 2`.
-- comm_batch: tf.Tensor, dtype float32 or `self.dtype`, shape (B, 1), constraints: rank-2; last dim must equal 1.
-- training: bool, constraints: no additional constraints | Passed to sublayers.
-- **kwargs: dict[str, Any] | Accepted but not otherwise specified by this implementation.
+- `gun_batch`: `tf.Tensor`, dtype float32 or `self.dtype`, shape $(B, L)$; current gun state (typically scaled values during training).
+- `sr_outcome_batch`: `tf.Tensor`, dtype float32 or `self.dtype`, shape $(B, L/2)$; SR outcome logits aligned to the current level.
+- `comm_batch`: `tf.Tensor`, dtype float32 or `self.dtype`, shape $(B, 1)$; current communication bit as a logit.
+- `training`: `bool`, scalar; passed to Dense layers as their `training` argument.
+- `**kwargs`: `Any`, scalar; unused, accepted for Keras compatibility.
 
 Returns
 
-- next_gun: tf.Tensor, dtype float32 or `self.dtype`, shape (B, L/2), constraints: logits (activation=None).
-- next_comm: tf.Tensor, dtype float32 or `self.dtype`, shape (B, 1), constraints: logits (activation=None).
+- `(next_gun_logits, next_comm_logit)`: `Tuple[tf.Tensor, tf.Tensor]` where:
+  - `next_gun_logits`: `tf.Tensor`, dtype float32 or `self.dtype`, shape $(B, L/2)$; logits for next-level gun representation.
+  - `next_comm_logit`: `tf.Tensor`, dtype float32 or `self.dtype`, shape $(B, 1)$; updated comm logit computed as `dense_comm(h) + comm_batch`.
 
 Preconditions
 
-- The layer must have been built such that internal sublayers exist (typically via first call with known input shapes or explicit `build(...)`).
-- All three inputs must be rank-2 tensors.
+- All three inputs must be rank-2 when statically known.
+- Runtime shape requirements must hold: `sr_outcome_batch.shape[-1] == gun_batch.shape[-1] // 2` and `comm_batch.shape[-1] == 1`.
+- The layer must have been built such that `_dense_hidden`, `_dense_gun`, and `_dense_comm` are not `None`.
 
 Postconditions
 
-- Produces `next_gun` and `next_comm` by concatenating inputs along the last axis, applying a hidden Dense layer with ReLU, then projecting to two separate linear heads.
+- Inputs are converted via `tf.convert_to_tensor(..., dtype=self.dtype or tf.float32)`.
+- Produces outputs as described under Returns.
 
 Errors
 
-- Raises `ValueError` if any input has known static rank not equal to 2.
-- Raises `tf.errors.InvalidArgumentError` (via `tf.debugging.assert_equal`) if `sr_outcome_batch` last dim is not `L/2` at runtime.
-- Raises `tf.errors.InvalidArgumentError` (via `tf.debugging.assert_equal`) if `comm_batch` last dim is not 1 at runtime.
-- Raises `RuntimeError` if sublayers are missing (layer not built correctly).
+- `ValueError`: if any input has a statically known rank that is not 2.
+- `tf.errors.InvalidArgumentError`: if runtime assertions on last dimensions fail (`sr_outcome_batch` not $L/2$, or `comm_batch` not 1).
+- `RuntimeError`: if sublayers are missing (layer not built correctly).
 
 Example
 
-```python
-import tensorflow as tf
-from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
+!!! example "Forward pass"
+      ```python
+      import tensorflow as tf
+      from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
 
-B, L = 4, 8
-gun = tf.zeros((B, L), dtype=tf.float32)
-sr = tf.zeros((B, L // 2), dtype=tf.float32)
-comm = tf.zeros((B, 1), dtype=tf.float32)
+      B = 8
+      L = 16
 
-layer = PyrCombineLayerB(hidden_units=64)
-next_gun, next_comm = layer(gun, sr, comm, training=False)
-print(next_gun.shape, next_comm.shape)  # (4, 4) (4, 1)
-```
+      layer = PyrCombineLayerB(hidden_units=64, dtype=tf.float32)
+      gun_batch = tf.random.uniform((B, L), minval=-0.5, maxval=0.5)
+      sr_outcome_batch = tf.random.normal((B, L // 2))
+      comm_batch = tf.random.normal((B, 1))
 
-### get_config()
+      next_gun_logits, next_comm_logit = layer(gun_batch, sr_outcome_batch, comm_batch, training=True)
+      ```
 
-Returns the Keras-serializable configuration.
+### get_config
 
-Parameters
+- Signature: `get_config() -> Dict[str, Any]`
 
-- None
+Returns the serialized configuration for Keras, including `hidden_units`.
+
+Arguments
+
+- None.
 
 Returns
 
-- cfg: dict[str, Any], constraints: includes base layer config and key `"hidden_units"` with value `int`.
-
-Errors
-
-- Not specified.
-
-Example
-
-```python
-from Q_Sea_Battle.pyr_combine_layer_b import PyrCombineLayerB
-
-layer = PyrCombineLayerB(hidden_units=16)
-cfg = layer.get_config()
-assert cfg["hidden_units"] == 16
-```
+- `Dict[str, Any]`, scalar mapping; contains base layer config plus key `"hidden_units"` with value `int`.
 
 ## Data & State
 
-- hidden_units: int, constraint $>= 1$ | Hyperparameter controlling hidden Dense width.
-- _dense_hidden: tf.keras.layers.Dense or None | Created in `build(...)`; units=`hidden_units`, activation="relu".
-- _dense_gun: tf.keras.layers.Dense or None | Created in `build(...)`; units=$L/2$, activation=None.
-- _dense_comm: tf.keras.layers.Dense or None | Created in `build(...)`; units=1, activation=None.
-- _built_for_L: int or None | Stores the gun dimension $L$ used during `build(...)`.
+- `hidden_units`: `int`, constraint $\ge 1$, scalar; number of hidden units in the intermediate Dense layer.
+- `_dense_hidden`: `Optional[tf.keras.layers.Dense]`, scalar; created in `build()`, units=`hidden_units`, activation=`relu`.
+- `_dense_gun`: `Optional[tf.keras.layers.Dense]`, scalar; created in `build()`, units=`L/2`, activation=`None` (logits).
+- `_dense_comm`: `Optional[tf.keras.layers.Dense]`, scalar; created in `build()`, units=`1`, activation=`None` (logits), small-stddev kernel initializer.
+- `_built_for_L`: `Optional[int]`, scalar; gun width $L$ used when building, or `None` if not yet built.
 
 ## Planned (design-spec)
 
@@ -172,8 +166,9 @@ assert cfg["hidden_units"] == 16
 
 ## Notes for Contributors
 
-- Do not create trainable state in `call(...)`; sublayers are expected to be created in `build(...)` based on the statically known gun dimension $L$.
-- `_ensure_rank2(...)` validates rank only when the rank is statically known; dynamic-rank inputs may bypass this check and rely on downstream TensorFlow errors.
+- Sublayers must be created in `build()`; `call()` should remain free of state creation to match the stated Keras 3 build note.
+- `call()` enforces rank-2 only when rank is statically known; runtime shape checks use `tf.debugging.assert_equal` for last dimensions.
+- The comm output is a residual logit update: `dense_comm(h) + comm_batch`; changing this alters downstream behavior.
 
 ## Related
 

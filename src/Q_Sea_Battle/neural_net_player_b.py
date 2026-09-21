@@ -1,8 +1,10 @@
-"""Neural network-based Player B implementation.
+"""Neural network-based implementation of Player B.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+This module defines :class:`NeuralNetPlayerB`, a :class:`~.players_base.PlayerB`
+implementation whose shoot decision is produced by a Keras model. The public
+environment interface represents the gun location as a flattened one-hot vector;
+this module compresses that representation to a single normalized scalar index
+before passing it to the model.
 """
 
 from __future__ import annotations
@@ -18,14 +20,24 @@ from .logit_utilities import logit_to_prob, logit_to_logprob
 
 
 def _gun_one_hot_to_index(gun: np.ndarray) -> np.ndarray:
-    """Convert a one-hot gun vector to a (normalised) scalar index.
+    """Convert a one-hot gun vector to a normalized scalar index.
 
-    The public interface still uses a flattened one-hot vector of length ``n2``.
-    Internally we compress this to a single scalar in [0, 1] representing
+    The external interface provides the gun location as a flattened one-hot
+    vector of length ``n2``. This helper compresses that vector into a scalar
+    in the range ``[0, 1]``:
 
-        idx_norm = idx / max(1, (n2 - 1))
+        ``idx_norm = idx / max(1, n2 - 1)``
 
-    where ``idx`` is the integer index of the 1-bit.
+    where ``idx`` is the argmax index of the vector. Using argmax provides a
+    stable fallback if the input is not strictly one-hot (e.g., all zeros).
+
+    Args:
+        gun: Array containing a batch of gun vectors. The input is reshaped to
+            ``(batch, n2)`` and converted to ``float32``.
+
+    Returns:
+        A ``float32`` NumPy array of shape ``(batch, 1)`` containing the
+        normalized indices.
     """
     gun = np.asarray(gun, dtype=np.float32)
     gun = gun.reshape(gun.shape[0], -1)  # (batch, n2)
@@ -41,14 +53,28 @@ def _gun_one_hot_to_index(gun: np.ndarray) -> np.ndarray:
 
 
 class NeuralNetPlayerB(PlayerB):
-    """Player B driven by a Keras shoot model.
+    """Player B controlled by a Keras model that outputs a shoot logit.
 
-    The model receives a compact representation consisting of the normalised
-    gun index (scalar) concatenated with the communication bits from Player A.
-    It produces a single logit for the shoot decision. Depending on
-    :attr:`explore`, the decision is either a deterministic threshold at 0.5
-    or sampled from the underlying Bernoulli distribution. The log-probability
-    of the chosen action is stored in :attr:`last_logprob`.
+    The model input is a compact feature vector formed by concatenating:
+
+    - the normalized gun index (shape ``(1,)``), and
+    - the communication bits received from Player A (shape ``(m,)``).
+
+    The model output is a single logit representing the Bernoulli parameter for
+    the shoot action. The chosen action is either:
+
+    - sampled from the Bernoulli distribution if :attr:`explore` is ``True``, or
+    - selected greedily by thresholding the probability at 0.5 if :attr:`explore`
+      is ``False``.
+
+    The log-probability of the selected action is stored and can be retrieved
+    via :meth:`get_log_prob`, which is typically used for policy-gradient style
+    training.
+
+    Attributes:
+        model_b: Keras model mapping input features to a single logit.
+        explore: Whether to sample actions (stochastic) or act greedily.
+        last_logprob: Log-probability of the most recent action, if available.
     """
 
     def __init__(
@@ -57,14 +83,15 @@ class NeuralNetPlayerB(PlayerB):
         model_b: tf.keras.Model,
         explore: bool = False,
     ) -> None:
-        """Initialise a :class:`NeuralNetPlayerB` instance.
+        """Initialize a :class:`NeuralNetPlayerB` instance.
 
         Args:
-            game_layout: Shared :class:`GameLayout` describing the environment.
-            model_b: Keras model mapping vectors of shape ``(1 + m,)``
-                (normalised gun index + comm bits) to a single shoot logit.
-            explore: If ``True``, sample shoot actions; if ``False``, act
-                greedily by thresholding probabilities.
+            game_layout: Shared :class:`~.game_layout.GameLayout` describing the
+                environment.
+            model_b: Keras model mapping vectors of shape ``(1 + m,)`` (normalized
+                gun index + communication bits) to a single shoot logit.
+            explore: If ``True``, sample shoot actions; if ``False``, choose
+                actions greedily by thresholding the probability.
         """
         super().__init__(game_layout=game_layout)
         self.model_b: tf.keras.Model = model_b
@@ -80,7 +107,11 @@ class NeuralNetPlayerB(PlayerB):
         comm: np.ndarray,
         supp: Any | None = None,
     ) -> int:
-        """Decide whether to shoot based on gun and communication.
+        """Decide whether Player B shoots.
+
+        This method converts the public gun representation (flattened one-hot) to
+        a normalized scalar index, concatenates it with the communication vector,
+        and forwards the resulting feature vector through :attr:`model_b`.
 
         Args:
             gun: Flattened one-hot gun vector of length ``n2``.
@@ -88,7 +119,7 @@ class NeuralNetPlayerB(PlayerB):
             supp: Optional supporting information (unused).
 
         Returns:
-            ``1`` to shoot or ``0`` to not shoot.
+            ``1`` if shooting is selected, otherwise ``0``.
         """
         gun = np.asarray(gun, dtype=np.float32).reshape(1, -1)
         comm = np.asarray(comm, dtype=np.float32).reshape(1, -1)
@@ -115,7 +146,16 @@ class NeuralNetPlayerB(PlayerB):
     # ------------------------------------------------------------------
     @staticmethod
     def logit_to_probs(logits: np.ndarray | float) -> np.ndarray | float:
-        """Backward-compatible wrapper around :func:`logit_to_prob`."""
+        """Convert logit(s) to Bernoulli probability/probabilities.
+
+        This is a backward-compatible wrapper around :func:`~.logit_utilities.logit_to_prob`.
+
+        Args:
+            logits: Scalar logit or NumPy array of logits.
+
+        Returns:
+            Probability value(s) with the same structure as ``logits``.
+        """
         return logit_to_prob(logits)
 
     @staticmethod
@@ -123,14 +163,25 @@ class NeuralNetPlayerB(PlayerB):
         logits: np.ndarray | float,
         actions: np.ndarray | float,
     ) -> np.ndarray | float:
-        """Backward-compatible wrapper around :func:`logit_to_logprob`."""
+        """Compute log-probability of Bernoulli action(s) under given logit(s).
+
+        This is a backward-compatible wrapper around
+        :func:`~.logit_utilities.logit_to_logprob`.
+
+        Args:
+            logits: Scalar logit or NumPy array of logits.
+            actions: Action(s) encoded as 0/1 (or float equivalents).
+
+        Returns:
+            Log-probability value(s) with a structure compatible with inputs.
+        """
         return logit_to_logprob(logits, actions)
 
     # ------------------------------------------------------------------
     # Log-probability interface
     # ------------------------------------------------------------------
     def get_log_prob(self) -> float:
-        """Return the log-probability of the last action.
+        """Return the log-probability of the most recent action.
 
         Returns:
             Log-probability as a scalar float.
@@ -143,5 +194,9 @@ class NeuralNetPlayerB(PlayerB):
         return float(self.last_logprob)
 
     def reset(self) -> None:
-        """Reset internal state (e.g. stored log-probability)."""
+        """Reset internal episode state.
+
+        Currently this clears any stored log-probability from the previous
+        decision.
+        """
         self.last_logprob = None

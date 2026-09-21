@@ -1,12 +1,23 @@
-"""Utilities for imitation training of NeuralNetPlayers.
+"""Utilities for generating imitation-learning datasets for NeuralNetPlayers.
 
-This module generates synthetic imitation-learning datasets for
-NeuralNetPlayers.model_a and NeuralNetPlayers.model_b based on the
-majority player strategy.
+The helpers in this module synthesize supervised training data for the
+NeuralNetPlayers split-model setup:
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+- Model A learns a mapping from a flattened binary field to communication bits.
+- Model B learns a mapping from (communication bits, gun position) to a shoot
+  decision.
+
+The "teacher" policy implemented here is the majority strategy used by the
+MajorityPlayer: the field is partitioned into contiguous segments and each
+communication bit indicates whether its segment contains a majority of ones.
+
+Notes:
+    - All fields are represented as flattened arrays of length
+      ``n2 = field_size ** 2`` in row-major order (consistent with how the rest
+      of the project flattens fields).
+    - Communication vectors have length ``m = comms_size``.
+    - This module uses NumPy arrays inside a pandas.DataFrame (object columns)
+      to match the expected training interfaces.
 """
 
 from __future__ import annotations
@@ -20,25 +31,25 @@ from Q_Sea_Battle.game_layout import GameLayout
 
 
 def make_segments(layout: GameLayout) -> List[Tuple[int, int]]:
-    """Compute contiguous segments over the flattened field.
+    """Partition a flattened field into contiguous segments.
 
-    The field of length n2 = field_size**2 is partitioned into
-    m = comms_size contiguous segments that are as even as possible.
-
-    For the standard MajorityPlayers configuration, comms_size divides n2
-    exactly, but this function also supports the general case.
+    The flattened field has length ``n2 = field_size ** 2`` and is partitioned
+    into ``m = comms_size`` contiguous segments. Segment lengths are as even as
+    possible; if ``n2`` is not divisible by ``m``, the first ``n2 % m`` segments
+    are one element longer.
 
     Args:
-        layout:
-            GameLayout instance providing field_size and comms_size.
+        layout: GameLayout providing ``field_size`` and ``comms_size``.
 
     Returns:
-        List of (start, end) index pairs (Python slice-style, end exclusive),
-        of length m = layout.comms_size, covering range [0, n2) without
-        gaps or overlaps.
+        A list of ``(start, end)`` index pairs (Python slice-style, end
+        exclusive), of length ``layout.comms_size``, covering ``[0, n2)``
+        without gaps or overlaps.
 
     Raises:
-        ValueError: if field_size < 1 or comms_size < 1 or comms_size > n2.
+        ValueError: If ``field_size < 1``, ``comms_size < 1``, or
+            ``comms_size > n2``.
+        RuntimeError: If the constructed segments do not cover ``[0, n2)``.
     """
     n = layout.field_size
     m = layout.comms_size
@@ -47,9 +58,7 @@ def make_segments(layout: GameLayout) -> List[Tuple[int, int]]:
         raise ValueError("field_size must be >= 1.")
     n2 = n * n
     if m < 1 or m > n2:
-        raise ValueError(
-            f"comms_size must be in [1, {n2}], got {m}."
-        )
+        raise ValueError(f"comms_size must be in [1, {n2}], got {m}.")
 
     base = n2 // m
     rem = n2 % m
@@ -57,7 +66,9 @@ def make_segments(layout: GameLayout) -> List[Tuple[int, int]]:
     segments: List[Tuple[int, int]] = []
     start = 0
     for j in range(m):
-        # Distribute any remainder: first 'rem' segments get one extra.
+        # Distribute the remainder: the first `rem` segments get one extra
+        # element so that all segments remain contiguous and cover the full
+        # flattened field.
         length = base + (1 if j < rem else 0)
         end = start + length
         segments.append((start, end))
@@ -71,26 +82,27 @@ def make_segments(layout: GameLayout) -> List[Tuple[int, int]]:
 
 
 def compute_majority_comm(fields: np.ndarray, layout: GameLayout) -> np.ndarray:
-    """Compute teacher majority communication bits for a batch of fields.
+    """Compute teacher communication bits via per-segment majority voting.
 
-    For each field and each segment (as defined by `make_segments`),
-    this function computes whether there is a majority of ones in that
-    segment and sets the corresponding communication bit to 1 if so,
-    otherwise 0.
+    For each sample and each segment (as defined by :func:`make_segments`), this
+    function computes whether ones are in the majority within that segment and
+    emits a communication bit of 1.0 if so, otherwise 0.0.
+
+    Tie-breaking: when a segment contains exactly half ones and half zeros, the
+    output is 1.0 because the comparison is ``count >= L/2``.
 
     Args:
-        fields:
-            NumPy array of shape (N, n2) with flattened binary fields,
-            values in {0, 1}.
-        layout:
-            GameLayout defining field_size and comms_size.
+        fields: Array of shape ``(N, n2)`` containing flattened binary fields.
+            Values are expected to be in ``{0, 1}`` (or floats equivalent).
+        layout: GameLayout defining ``field_size`` and ``comms_size``.
 
     Returns:
-        NumPy array of shape (N, m) with majority comm bits in {0.0, 1.0},
-        dtype float32.
+        Array of shape ``(N, m)`` with values in ``{0.0, 1.0}``, dtype
+        ``np.float32``.
 
     Raises:
-        ValueError: if input shape is inconsistent with layout.
+        ValueError: If ``fields`` is not 2D or its second dimension does not
+            equal ``field_size ** 2``.
     """
     if fields.ndim != 2:
         raise ValueError("fields must be a 2D array of shape (N, n2).")
@@ -107,20 +119,24 @@ def compute_majority_comm(fields: np.ndarray, layout: GameLayout) -> np.ndarray:
 
     comms = np.zeros((num_samples, m), dtype=np.float32)
 
-    # Compute majority per segment.
     for j, (start, end) in enumerate(segments):
-        seg = fields[:, start:end]  # (N, L_j)
-        # Count ones per sample in this segment.
+        seg = fields[:, start:end]  # shape: (N, L_j)
         counts = seg.sum(axis=1)
         L = end - start
-        # Majority: 1 if count >= L/2, else 0.
         comms[:, j] = (counts >= (L / 2.0)).astype(np.float32)
 
     return comms
 
 
 def _make_rng(seed: Optional[int]) -> np.random.Generator:
-    """Create a NumPy random Generator from an optional seed."""
+    """Create a NumPy random Generator for an optional seed.
+
+    Args:
+        seed: Optional integer seed.
+
+    Returns:
+        A NumPy ``Generator`` instance.
+    """
     if seed is None:
         return np.random.default_rng()
     return np.random.default_rng(seed)
@@ -132,28 +148,27 @@ def generate_majority_dataset_model_a(
     p_one: float = 0.5,
     seed: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Generate an imitation-learning dataset for Model A (field -> comm).
+    """Generate an imitation dataset for Model A (field -> communication).
 
-    Fields are drawn IID from Bernoulli(p_one) per cell. Communication
-    targets are majority bits over segments defined by `make_segments`.
+    Each field cell is sampled IID from a Bernoulli distribution with parameter
+    ``p_one``. Targets are computed via per-segment majority voting.
 
     Args:
-        layout:
-            GameLayout defining field_size and comms_size.
-        num_samples:
-            Number of samples to generate.
-        p_one:
-            Probability that any given field cell equals 1.
-        seed:
-            Optional RNG seed for reproducibility.
+        layout: GameLayout defining ``field_size`` and ``comms_size``.
+        num_samples: Number of samples to generate.
+        p_one: Probability that a given field cell equals 1.
+        seed: Optional RNG seed for reproducibility.
 
     Returns:
-        pandas.DataFrame with at least two columns:
+        A pandas.DataFrame with columns:
 
-        - 'field': 1D NumPy arrays of shape (n2,), dtype float32.
-        - 'comm' : 1D NumPy arrays of shape (m,), dtype float32.
+        - ``field``: 1D NumPy array of shape ``(n2,)``, dtype ``np.float32``.
+        - ``comm``: 1D NumPy array of shape ``(m,)``, dtype ``np.float32``.
 
-        Additional columns may be added in the future.
+        Columns store NumPy arrays per row (object dtype columns).
+
+    Raises:
+        ValueError: If ``num_samples <= 0``.
     """
     if num_samples <= 0:
         raise ValueError("num_samples must be positive.")
@@ -167,7 +182,7 @@ def generate_majority_dataset_model_a(
     # Compute teacher majority comm bits.
     comms = compute_majority_comm(fields, layout).astype(np.float32)
 
-    # Store arrays per row in the DataFrame (dtype=object column).
+    # Store arrays per row in the DataFrame (object columns).
     df = pd.DataFrame(
         {
             "field": list(fields),
@@ -184,37 +199,36 @@ def generate_majority_dataset_model_b(
     p_one: float = 0.5,
     seed: Optional[int] = None,
 ) -> pd.DataFrame:
-    """Generate an imitation-learning dataset for Model B (comm + gun -> shoot).
+    """Generate an imitation dataset for Model B (comm + gun -> shoot).
 
-    For each sample, this function:
+    For each sample:
 
-    1. Samples a binary field IID from Bernoulli(p_one).
-    2. Computes majority comm bits using the same segmentation as
-       `compute_majority_comm`.
-    3. Samples a gun index uniformly over all cells and converts it to a
-       one-hot vector.
-    4. Assigns the shoot label as the majority bit of the segment that
-       contains the gun index (segment-majority imitation).
+    1. Sample a binary field IID from Bernoulli(p_one).
+    2. Compute the teacher communication vector via majority voting.
+    3. Sample a gun index uniformly from ``[0, n2)`` and one-hot encode it.
+    4. Define the teacher ``shoot`` label as the communication bit of the
+       segment containing the gun index.
+
+    This corresponds to a segment-level teacher: the shot decision depends only
+    on the segment majority signal, not the exact cell value.
 
     Args:
-        layout:
-            GameLayout defining field_size and comms_size.
-        num_samples:
-            Number of samples to generate.
-        p_one:
-            Probability that any given field cell equals 1.
-        seed:
-            Optional RNG seed for reproducibility.
+        layout: GameLayout defining ``field_size`` and ``comms_size``.
+        num_samples: Number of samples to generate.
+        p_one: Probability that a given field cell equals 1.
+        seed: Optional RNG seed for reproducibility.
 
     Returns:
-        pandas.DataFrame with at least the columns:
+        A pandas.DataFrame with columns:
 
-        - 'field': 1D NumPy arrays of shape (n2,), dtype float32.
-        - 'comm' : 1D NumPy arrays of shape (m,), dtype float32.
-        - 'gun'  : 1D NumPy arrays of shape (n2,), one-hot, dtype float32.
-        - 'shoot': scalar float32 in {0.0, 1.0}.
+        - ``field``: 1D NumPy array of shape ``(n2,)``, dtype ``np.float32``.
+        - ``comm``: 1D NumPy array of shape ``(m,)``, dtype ``np.float32``.
+        - ``gun``: 1D one-hot NumPy array of shape ``(n2,)``, dtype
+          ``np.float32``.
+        - ``shoot``: Scalar ``np.float32`` in ``{0.0, 1.0}``.
 
-        This schema matches what NeuralNetPlayers.train_model_b expects.
+    Raises:
+        ValueError: If ``num_samples <= 0``.
     """
     if num_samples <= 0:
         raise ValueError("num_samples must be positive.")
@@ -241,7 +255,8 @@ def generate_majority_dataset_model_b(
         gun = np.zeros(n2, dtype=np.float32)
         gun[gun_index] = 1.0
 
-        # 4. Determine segment of gun_index and teacher shoot label.
+        # 4. Find the segment containing the gun index and use that segment's
+        # teacher communication bit as the shoot label.
         segment_idx = 0
         for j, (start, end) in enumerate(segments):
             if start <= gun_index < end:
@@ -274,29 +289,24 @@ def generate_majority_imitation_datasets(
     p_one: float = 0.5,
     seed: Optional[int] = None,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
-    """Generate paired imitation-learning datasets for Model A and Model B.
+    """Generate paired imitation datasets for Model A and Model B.
 
-    This is a convenience wrapper that calls both
-    `generate_majority_dataset_model_a` and
-    `generate_majority_dataset_model_b` with derived RNG seeds to ensure
-    reproducible but distinct draws for the two datasets.
+    This is a convenience wrapper around
+    :func:`generate_majority_dataset_model_a` and
+    :func:`generate_majority_dataset_model_b`. When a seed is provided, it uses
+    ``seed`` for Model A and ``seed + 1`` for Model B so that both datasets are
+    reproducible while remaining statistically independent draws.
 
     Args:
-        layout:
-            GameLayout defining field_size and comms_size.
-        num_samples_a:
-            Number of samples for the Model A dataset.
-        num_samples_b:
-            Number of samples for the Model B dataset.
-        p_one:
-            Probability that any given field cell equals 1.
-        seed:
-            Optional RNG seed. If provided, the A- and B-datasets are
-            generated with seeds `seed` and `seed + 1`, respectively.
+        layout: GameLayout defining ``field_size`` and ``comms_size``.
+        num_samples_a: Number of samples for the Model A dataset.
+        num_samples_b: Number of samples for the Model B dataset.
+        p_one: Probability that a given field cell equals 1.
+        seed: Optional RNG seed.
 
     Returns:
-        Tuple (dataset_a, dataset_b) where each element is a pandas.DataFrame
-        as returned by the corresponding generator function.
+        A tuple ``(dataset_a, dataset_b)`` where each element is a
+        pandas.DataFrame in the format returned by the corresponding generator.
     """
     seed_a: Optional[int]
     seed_b: Optional[int]

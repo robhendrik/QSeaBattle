@@ -1,12 +1,12 @@
-"""Base Player B interface for QSeaBattle.
+"""Player B baseline interface for QSeaBattle.
 
-This module contains the default baseline implementation for the B-side player.
-It is split out of :mod:`Q_Sea_Battle.players_base` so that the legacy import
+This module provides the default (baseline) implementation for the B-side
+player. It is split out of :mod:`Q_Sea_Battle.players_base` so the legacy import
 path can remain stable while allowing the implementation to evolve.
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.2
+The baseline policy implemented here is intentionally simple: it returns a
+random binary decision and does not use the provided gun position or
+communication vector.
 """
 
 from __future__ import annotations
@@ -19,39 +19,41 @@ from .game_layout import GameLayout
 
 
 class PlayerB:
-    """Base class for Player B in QSeaBattle.
+    """Baseline Player B interface.
 
-    The default behaviour is a random shooting strategy: given a gun
-    position and communication vector, Player B returns a random binary
-    decision.
+    The default behavior is a random shooting strategy. Given a gun position and
+    a communication vector from Player A, Player B returns a random decision in
+    ``{0, 1}``.
 
     Attributes:
-        game_layout: Shared configuration from the Players factory.
+        game_layout: Shared game configuration provided by the players factory.
     """
 
     def __init__(self, game_layout: GameLayout) -> None:
-        """Initialise Player B.
+        """Initialize Player B.
 
         Args:
-            game_layout: Game configuration for this player.
+            game_layout: Game configuration for this player instance.
         """
         self.game_layout = game_layout
 
     def decide(
         self, gun: np.ndarray, comm: np.ndarray, supp: Optional[Any] = None
     ) -> int:
-        """Decide whether to shoot based on gun position and message.
+        """Return Player B's shoot / no-shoot decision.
 
-        The base implementation ignores the inputs and returns a random
-        decision in {0, 1}.
+        This baseline implementation ignores all inputs and samples a uniform
+        random action.
 
         Args:
-            gun: Flattened one-hot gun array. The base implementation
-                does not depend on its content.
-            comm: Communication vector from Player A. Ignored here.
-            supp: Optional supporting information (unused in base class).
+            gun: Gun position encoding (typically a flattened one-hot array).
+                Ignored by the baseline implementation.
+            comm: Communication vector from Player A. Ignored by the baseline
+                implementation.
+            supp: Optional supporting information. Unused by the baseline
+                implementation.
 
         Returns:
-            An integer 0 (do not shoot) or 1 (shoot).
+            0 for "do not shoot" or 1 for "shoot".
         """
         return int(np.random.randint(0, 2))

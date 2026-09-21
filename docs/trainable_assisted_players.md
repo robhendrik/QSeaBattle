@@ -1,145 +1,157 @@
 # TrainableAssistedPlayers
 
-> Role: Players-style wrapper that wires a trainable sender (A) and receiver (B) assisted player pair and owns their underlying models and shared state.
+> Role: Factory/wrapper that provides a coordinated (A, B) PR-assisted player pair.
 
 Location: `Q_Sea_Battle.trainable_assisted_players.TrainableAssistedPlayers`
+
+## Derived constraints
+
+The instance coordinates two trainable models and two player wrappers; the shared dimensions are derived from `game_layout.field_size` and `game_layout.comms_size`. Define $n2 = \text{field\_size}^2$, where `field_size` is the side length of the square field, and `comms_size` is the number of communication bits/logits.
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_layout | Any, not specified, must provide attributes `field_size` and `comms_size` convertible to `int` | Game-layout-like object used to parameterize default models and passed into player wrappers. |
-| p_high | float, not specified | Forward-compatibility parameter; currently unused by this class when building default linear models. |
-| num_iterations | Optional[int], not specified | Forward-compatibility parameter; currently unused by this class when building default linear models. |
-| hidden_dim | int, not specified | Forward-compatibility parameter; currently unused by this class when building default linear models. |
-| L_meas | Optional[int], not specified | Forward-compatibility parameter; currently unused by this class when building default linear models. |
-| model_a | Optional[LinTrainableAssistedModelA], default `None` | If provided, used as the A-side model; otherwise a default `LinTrainableAssistedModelA` is constructed from `game_layout.field_size` and `game_layout.comms_size`. |
-| model_b | Optional[LinTrainableAssistedModelB], default `None` | If provided, used as the B-side model; otherwise a default `LinTrainableAssistedModelB` is constructed from `game_layout.field_size` and `game_layout.comms_size`. |
+| `game_layout` | `Any`, must provide attributes `field_size: int` and `comms_size: int`, scalar | Game-layout-like object used to parameterize default models and to construct player wrappers. |
+| `p_rule` | `float`, unconstrained, scalar | Unused by current linear models; retained for compatibility with other/older configurations. |
+| `num_iterations` | `Optional[int]`, unconstrained, scalar | Unused by current linear models; retained for compatibility with other/older configurations. |
+| `hidden_dim` | `int`, unconstrained, scalar | Unused by current linear models; retained for compatibility with other/older configurations. |
+| `L_meas` | `Optional[int]`, unconstrained, scalar | Unused by current linear models; retained for compatibility with other/older configurations. |
+| `model_a` | `Optional[LinTrainableAssistedModelA]`, scalar | Optional pre-constructed model for player A; if `None`, a default `LinTrainableAssistedModelA` is constructed from `game_layout`. |
+| `model_b` | `Optional[LinTrainableAssistedModelB]`, scalar | Optional pre-constructed model for player B; if `None`, a default `LinTrainableAssistedModelB` is constructed from `game_layout`. |
 
 Preconditions
 
-- `game_layout` has attributes `field_size` and `comms_size` such that `int(getattr(game_layout, "field_size"))` and `int(getattr(game_layout, "comms_size"))` succeed when default models are constructed.
+- `game_layout` provides `field_size` and `comms_size` attributes readable via `getattr`.
+- If `model_a is None` or `model_b is None`, `int(getattr(game_layout, "field_size"))` and `int(getattr(game_layout, "comms_size"))` must succeed.
 
 Postconditions
 
-- `self.game_layout` is set to `game_layout` (type: Any, constraints: not specified).
-- `self.explore` is initialized to `False` (type: bool, constraints: {True, False}).
-- `self.model_a` is set (type: LinTrainableAssistedModelA, constraints: not specified).
-- `self.model_b` is set (type: LinTrainableAssistedModelB, constraints: not specified).
-- `self.previous` is initialized to `None` (type: Any | None, constraints: typically either `None` or a tuple `(measurements_per_layer, outcomes_per_layer)` where both are Python lists of tensors each shaped `(B, n2)`).
-- Lazy player wrappers `self._playerA` and `self._playerB` are initialized to `None` (type: Optional[TrainableAssistedPlayerA] and Optional[TrainableAssistedPlayerB], constraints: not specified).
-- `self.has_prev` is initialized to `True` (type: bool, constraints: {True, False}).
+- `self.game_layout` is set to `game_layout`.
+- `self.explore` is initialized to `False`.
+- `self._playerA` and `self._playerB` are initialized to `None` (lazy wrapper construction).
+- `self.has_prev` is set to `True`.
+- `self.previous` is initialized to `None`.
+- `self.model_a` and `self.model_b` are set either from provided models or from newly constructed defaults using `sr_mode="sample"` and `seed=123`.
 
 Errors
 
-- Any exception raised by `int(getattr(game_layout, "field_size"))` or `int(getattr(game_layout, "comms_size"))` when constructing default models.
-- Any exception raised by `LinTrainableAssistedModelA(...)` or `LinTrainableAssistedModelB(...)` constructors.
+- Raises `AttributeError` or `TypeError` if `game_layout` lacks required attributes or they cannot be converted via `int(...)` when constructing default models.
+- Any exception raised by `LinTrainableAssistedModelA(...)` or `LinTrainableAssistedModelB(...)` during default construction is propagated.
 
 Example
 
-```python
-from Q_Sea_Battle.trainable_assisted_players import TrainableAssistedPlayers
+!!! example "Construct and obtain wrapper players"
+    ```python
+    from Q_Sea_Battle.trainable_assisted_players import TrainableAssistedPlayers
 
-class Layout:
-    field_size = 10
-    comms_size = 2
+    # game_layout must provide: field_size, comms_size
+    players_factory = TrainableAssistedPlayers(game_layout)
 
-tap = TrainableAssistedPlayers(Layout())
-player_a, player_b = tap.players()
-tap.set_explore(True)
-tap.reset()
-```
+    player_a, player_b = players_factory.players()
+
+    players_factory.set_explore(True)
+    players_factory.reset()
+    ```
 
 ## Public Methods
 
-### check_model_correspondence
+### `check_model_correspondence()`
 
-Check that model A and B are compatible by comparing exposed `field_size` and `comms_size` attributes if present.
-
-Arguments
-
-- None
+Check that model A and model B appear dimensionally compatible by comparing `field_size` and `comms_size` when available.
 
 Returns
 
-- bool, constraints: {True, False}, shape: scalar.
+- `bool`, scalar: `True` if basic dimensions match (or cannot be checked due to missing attributes or other errors), otherwise `False`.
 
 Errors
 
-- Not specified; internal exceptions while accessing model attributes are caught and result in `True`.
+- No exceptions are intended to propagate; exceptions encountered while reading model attributes are caught and result in returning `True`.
 
-### players
+### `players()`
 
-Return the (PlayerA, PlayerB) wrappers, constructing them lazily and persisting wrapper state until `reset()`.
-
-Arguments
-
-- None
+Return the `(player A, player B)` wrappers, constructing them lazily and caching them so state persists across calls until `reset()`.
 
 Returns
 
-- Tuple[TrainableAssistedPlayerA, TrainableAssistedPlayerB], constraints: 2-tuple `(player_a, player_b)`, shape: length 2.
+- `Tuple[TrainableAssistedPlayerA, TrainableAssistedPlayerB]`, shape `(2,)`: A tuple `(player_a, player_b)`.
+
+Side effects
+
+- On first call (or if a cached wrapper is missing), constructs `TrainableAssistedPlayerA(game_layout, model_a=self.model_a)` and/or `TrainableAssistedPlayerB(game_layout, model_b=self.model_b)`.
+- Sets `player_a.explore` and `player_b.explore` to `self.explore`.
+- Sets `player_a.parent` and `player_b.parent` to `self`.
 
 Errors
 
-- Any exception raised by `TrainableAssistedPlayerA(self.game_layout, model_a=self.model_a)` or `TrainableAssistedPlayerB(self.game_layout, model_b=self.model_b)` during lazy construction.
+- Propagates any exception thrown by the `TrainableAssistedPlayerA`/`TrainableAssistedPlayerB` constructors or attribute assignments.
 
-### reset
+### `reset()`
 
-Reset internal state between games by resetting both wrappers (if they exist) and clearing `previous`.
-
-Arguments
-
-- None
+Reset per-game state by clearing cached `previous` tensors and forwarding reset to any already-instantiated player wrappers.
 
 Returns
 
-- NoneType, constraints: always `None`, shape: scalar.
+- `None`.
+
+Side effects
+
+- If instantiated, calls `self._playerA.reset()` and `self._playerB.reset()`.
+- Sets `self.previous = None`.
 
 Errors
 
-- Any exception raised by `self._playerA.reset()` or `self._playerB.reset()` if those wrappers exist.
+- Propagates any exception thrown by the underlying wrapper `reset()` methods.
 
-### set_explore
+### `set_explore(flag)`
 
-Set the exploration flag for both players and the wrapper itself.
+Enable or disable exploration for both players.
 
-Arguments
+Parameters
 
-- flag: bool, constraints: {True, False}, shape: scalar.
+- `flag`: `bool`, scalar: If `True`, players may sample actions and store log-probabilities (when supported); if `False`, they act greedily.
 
 Returns
 
-- NoneType, constraints: always `None`, shape: scalar.
+- `None`.
+
+Side effects
+
+- Sets `self.explore = bool(flag)`.
+- If wrappers are instantiated, updates `self._playerA.explore` and `self._playerB.explore` to match.
 
 Errors
 
-- Not specified.
+- Propagates any exception thrown by setting `explore` on instantiated wrappers.
 
 ## Data & State
 
-- has_log_probs: bool, constraints: {True, False}, shape: scalar; class attribute set to `True`.
-- game_layout: Any, constraints: not specified; expected to provide `field_size` and `comms_size` attributes.
-- model_a: LinTrainableAssistedModelA, constraints: not specified.
-- model_b: LinTrainableAssistedModelB, constraints: not specified.
-- explore: bool, constraints: {True, False}, shape: scalar; shared exploration flag propagated to wrappers when they exist.
-- previous: Any | None, constraints: typically `(measurements_per_layer, outcomes_per_layer)` or `None`; when present, expected contract is `(meas_list, out_list)` where both are Python lists of tensors each shaped `(B, n2)`.
-- has_prev: bool, constraints: {True, False}, shape: scalar; initialized to `True`.
-- _playerA: Optional[TrainableAssistedPlayerA], constraints: either `None` or an instantiated wrapper; created lazily by `players()`.
-- _playerB: Optional[TrainableAssistedPlayerB], constraints: either `None` or an instantiated wrapper; created lazily by `players()`.
+- `has_log_probs`: `bool`, scalar: Class attribute set to `True`.
+- `game_layout`: `Any`, must provide `field_size: int` and `comms_size: int`, scalar: Stored reference to the game layout.
+- `model_a`: `LinTrainableAssistedModelA`, scalar: Internal trainable model used by player A.
+- `model_b`: `LinTrainableAssistedModelB`, scalar: Internal trainable model used by player B.
+- `explore`: `bool`, scalar: Shared exploration flag propagated to wrapper players.
+- `_playerA`: `Optional[TrainableAssistedPlayerA]`, scalar: Cached wrapper instance for player A, created lazily.
+- `_playerB`: `Optional[TrainableAssistedPlayerB]`, scalar: Cached wrapper instance for player B, created lazily.
+- `has_prev`: `bool`, scalar: Set to `True`; semantics are not specified in this module beyond indicating previous-state support.
+- `previous`: `Any | None`, expected structure `(measurements_per_layer, outcomes_per_layer)` or `None`, scalar: Storage written by player A and consumed by player B; expected to be a 2-tuple of Python lists of tensors where each tensor is expected to have shape `(B, n2)`.
+
+!!! note "Definition of n2 and tensor shape expectation"
+    This module uses the convention $n2 = \text{field\_size}^2$. The module docstring states each tensor in `previous` is expected to have shape `(B, n2)` where `B` is the batch dimension; tensor dtype and framework are not specified here.
 
 ## Planned (design-spec)
 
-- Not specified.
+Not specified.
 
 ## Deviations
 
-- Not specified.
+Not specified.
 
 ## Notes for Contributors
 
-- `p_high`, `num_iterations`, `hidden_dim`, and `L_meas` are accepted by the constructor for forward compatibility but are currently unused by this class when creating default linear models.
-- The `previous` state is intended to be produced by Player A and consumed by Player B via the `parent` reference set in `players()`; this module does not enforce tensor types beyond the documented contract in the module docstring.
+- The constructor includes parameters (`p_rule`, `num_iterations`, `hidden_dim`, `L_meas`) that are currently unused by the default linear models; keep them in place if backward/forward compatibility with configuration code is required.
+- `players()` sets `parent` on wrapper players; any wrapper implementation changes should preserve this linkage if other components depend on it.
+- `check_model_correspondence()` is intentionally permissive: if model attributes are missing or inaccessible it returns `True`.
 
 ## Related
 
@@ -150,4 +162,4 @@ Errors
 
 ## Changelog
 
-- 0.1: Initial version (as indicated by module docstring).
+- Not specified.

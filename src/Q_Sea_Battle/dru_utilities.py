@@ -1,18 +1,18 @@
 """Discretize / Regularize Unit (DRU) utilities for communicating agents.
 
-This module implements the Discretize / Regularize Unit (DRU) used in
-DIAL-style training of communicating agents. It provides helper functions
-to transform message logits produced by communication models into
-continuous values used during centralized training, and discrete bits
-used during decentralized execution.
+This module provides the Discretize / Regularize Unit (DRU) transforms used
+in DIAL-style training for communication between agents.
 
-The implementation follows the specification in the QSeaBattle design
-document and is intentionally free of trainable parameters: the DRU is a
-fixed, deterministic transformation given the logits and noise settings.
+Two mappings are exposed:
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+- ``dru_train``: A differentiable mapping for centralized training. It adds
+  Gaussian noise in logit space and applies a logistic nonlinearity to obtain
+  continuous values in (0, 1).
+- ``dru_execute``: A non-differentiable mapping for decentralized execution.
+  It thresholds logits to produce discrete bits.
+
+The DRU is parameter-free; its behavior is fully determined by the input
+logits and the provided noise/threshold settings.
 """
 
 from __future__ import annotations
@@ -30,7 +30,7 @@ ArrayLike = Union[float, np.ndarray, tf.Tensor]
 
 
 def _is_tf_tensor(x: Any) -> bool:
-    """Return True if *x* is a TensorFlow tensor."""
+    """Return whether ``x`` is a TensorFlow tensor."""
     return tf.is_tensor(x)
 
 
@@ -39,43 +39,37 @@ def dru_train(
     sigma: float = 2.0,
     clip_range: Tuple[float, float] | None = (-10.0, 10.0),
 ) -> ArrayLike:
-    """Differentiable DRU mapping used during centralized training.
+    """Apply the differentiable DRU mapping used during centralized training.
 
-    Implements the transformation described by Foerster et al.:
+    The transform follows the common DIAL formulation:
 
-        DRU(m) = logistic(N(m, sigma))
+        DRU(m) = logistic(m + eps),   eps ~ Normal(0, sigma)
 
-    where ``m`` are message logits and ``N(m, sigma)`` denotes additive
-    Gaussian noise with standard deviation ``sigma``. Reproducibility 
-    depends on global seeds for np.random and tf.random set elsewhere.
+    where ``m`` are message logits. The output is a continuous relaxation of
+    binary communication bits, enabling gradient-based learning.
 
-    The logistic nonlinearity is implemented via
-    :func:`Q_Sea_Battle.logit_utilities.logit_to_prob` so that all probability
-    computations in the code base remain consistent.
-
-    The function supports both NumPy arrays and TensorFlow tensors. When
-    a TensorFlow tensor is provided, gradients are defined with respect
-    to ``message_logits``, making this function suitable for use inside
-    computational graphs.
+    Notes:
+        - Randomness comes from ``np.random`` or ``tf.random`` depending on the
+          input type. Reproducibility therefore depends on global seeds set
+          elsewhere in the program.
+        - For TensorFlow inputs, this function is suitable for use inside a
+          graph; gradients flow w.r.t. ``message_logits``.
 
     Args:
-        message_logits:
-            Logits for the ``m`` communication dimensions. May be a
-            scalar, a NumPy array, or a TensorFlow tensor of shape
-            ``(..., m)``.
-        sigma:
-            Standard deviation of the Gaussian noise added to the logits
-            before applying the logistic. ``sigma > 0`` encourages the
-            logits to move into well-separated modes during training.
-        clip_range:
-            Optional ``(min, max)`` range to clip the noisy logits
-            ``m + epsilon`` before applying the logistic, to avoid
-            numerical overflow. If ``None``, no clipping is applied.
+        message_logits: Message logits. May be a scalar, NumPy array, or
+            TensorFlow tensor.
+        sigma: Standard deviation of the additive Gaussian noise in logit
+            space. Must be non-negative. A value of 0 disables noise.
+        clip_range: Optional ``(min, max)`` range used to clip the noisy logits
+            before applying the logistic, primarily to avoid numerical issues
+            for extreme logits. If ``None``, no clipping is applied.
 
     Returns:
-        Same type and shape as ``message_logits``, with values in ``(0, 1)``.
-        When a TensorFlow tensor is passed in, the returned tensor is
-        differentiable with respect to ``message_logits``.
+        Values in (0, 1) with the same shape as ``message_logits``. The return
+        type matches the input family (NumPy vs TensorFlow).
+
+    Raises:
+        ValueError: If ``sigma`` is negative.
     """
     if sigma < 0.0:
         raise ValueError("sigma must be non-negative.")
@@ -92,8 +86,8 @@ def dru_train(
             lo, hi = clip_range
             logits = tf.clip_by_value(logits, lo, hi)
 
-        # For tensors we can safely call tf.nn.sigmoid, which is equivalent
-        # to logit_to_prob when using logits.
+        # Sigmoid is the logistic function in TensorFlow; it maps logits to
+        # probabilities in a numerically stable way.
         probs = tf.nn.sigmoid(logits)
         return probs
 
@@ -108,7 +102,8 @@ def dru_train(
         lo, hi = clip_range
         logits_np = np.clip(logits_np, lo, hi)
 
-    # Use shared helper for numerical stability.
+    # Use the shared helper to keep probability computations consistent across
+    # the code base.
     probs_np = logit_to_prob(logits_np)
     return probs_np
 
@@ -117,33 +112,28 @@ def dru_execute(
     message_logits: ArrayLike,
     threshold: float = 0.0,
 ) -> ArrayLike:
-    """Discretising DRU mapping used during decentralized execution.
+    """Apply the discrete DRU mapping used during decentralized execution.
 
-    This function applies a hard threshold on the logits:
+    This mapping converts logits to hard binary decisions by thresholding
+    element-wise in logit space:
 
-        DRU(m) = 1 if m > threshold else 0   (element-wise)
+        bit = 1 if logit > threshold else 0
 
-    A threshold of ``0.0`` corresponds to a probability threshold of 0.5,
-    since ``logistic(0) = 0.5``.
-
-    The function supports both NumPy arrays and TensorFlow tensors.
+    A threshold of 0.0 corresponds to thresholding at probability 0.5 since
+    ``logistic(0) = 0.5``.
 
     Args:
-        message_logits:
-            Logits for the ``m`` communication dimensions. May be a
-            scalar, a NumPy array, or a TensorFlow tensor of shape
-            ``(..., m)``.
-        threshold:
-            Threshold in logit space used to produce discrete bits.
-            ``0.0`` corresponds to thresholding at probability 0.5.
+        message_logits: Message logits. May be a scalar, NumPy array, or
+            TensorFlow tensor.
+        threshold: Logit threshold used to produce discrete bits.
 
     Returns:
-        For NumPy inputs, a NumPy array of ``int`` with the same shape
-        as ``message_logits`` and values in ``{0, 1}``.
+        Discrete bits with the same shape as ``message_logits``.
 
-        For TensorFlow inputs, a ``tf.Tensor`` of type ``tf.float32``
-        with values in ``{0.0, 1.0}``. Gradients are not intended to
-        be used through this function.
+        - NumPy input: ``np.ndarray`` of ``int`` values in ``{0, 1}``.
+        - TensorFlow input: ``tf.Tensor`` of dtype ``tf.float32`` with values
+          in ``{0.0, 1.0}``. This path is intended for inference/execution
+          rather than gradient-based optimization.
     """
     if _is_tf_tensor(message_logits):
         logits = tf.cast(message_logits, tf.float32)

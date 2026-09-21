@@ -1,90 +1,90 @@
 # SimplePlayerB
 
-> Role: Deterministic Player B that maps early gun positions to communication bits and otherwise shoots probabilistically.
+> Role: Deterministic Player B policy that uses Player A’s communication bits when addressed by the gun index, otherwise falls back to stochastic shooting.
 
 Location: `Q_Sea_Battle.simple_player_b.SimplePlayerB`
 
 ## Constructor
 
-| Parameter | Type | Description |
+Parameter | Type | Description
 | --- | --- | --- |
-| game_layout | GameLayout, constraints: Not specified, shape: N/A | Game configuration for this player; passed to the base `PlayerB` constructor. |
+| `game_layout` | `GameLayout`, constraints: not specified, shape: not applicable | Game configuration for this player.
 
 Preconditions
 
-- `game_layout` must be compatible with `PlayerB.__init__` (exact requirements not specified in this module).
+- `game_layout` is a `GameLayout` instance (not otherwise validated here).
 
 Postconditions
 
-- The instance is initialized via `PlayerB` with the provided `game_layout`.
+- The instance is initialized via `PlayerB.__init__(game_layout)`.
+- `self.game_layout` is available as provided by the base class (exact storage details not specified in this module).
 
 Errors
 
-- Not specified (any exceptions raised by `PlayerB.__init__` may propagate).
+- Not specified.
 
 Example
 
 ```python
-from Q_Sea_Battle.game_layout import GameLayout
 from Q_Sea_Battle.simple_player_b import SimplePlayerB
+from Q_Sea_Battle.game_layout import GameLayout
 
 layout = GameLayout(...)  # Not specified in this module
-player = SimplePlayerB(layout)
+player_b = SimplePlayerB(game_layout=layout)
 ```
 
 ## Public Methods
 
 ### decide
 
-Decide whether to shoot based on the gun position and the received communication vector.
+`decide(self, gun: np.ndarray, comm: np.ndarray, supp: Optional[Any] = None) -> int`
 
-| Parameter | Type | Description |
+Decide whether to shoot based on the gun and Player A’s message.
+
+Parameter | Type | Description
 | --- | --- | --- |
-| gun | np.ndarray, dtype int, constraints: intended one-hot, shape (n2,) after flattening | Flattened one-hot gun vector; the index of the maximum value is used as the gun cell index. |
-| comm | np.ndarray, dtype int, constraints: values not specified, shape (m,) after flattening | Communication vector from Player A; if the gun index is within the first $m$ cells, the corresponding bit is returned. |
-| supp | Any or None, constraints: unused, shape: N/A | Optional supporting information; ignored by this implementation. |
+| `gun` | `np.ndarray`, dtype: any (cast to `int` via `np.asarray(..., dtype=int)`), constraints: expected one-hot (not enforced), shape: any (flattened to 1D via `ravel()`), resulting shape `(n2,)` | One-hot gun vector over enemy field cells; the selected index is `argmax(flat_gun)`. |
+| `comm` | `np.ndarray`, dtype: any (cast to `int` via `np.asarray(..., dtype=int)`), constraints: expected length `m` where `m = self.game_layout.comms_size` (not enforced before indexing), shape: any (flattened to 1D via `ravel()`), resulting shape `(m,)` | Communication vector from Player A; used as addressed bits when `gun_index < m`. |
+| `supp` | `Optional[Any]`, constraints: unused, shape: not applicable | Optional supporting information (unused). |
 
 Returns
 
-- int, constraints: {0,1}, shape: scalar; `1` means shoot, `0` means do not shoot.
-
-Behavior
-
-- Let `gun_index = argmax(gun)` after `gun` is converted to `np.ndarray` with `dtype=int` and flattened.
-- Let `m = self.game_layout.comms_size`.
-- If `gun_index < m`, return `int(comm[gun_index])` after `comm` is converted to `np.ndarray` with `dtype=int` and flattened.
-- Otherwise, return `1` with probability `p = self.game_layout.enemy_probability` and `0` with probability `1 - p`, using `np.random.rand()`.
+- `int`, constraints: in `{0,1}`, shape: scalar; action where `1` means shoot and `0` means do not shoot.
 
 Preconditions
 
-- `self.game_layout` must provide `comms_size` (used as `m`) and `enemy_probability` (used as `p`); types/constraints are not specified in this module.
-- `comm` must have at least `m` elements after flattening to avoid index errors when `gun_index < m`.
-- The intended input is a valid one-hot `gun`, but the code does not validate one-hotness.
+- `self.game_layout.comms_size` is available and is compatible with indexing into `comm` when `gun_index < m` (exact type constraints not specified in this module).
+- `self.game_layout.enemy_probability` is available and is used as a probability threshold `p` (not validated to be within $[0, 1]$ in this module).
+
+Postconditions
+
+- If `gun_index < m`, returns `int(comm[gun_index])`.
+- Otherwise, returns `int(np.random.rand() < p)`.
 
 Errors
 
-- `IndexError` if `gun_index < m` and `comm` is shorter than `m` after flattening.
-- Other NumPy-related errors may occur if inputs are not array-like; not specified further.
+- May raise `IndexError` if `gun_index < m` but `comm` is shorter than `m` (or shorter than `gun_index + 1`).
+- Other exceptions may be raised by NumPy conversions or attribute access if inputs or `game_layout` are incompatible (not exhaustively specified).
 
 Example
 
 ```python
 import numpy as np
 from Q_Sea_Battle.simple_player_b import SimplePlayerB
+from Q_Sea_Battle.game_layout import GameLayout
 
-player = SimplePlayerB(game_layout)  # game_layout must provide comms_size and enemy_probability
+layout = GameLayout(...)  # Not specified in this module
+player_b = SimplePlayerB(layout)
 
-gun = np.zeros(25, dtype=int)
-gun[3] = 1
-comm = np.array([1, 0, 1, 0], dtype=int)
-
-shoot = player.decide(gun=gun, comm=comm)
+gun = np.array([0, 1, 0, 0])     # argmax -> 1
+comm = np.array([1, 0, 1])       # m should be 3 to match comm length here
+action = player_b.decide(gun=gun, comm=comm)
 ```
 
 ## Data & State
 
-- Inherited state from `PlayerB` (not specified in this module).
-- `self.game_layout`: GameLayout, constraints: must expose `comms_size` and `enemy_probability` for `decide`, shape: N/A.
+- Inherits from `PlayerB`; base-class state is not specified in this module.
+- Uses `self.game_layout.comms_size` (defines `m`, the number of communication bits) and `self.game_layout.enemy_probability` (defines `p`, the stochastic shoot probability outside the addressing range).
 
 ## Planned (design-spec)
 
@@ -92,19 +92,19 @@ shoot = player.decide(gun=gun, comm=comm)
 
 ## Deviations
 
-- Not specified.
+- No design notes provided; no deviations identified.
 
 ## Notes for Contributors
 
-- `decide` uses `np.argmax` on `gun` after flattening; if `gun` is not strictly one-hot, the behavior follows the maximum element rather than validating the encoding.
-- Randomness is sourced from `np.random.rand()`; seeding and reproducibility controls are not handled in this class.
+- The method assumes `gun` represents a valid one-hot selection, but it does not validate one-hotness; it uses `argmax` on the flattened array, so ties or non-binary inputs will select the first maximum index.
+- The method casts `gun` and `comm` to integer arrays; negative or non-binary values in `comm` will be returned as-is (after `int(...)`) when addressed.
+- If strict validation is required (e.g., enforcing `comm` length equals `m` and ensuring $p \in [0,1]$), it must be added explicitly; this module currently does not enforce these constraints.
 
 ## Related
 
-- `Q_Sea_Battle.simple_player_b.SimplePlayerB`
-- `Q_Sea_Battle.players_base.PlayerB` (base class; behavior not specified here)
-- `Q_Sea_Battle.game_layout.GameLayout` (provides `comms_size` and `enemy_probability`)
+- `Q_Sea_Battle.players_base.PlayerB`
+- `Q_Sea_Battle.game_layout.GameLayout`
 
 ## Changelog
 
-- 0.1: Initial documented version based on provided module text.
+- Not specified.

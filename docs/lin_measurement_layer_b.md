@@ -1,98 +1,121 @@
 # LinMeasurementLayerB
 
-> Role: Learnable mapping from a flattened gun vector to per-cell measurement probabilities in $[0, 1]$.
+> Role: Trainable Keras layer mapping gun logits to measurement logits with matching width via a two-layer MLP.
 
 Location: `Q_Sea_Battle.lin_measurement_layer_b.LinMeasurementLayerB`
-
-## Derived constraints
-
-- Let `n2` be the flattened field size (number of cells); `n2` must be a positive `int`.
-- `call()` accepts rank-1 or rank-2 inputs only; the last dimension must equal `n2` when statically known.
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| n2 | int, constraint: `n2 > 0`, shape: scalar | Number of cells in the flattened representation; determines the output width of the final dense layer. |
-| hidden_units | Sequence[int], constraint: each element convertible to `int`, shape: `(L,)` | Sizes of intermediate dense layers; each layer uses ReLU activation. Default: `(64,)`. |
-| name | Optional[str], constraint: any valid Keras layer name or `None`, shape: scalar | Layer name passed to `tf.keras.layers.Layer`. Default: `"LinMeasurementLayerB"`. |
-| **kwargs | dict[str, Unknown], constraint: passed through to `tf.keras.layers.Layer`, shape: mapping | Additional Keras layer keyword arguments. |
+| hidden_units | int, constraint: >= 1, shape: scalar | Width of the hidden dense layer. |
+| name | Optional[str], constraint: any, shape: scalar | Optional Keras layer name. |
+| dtype | Optional[tf.dtypes.DType], constraint: any, shape: scalar | Optional Keras dtype for layer variables and computation. |
+| **kwargs | Any, constraint: forwarded to `tf.keras.layers.Layer`, shape: N/A | Additional keyword arguments forwarded to `Layer`. |
 
-Preconditions: `n2 > 0`.
+Preconditions
 
-Postconditions: `self.n2 == int(n2)`; `self.hidden_units` is a `tuple[int, ...]`; internal MLP layer list is initialized empty and is constructed on first `build()`.
+- `hidden_units` is an `int` with constraint: `hidden_units >= 1`, shape: scalar.
 
-Errors: Raises `ValueError` if `n2 <= 0`.
+Postconditions
 
-!!! example "Example"
-    ```python
-    import tensorflow as tf
-    from Q_Sea_Battle.lin_measurement_layer_b import LinMeasurementLayerB
+- `self.hidden_units` is set to `int(hidden_units)`.
+- `self._dense_hidden` is `Optional[tf.keras.layers.Dense]`, initialized to `None` until `build(...)` is called.
+- `self._dense_out` is `Optional[tf.keras.layers.Dense]`, initialized to `None` until `build(...)` is called.
 
-    n2 = 100
-    layer = LinMeasurementLayerB(n2=n2, hidden_units=(64, 32))
+Errors
 
-    guns_batch = tf.random.uniform(shape=(8, n2), dtype=tf.float32)
-    probs_batch = layer(guns_batch, training=True)  # shape (8, n2)
+- Raises `ValueError` if `hidden_units < 1`.
 
-    guns_single = tf.random.uniform(shape=(n2,), dtype=tf.float32)
-    probs_single = layer(guns_single)  # shape (n2,)
-    ```
+Example
+
+```python
+import tensorflow as tf
+from Q_Sea_Battle.lin_measurement_layer_b import LinMeasurementLayerB
+
+layer = LinMeasurementLayerB(hidden_units=64)
+x = tf.random.normal([8, 16])  # (B, n2)
+y = layer(x)                   # (B, n2)
+```
 
 ## Public Methods
 
-### build(input_shape) -> None
+### build
 
-Create weights based on input shape.
+- Signature: `build(self, input_shape: Any) -> None`
 
-- Parameter `input_shape`: Unknown, constraint: Keras-compatible input shape descriptor, shape: Not specified.
-- Returns: `None`, constraint: not applicable, shape: not applicable.
+Parameter(s)
 
-Preconditions: None specified.
+- `input_shape`: Any, constraint: convertible to `tf.TensorShape` and must have statically known last dimension, shape: N/A.
 
-Postconditions: If not already built, appends `len(hidden_units)` hidden `tf.keras.layers.Dense` layers with ReLU activation and one output `tf.keras.layers.Dense` layer with `units == n2` and sigmoid activation; sets internal built flag; calls `super().build(input_shape)`.
+Return value
 
-Errors: Not specified.
+- `None`, constraint: N/A, shape: scalar.
 
-### call(guns, training: bool = False)
+Behavior
 
-Forward pass.
+- Creates two sub-layers after inferring `n2` from `input_shape[-1]`: `Dense(hidden_units, relu)` followed by `Dense(n2, linear)`.
 
-- Parameter `guns`: `tf.Tensor`-convertible, dtype: any (non-floating will be cast to `tf.float32`), shape: `(B, n2)` or `(n2,)`.
-- Parameter `training`: `bool`, constraint: any boolean, shape: scalar.
-- Returns: `tf.Tensor`, dtype: floating (cast to `tf.float32` if input is non-floating), constraint: elementwise in $[0, 1]$, shape: same as `guns` (returns `(B, n2)` for batched input and `(n2,)` for rank-1 input).
+Errors
 
-Preconditions: Input rank must be 1 or 2; last dimension must equal `n2` when statically known.
+- Raises `ValueError` if the final dimension of `input_shape` is unknown (`None`).
 
-Postconditions: Applies the internal MLP (Dense/ReLU layers followed by Dense/sigmoid) to produce probabilities; preserves original rank by temporarily expanding rank-1 inputs and squeezing the output back.
+### call
 
-Errors: Raises `ValueError` if input rank is not 1 or 2; raises `ValueError` if the statically known last dimension is not `n2`.
+- Signature: `call(self, gun_batch: tf.Tensor, training: bool = False, **kwargs: Any) -> tf.Tensor`
+
+Parameter(s)
+
+- `gun_batch`: tf.Tensor, dtype: any convertible to layer dtype (defaults to `float32` if `self.dtype` is `None`), shape (B, n2); constraint: must be rank-2 when rank is statically known.
+- `training`: bool, constraint: any, shape: scalar; passed through to sub-layer calls.
+- `**kwargs`: Any, constraint: unused (present for Keras API compatibility), shape: N/A.
+
+Return value
+
+- tf.Tensor, dtype: matches internal computation dtype (`self.dtype` or `float32`), shape (B, n2); constraint: output width equals `n2` inferred at build time.
+
+Errors
+
+- Raises `ValueError` if `gun_batch` has a statically known rank not equal to 2.
+- Raises `RuntimeError` if the layer has not been built correctly (i.e., sub-layers are not initialized).
+
+### get_config
+
+- Signature: `get_config(self) -> Dict[str, Any]`
+
+Parameter(s)
+
+- None.
+
+Return value
+
+- Dict[str, Any], constraint: Keras-serializable configuration, shape: N/A; includes key `"hidden_units"` with value type `int`, shape: scalar.
 
 ## Data & State
 
-- `n2`: `int`, constraint: `n2 > 0`, shape: scalar; output width and expected input last dimension.
-- `hidden_units`: `tuple[int, ...]`, constraint: elements are `int`, shape: `(L,)`; hidden layer widths.
-- `_mlp`: `list[tf.keras.layers.Layer]`, constraint: contains Keras layers, shape: `(L+1,)` after build; internal sequence of `Dense` layers.
-- `_built_mlp`: `bool`, constraint: boolean, shape: scalar; indicates whether `_mlp` has been constructed.
+- `hidden_units`: int, constraint: >= 1, shape: scalar; number of units in the hidden dense layer.
+- `_dense_hidden`: Optional[tf.keras.layers.Dense], constraint: `None` before `build(...)`, otherwise a `Dense` with `units=hidden_units` and `activation="relu"`, shape: N/A.
+- `_dense_out`: Optional[tf.keras.layers.Dense], constraint: `None` before `build(...)`, otherwise a `Dense` with `units=n2` and `activation=None`, shape: N/A.
+- `n2`: int, constraint: `n2 = int(input_shape[-1])` and must be statically known, shape: scalar; inferred at build time and used as output width.
 
 ## Planned (design-spec)
 
-Not specified.
+- Not specified.
 
 ## Deviations
 
-Not specified.
+- No design notes provided; no deviations identified.
 
 ## Notes for Contributors
 
-- `build()` is idempotent via `_built_mlp`; if modifying layer construction, keep repeated calls safe.
-- `call()` enforces rank 1 or 2 and validates the last dimension only when statically known (`x.shape[-1] is not None`).
+- Rank validation in `call(...)` only triggers when the rank is statically known (`x.shape.rank is not None`); dynamic rank mismatches may not raise at this check.
+- Sub-layers are created in `build(...)`; calling `call(...)` before the layer is built raises `RuntimeError`.
 
 ## Related
 
-- `tf.keras.layers.Layer`
-- `tf.keras.layers.Dense`
+- TensorFlow: `tf.keras.layers.Layer`
+- TensorFlow: `tf.keras.layers.Dense`
 
 ## Changelog
 
-- 0.1: Initial implementation as a learnable sigmoid MLP mapping from gun vectors to per-cell probabilities.
+- Not specified.

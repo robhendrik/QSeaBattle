@@ -1,119 +1,152 @@
 # NeuralNetPlayerB
 
-> Role: Player B implementation driven by a Keras model that maps a compact state representation (normalised gun index + comm bits) to a shoot decision and stores the last action log-probability.
+> Role: Player B policy backed by a Keras model that outputs a shoot logit given a compressed gun position and communication bits.
+
 Location: `Q_Sea_Battle.neural_net_player_b.NeuralNetPlayerB`
 
 ## Constructor
 
 | Parameter | Type | Description |
-|---|---|---|
-| game_layout | GameLayout, constraints Not specified, shape Not applicable | Shared `GameLayout` describing the environment; passed to `PlayerB` base class. |
-| model_b | tf.keras.Model, constraints callable as `model_b(x, training=False)` and returns a single logit per sample, shape Not specified | Keras model mapping input vectors of shape $(1 + m,)$ (normalised gun index + comm bits) to a single shoot logit. |
-| explore | bool, constraints {True, False}, shape scalar | If `True`, sample shoot actions from the Bernoulli distribution defined by the predicted probability; if `False`, act greedily using a `0.5` probability threshold. |
+| --- | --- | --- |
+| game_layout | `GameLayout`, constraints: instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: N/A | Shared environment layout passed to the base `PlayerB` constructor. |
+| model_b | `tf.keras.Model`, constraints: callable like `model_b(x, training=False)` and returns a single logit per row, shape: input `np.ndarray, dtype float32, shape (B, 1 + m)` and output compatible with `np.ndarray, dtype float32/float64, shape (B, 1)` or `(B,)` | Keras model mapping features (normalized gun index + communication bits) to a shoot logit. |
+| explore | `bool`, constraints: {True, False}, shape: scalar | If `True`, sample actions from Bernoulli($p$); if `False`, act greedily with threshold $p \ge 0.5$. |
 
-Preconditions: `game_layout` is a valid `GameLayout` instance; `model_b` accepts NumPy inputs compatible with the concatenated feature vector `x` and returns a scalar logit for the single sample.  
-Postconditions: `self.model_b` is set; `self.explore` is set; `self.last_logprob` is initialised to `None`.  
-Errors: Not specified.  
-Example:
+Preconditions
+
+- `game_layout` is a valid `GameLayout` instance accepted by `PlayerB.__init__(game_layout=...)`.
+- `model_b` accepts NumPy input `x` formed by concatenating the normalized gun index and `comm` along axis 1.
+
+Postconditions
+
+- `self.model_b` is set to `model_b`.
+- `self.explore` is set to `explore`.
+- `self.last_logprob` is set to `None`.
+
+Errors
+
+- Not specified.
+
+Example
 
 ```python
 import numpy as np
 import tensorflow as tf
 
-player_b = NeuralNetPlayerB(game_layout=game_layout, model_b=model_b, explore=True)
-gun = np.zeros((n2,), dtype=np.float32)
-gun[0] = 1.0
-comm = np.zeros((m,), dtype=np.float32)
+from Q_Sea_Battle.game_layout import GameLayout
+from Q_Sea_Battle.neural_net_player_b import NeuralNetPlayerB
+
+game_layout = GameLayout(...)  # as defined by your project
+model_b = tf.keras.Sequential([
+    tf.keras.layers.Input(shape=(1 + 3,)),  # m=3 example
+    tf.keras.layers.Dense(1),
+])
+
+player_b = NeuralNetPlayerB(game_layout=game_layout, model_b=model_b, explore=False)
+
+n2 = 9
+m = 3
+gun = np.eye(n2, dtype=np.float32)[4]        # one-hot position
+comm = np.array([1, 0, 1], dtype=np.float32) # length m
 action = player_b.decide(gun=gun, comm=comm)
 logp = player_b.get_log_prob()
-player_b.reset()
 ```
 
 ## Public Methods
 
-### decide(gun, comm, supp=None)
+### decide(gun, comm, supp)
 
-Decide whether to shoot based on the gun vector and communication bits.
+Decide whether Player B shoots by compressing the gun one-hot vector to a normalized scalar index, concatenating it with the communication vector, and forwarding through `model_b` to obtain a shoot logit.
 
-Parameter | Type | Description
----|---|---
-gun | np.ndarray, dtype float32 (after conversion), constraints flattened one-hot intended but argmax fallback if not strictly one-hot, shape (n2,) | Flattened gun vector of length `n2`; internally converted to a normalised scalar index in $[0, 1]$.
-comm | np.ndarray, dtype float32 (after conversion), constraints Not specified, shape (m,) | Communication vector from Player A of length `m`.
-supp | Any \| None, constraints unused, shape Not applicable | Optional supporting information; not used by this implementation.
+Parameters
 
-Returns: int, constraints {0,1}, shape scalar; `1` to shoot, `0` to not shoot.  
+- `gun`: `np.ndarray`, constraints: convertible to `float32` and reshaped to `(1, n2)`, shape: `(n2,)` or `(1, n2)` or any array with first dimension batch-like such that `reshape(1, -1)` is valid for single decision use.
+- `comm`: `np.ndarray`, constraints: convertible to `float32` and reshaped to `(1, m)`, shape: `(m,)` or `(1, m)` or any array with first dimension batch-like such that `reshape(1, -1)` is valid for single decision use.
+- `supp`: `Any | None`, constraints: unused, shape: N/A.
 
-Preconditions: `gun` and `comm` are array-like and can be reshaped to `(1, -1)`; `model_b(x, training=False)` is valid for `x` of shape `(1, 1 + m)` and yields a value convertible to a scalar logit.  
-Postconditions: `self.last_logprob` is updated to the log-probability of the chosen action under the model’s Bernoulli distribution; returns the chosen action as `int`.  
-Errors: Not specified.
+Returns
+
+- `int`, constraints: {0, 1}, shape: scalar; returns `1` if shooting is selected, otherwise `0`.
+
+Errors
+
+- Any exception raised by `np.asarray`, reshaping, `np.concatenate`, `self.model_b(...).numpy()`, or downstream conversion may propagate; additional error behavior is not specified.
 
 ### logit_to_probs(logits)
 
-Backward-compatible wrapper around `logit_to_prob`.
+Backward-compatible wrapper around `Q_Sea_Battle.logit_utilities.logit_to_prob` converting Bernoulli logit(s) to probability/probabilities.
 
-Parameter | Type | Description
----|---|---
-logits | np.ndarray \| float, constraints Not specified, shape scalar or broadcastable array | Logit(s) to convert to probability/probabilities.
+Parameters
 
-Returns: np.ndarray \| float, constraints range $[0, 1]$, shape matches input; the probability/probabilities derived from `logits`.  
+- `logits`: `np.ndarray | float`, constraints: numeric logit(s), shape: scalar or arbitrary NumPy array shape.
 
-Preconditions: Not specified.  
-Postconditions: Not specified.  
-Errors: Not specified.
+Returns
+
+- `np.ndarray | float`, constraints: probability value(s) corresponding to `logits`, shape: same structure as input.
 
 ### logit_to_log_probs(logits, actions)
 
-Backward-compatible wrapper around `logit_to_logprob`.
+Backward-compatible wrapper around `Q_Sea_Battle.logit_utilities.logit_to_logprob` computing the log-probability of Bernoulli action(s) under given logit(s).
 
-Parameter | Type | Description
----|---|---
-logits | np.ndarray \| float, constraints Not specified, shape scalar or broadcastable array | Logit(s) used to compute log-probabilities.
-actions | np.ndarray \| float, constraints Not specified, shape scalar or broadcastable array | Action(s) associated with the log-probability computation.
+Parameters
 
-Returns: np.ndarray \| float, constraints Not specified, shape broadcasted from inputs; log-probability/log-probabilities for `actions` under the Bernoulli distribution parameterised by `logits`.  
+- `logits`: `np.ndarray | float`, constraints: numeric logit(s), shape: scalar or arbitrary NumPy array shape.
+- `actions`: `np.ndarray | float`, constraints: action(s) encoded as 0/1 (or float equivalents), shape: compatible with `logits` for the wrapped utility function.
 
-Preconditions: Not specified.  
-Postconditions: Not specified.  
-Errors: Not specified.
+Returns
+
+- `np.ndarray | float`, constraints: log-probability value(s), shape: structure compatible with inputs.
 
 ### get_log_prob()
 
-Return the log-probability of the last chosen action.
+Return the stored log-probability of the most recent action selected by `decide`.
 
-Returns: float, constraints finite scalar expected, shape scalar; log-probability of the last action.  
+Parameters
 
-Preconditions: `decide()` has been called since the last `reset()` such that `self.last_logprob` is not `None`.  
-Postconditions: Does not modify state.  
-Errors: Raises `RuntimeError` if `self.last_logprob` is `None`.
+- None.
+
+Returns
+
+- `float`, constraints: finite scalar float if available, shape: scalar.
+
+Errors
+
+- Raises `RuntimeError` if `self.last_logprob` is `None` (no decision taken since last reset).
 
 ### reset()
 
-Reset internal state (stored log-probability).
+Reset internal episode state by clearing any stored log-probability.
 
-Returns: None, constraints Not applicable, shape Not applicable.  
+Parameters
 
-Preconditions: Not specified.  
-Postconditions: `self.last_logprob` is set to `None`.  
-Errors: Not specified.
+- None.
+
+Returns
+
+- `None`, constraints: N/A, shape: N/A.
+
+Errors
+
+- Not specified.
 
 ## Data & State
 
-- `model_b`: tf.keras.Model, constraints callable as `model_b(x, training=False)`, shape Not specified; the Keras model used to produce a shoot logit from the concatenated feature vector.
-- `explore`: bool, constraints {True, False}, shape scalar; controls stochastic sampling (`True`) vs greedy thresholding (`False`).
-- `last_logprob`: float \| None, constraints `None` before first decision or after reset, shape scalar; log-probability of the most recent action chosen by `decide()`.
+- `model_b`: `tf.keras.Model`, constraints: callable as used by `decide`, shape: N/A.
+- `explore`: `bool`, constraints: {True, False}, shape: scalar.
+- `last_logprob`: `Optional[float]`, constraints: `None` or scalar float log-probability, shape: scalar.
 
 ## Planned (design-spec)
 
-Not specified.
+- Not specified.
 
 ## Deviations
 
-Not specified.
+- Not specified.
 
 ## Notes for Contributors
 
-- The public `gun` interface is a flattened vector of length `n2`, but internally it is compressed via argmax into a single normalised index in $[0, 1]$ using $idx / \max(1, n2 - 1)$; non-strict one-hot inputs are handled by argmax fallback.
-- `decide()` stores the log-probability of the selected action in `last_logprob`; callers relying on `get_log_prob()` must call `decide()` first and must handle the `RuntimeError` case after `reset()`.
+- `decide` expects the public gun representation to be a flattened one-hot vector of length `n2`, but it uses `argmax` as a stable fallback even when the vector is not strictly one-hot (e.g., all zeros), which can hide upstream encoding errors.
+- The feature vector passed to `model_b` is `x = concat([gun_idx_norm, comm], axis=1)` with `gun_idx_norm` in $[0, 1]$ and shape `(1, 1)`; `comm` must therefore be compatible with shape `(1, m)`.
 
 ## Related
 
@@ -124,4 +157,4 @@ Not specified.
 
 ## Changelog
 
-- 0.1: Initial implementation of `NeuralNetPlayerB` with Keras-based decision-making and stored last-action log-probability.
+- Not specified.

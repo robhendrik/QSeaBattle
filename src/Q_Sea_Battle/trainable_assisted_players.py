@@ -1,18 +1,22 @@
+"""Trainable PR-assisted player wiring (A/B) for QSeaBattle.
 
-"""Trainable assisted player wiring (A/B) for QSeaBattle.
+This module provides a `Players`-style wrapper that wires together two player
+wrappers which act as a coordinated pair:
 
-This module defines a Players-style wrapper that wires together:
-- TrainableAssistedPlayerA: produces communication bits and stores "previous" tensors
-- TrainableAssistedPlayerB: consumes the stored tensors and decides a shoot action
+- `TrainableAssistedPlayerA` produces communication bits (as logits) and stores
+  intermediate tensors from the internal model in `previous`.
+- `TrainableAssistedPlayerB` consumes the stored tensors in `previous` and
+  decides the shoot action (optionally sampling when `explore=True`).
 
-The contract for `previous` is:
+The contract for `previous` is::
+
     previous == (measurements_per_layer, outcomes_per_layer)
-where both entries are Python lists of tensors, each tensor shaped (B, n2).
 
-Author: Rob Hendriks
-Package: Q_Sea_Battle
-Version: 0.1
+Both entries are Python lists of tensors. Each tensor is expected to have shape
+`(B, n2)` where `B` is the batch dimension. The precise meaning of
+"measurements" and "outcomes" is defined by the underlying trainable models.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -23,7 +27,13 @@ try:
     from .players import Players  # type: ignore
 except Exception:  # pragma: no cover
     class Players:  # minimal fallback for unit tests
-        """Fallback Players base class (used only if project base class is unavailable)."""
+        """Fallback `Players` base class.
+
+        This is only used if the project base class cannot be imported (e.g., in
+        isolated unit tests). It intentionally exposes only the attributes used
+        by this module.
+        """
+
         has_log_probs: bool = False
 
 from .trainable_assisted_player_a import TrainableAssistedPlayerA
@@ -34,17 +44,20 @@ from .lin_trainable_assisted_model_b import LinTrainableAssistedModelB
 
 
 class TrainableAssistedPlayers(Players):
-    """Wires TrainableAssistedPlayerA and TrainableAssistedPlayerB.
+    """Factory/wrapper that provides a coordinated (A, B) PR-assisted player pair.
 
-    This class owns the two Keras models and provides two Player-like wrappers that
-    match the Tournament/Game interfaces.
+    The instance owns the two trainable models and exposes `players()` to obtain
+    the two player wrappers that integrate with the tournament/game interfaces.
 
-    Public attributes:
-        game_layout: GameLayout-like object with attributes `field_size` and `comms_size`.
-        model_a: LinTrainableAssistedModelA
-        model_b: LinTrainableAssistedModelB
-        explore: Shared exploration flag (False = greedy, True = sampling).
-        previous: Stores (meas_list, out_list) set by player A, consumed by player B.
+    Attributes:
+        game_layout: Game-layout-like object. Must provide `field_size` and
+            `comms_size` attributes.
+        model_a: Internal trainable model used by player A.
+        model_b: Internal trainable model used by player B.
+        explore: Shared exploration flag. When True, players may sample actions
+            and record log-probabilities; when False, they act greedily.
+        previous: Storage written by player A and consumed by player B. See the
+            module docstring for the expected structure.
     """
 
     has_log_probs: bool = True
@@ -52,29 +65,48 @@ class TrainableAssistedPlayers(Players):
     def __init__(
         self,
         game_layout: Any,
-        p_high: float = 0.9,
+        p_rule: float = 0.9,
         num_iterations: Optional[int] = None,
         hidden_dim: int = 32,
         L_meas: Optional[int] = None,
         model_a: Optional[LinTrainableAssistedModelA] = None,
         model_b: Optional[LinTrainableAssistedModelB] = None,
     ) -> None:
+        """Initialize the paired players and (optionally) their models.
+
+        Args:
+            game_layout: Game-layout-like object providing `field_size` and
+                `comms_size`.
+            p_rule: Unused by the current linear models. Kept for compatibility
+                with other/older configurations.
+            num_iterations: Unused by the current linear models. Kept for
+                compatibility with other/older configurations.
+            hidden_dim: Unused by the current linear models. Kept for
+                compatibility with other/older configurations.
+            L_meas: Unused by the current linear models. Kept for compatibility
+                with other/older configurations.
+            model_a: Optional pre-constructed model for player A.
+            model_b: Optional pre-constructed model for player B.
+        """
         self.game_layout = game_layout
         self.explore: bool = False
         self._playerA: Optional[TrainableAssistedPlayerA] = None
         self._playerB: Optional[TrainableAssistedPlayerB] = None
         self.has_prev: bool = True
-        self.previous: Any | None = None  # typically (measurements_per_layer, outcomes_per_layer)
+        # Typically: (measurements_per_layer, outcomes_per_layer).
+        self.previous: Any | None = None
 
         # Build default models if needed.
-        # Note: p_high/num_iterations/hidden_dim/L_meas are included for forward compatibility
-        # with future architectures; the Lin models currently use field_size/comms_size + shared-resource (SR) settings.
+        #
+        # Note: p_rule/num_iterations/hidden_dim/L_meas are included for forward
+        # compatibility with future architectures. The linear models currently
+        # depend only on `field_size`, `comms_size`, and SR settings.
         if model_a is None:
             self.model_a = LinTrainableAssistedModelA(
                 field_size=int(getattr(game_layout, "field_size")),
                 comms_size=int(getattr(game_layout, "comms_size")),
-                # sr_mode: SR = shared resource (not \"shared randomness\").
-
+                # SR = shared resource. The implementation supports different SR
+                # modes; this module uses the stochastic mode.
                 sr_mode="sample",
                 seed=123,
             )
@@ -92,10 +124,14 @@ class TrainableAssistedPlayers(Players):
             self.model_b = model_b
 
     def check_model_correspondence(self) -> bool:
-        """Check that model A and B are compatible.
+        """Check that model A and model B appear dimensionally compatible.
+
+        This checks `field_size` and `comms_size` when those attributes are
+        available on both models.
 
         Returns:
-            True if basic dimensions match, otherwise False.
+            True if basic dimensions match (or cannot be checked), otherwise
+            False.
         """
         try:
             return (
@@ -103,17 +139,17 @@ class TrainableAssistedPlayers(Players):
                 and int(getattr(self.model_a, "comms_size")) == int(getattr(self.model_b, "comms_size"))
             )
         except Exception:
-            # If the models don't expose these attrs, we assume they are compatible.
+            # If the models don't expose these attributes, assume compatibility.
             return True
 
     def players(self) -> Tuple[TrainableAssistedPlayerA, TrainableAssistedPlayerB]:
-        """Return (PlayerA, PlayerB) wrappers.
+        """Return the (player A, player B) wrappers.
 
-        Creates the wrappers lazily and keeps references so state (previous/logprobs)
-        persists across calls until reset().
+        The wrappers are created lazily and cached so that state (e.g.,
+        `previous`, log-probabilities) persists across calls until `reset()`.
 
         Returns:
-            Tuple (player_a, player_b).
+            A tuple `(player_a, player_b)`.
         """
         if self._playerA is None:
             self._playerA = TrainableAssistedPlayerA(self.game_layout, model_a=self.model_a)
@@ -128,7 +164,11 @@ class TrainableAssistedPlayers(Players):
         return (self._playerA, self._playerB)
 
     def reset(self) -> None:
-        """Reset internal state between games."""
+        """Reset per-game state.
+
+        This clears cached `previous` tensors and forwards the reset to any
+        already-instantiated player wrappers.
+        """
         if self._playerA is not None:
             self._playerA.reset()
         if self._playerB is not None:
@@ -136,10 +176,12 @@ class TrainableAssistedPlayers(Players):
         self.previous = None
 
     def set_explore(self, flag: bool) -> None:
-        """Set exploration flag for both players.
+        """Enable or disable exploration for both players.
 
         Args:
-            flag: If True, players sample actions and store log-probs.
+            flag: If True, players may sample actions and store log-probabilities
+                (when supported by the underlying player/model). If False, they
+                act greedily.
         """
         self.explore = bool(flag)
         if self._playerA is not None:

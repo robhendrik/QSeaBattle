@@ -1,83 +1,109 @@
 # Tournament
 
-> Role: Run a multi-game QSeaBattle tournament by repeatedly executing `Game.play()` and recording outcomes in a `TournamentLog`.
+> Role: Run a multi-game QSeaBattle tournament by repeatedly executing games and appending per-game artifacts and metadata into a `TournamentLog`.
 Location: `Q_Sea_Battle.tournament.Tournament`
 
 ## Constructor
 
 | Parameter | Type | Description |
 | --- | --- | --- |
-| game_env | `GameEnv`, constraints: instance of `Q_Sea_Battle.game_env.GameEnv`, shape: N/A | Game environment instance reused across games. |
-| players | `Players`, constraints: instance of `Q_Sea_Battle.players_base.Players`, shape: N/A | Players factory/provider for player A and B; reused across games. |
-| game_layout | `GameLayout`, constraints: instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: N/A | Configuration specifying tournament length (used to determine number of games). |
+| game_env | `GameEnv`, constraints: instance compatible with `Game(self.game_env, self.players)`; shape: N/A | Game environment used to execute games. |
+| players | `Players`, constraints: instance compatible with `Game(self.game_env, self.players)` and optionally exposing attributes `has_log_probs: bool` and/or `has_prev: bool`; shape: N/A | Factory/container providing player A and player B instances. |
+| game_layout | `GameLayout`, constraints: must provide attribute `number_of_games_in_tournament: int`; shape: N/A | Layout/configuration specifying the number of games and other tournament-level settings. |
 
-Preconditions: `game_env`, `players`, and `game_layout` are non-`None` objects compatible with downstream calls in `tournament()` (e.g., `Game(self.game_env, self.players)` and `TournamentLog(self.game_layout)` must be constructible).
+Preconditions
 
-Postconditions: `self.game_env`, `self.players`, and `self.game_layout` are set to the provided instances.
+- `game_layout.number_of_games_in_tournament` is an `int` and is iterable via `range(n_games)`.
+- `Game(game_env, players)` is constructible.
+- `Game.play()` returns a 5-tuple `(reward, field, gun, comm, shoot)` compatible with downstream indexing and logging.
+- `field` and `gun` support boolean masking `field[gun == 1]` and yield at least one element; the implementation assumes exactly one gun cell is marked with `1`.
 
-Errors: Not specified (any exceptions raised by attribute access or object construction will propagate).
+Postconditions
 
-!!! example "Example"
-    ```python
-    from Q_Sea_Battle.tournament import Tournament
-    from Q_Sea_Battle.game_env import GameEnv
-    from Q_Sea_Battle.players_base import Players
-    from Q_Sea_Battle.game_layout import GameLayout
-    
-    game_env = GameEnv()
-    players = Players()
-    game_layout = GameLayout()
-    
-    t = Tournament(game_env=game_env, players=players, game_layout=game_layout)
-    log = t.tournament()
-    ```
+- `self.game_env`, `self.players`, and `self.game_layout` reference the constructor arguments without modification.
+- The constructed instance is ready to execute `tournament()`.
+
+Errors
+
+- Not specified; any exceptions raised by `Game`, `TournamentLog`, player methods (`get_log_prob`, `get_prev`), indexing (`field[gun == 1][0]`), or log update methods may propagate.
+
+Example
+
+```python
+from Q_Sea_Battle.tournament import Tournament
+from Q_Sea_Battle.game_env import GameEnv
+from Q_Sea_Battle.players_base import Players
+from Q_Sea_Battle.game_layout import GameLayout
+
+t = Tournament(game_env=GameEnv(), players=Players(), game_layout=GameLayout())
+log = t.tournament()
+```
 
 ## Public Methods
 
 ### tournament
 
-Execute a full tournament and return its log.
+Execute the tournament and return the accumulated log.
 
-Parameter: None.
+For each game, the runner calls `Game.play()`, computes `cell_value = int(field[gun == 1][0])`, and records the main outputs via `TournamentLog.update(...)`. Optional player-provided metadata is recorded when available using feature flags on `self.players`.
 
-Returns: `TournamentLog`, constraints: instance of `Q_Sea_Battle.tournament_log.TournamentLog`, shape: N/A; contains results for all games played in the tournament.
+Parameters
 
-Side effects: Constructs `TournamentLog` and `Game`; repeatedly calls `Game.play()`; updates `TournamentLog` with per-game results and optional extra data when available from `players`.
+- None.
 
-Preconditions: `self.game_layout.number_of_games_in_tournament` exists and is usable as the `range()` bound (i.e., an `int` or `__index__`-compatible type). `Game(self.game_env, self.players).play()` returns a 5-tuple `(reward, field, gun, comm, shoot)` such that `gun == 1` is a valid boolean mask over `field` and `field[gun == 1][0]` exists. `TournamentLog(self.game_layout)` supports `update(...)`, `update_indicators(...)`, and optionally `update_log_probs(...)` and `update_log_prev(...)` depending on `players` capabilities.
+Returns
 
-Postconditions: The returned `TournamentLog` has been updated once per game with: base game outcome (via `update`), identifiers (via `update_indicators`), and optionally log-probabilities (via `update_log_probs`) and previous measurement/outcome data (via `update_log_prev`).
+- `TournamentLog`, constraints: instance returned from `TournamentLog(self.game_layout)` updated for each game; shape: N/A.
 
-Errors: Not specified; exceptions from `Game.play()`, numpy-like indexing operations, `players` methods (e.g., `players.players()`, `get_log_prob()`, `get_prev()`), or `TournamentLog` update methods may propagate.
+Side effects
+
+- Instantiates a `TournamentLog` and a `Game`.
+- Mutates the `TournamentLog` via calls to: `update`, optionally `update_log_probs`, optionally `update_log_prev`, and `update_indicators`.
+
+Optional metadata behavior
+
+- If `getattr(self.players, "has_log_probs", False)` is truthy: calls `player_a.get_log_prob()` and `player_b.get_log_prob()` (where `player_a, player_b = self.players.players()`) and passes results to `log.update_log_probs(logprob_comm, logprob_shoot)`.
+- If `getattr(self.players, "has_prev", False)` is truthy: calls `player_a.get_prev()` (where `player_a, _ = self.players.players()`); if non-`None`, expects a pair `(prev_meas, prev_out)` and passes it to `log.update_log_prev(prev_meas, prev_out)`.
+
+Errors
+
+- `IndexError` if `field[gun == 1]` is empty (e.g., no gun cell marked with `1`).
+- Type/attribute errors if `players.players()`, `get_log_prob()`, `get_prev()`, or `TournamentLog` update methods are missing or return incompatible values.
+- Any exceptions raised by `Game.play()` or downstream log methods may propagate.
+
+Example
+
+```python
+log = t.tournament()
+```
 
 ## Data & State
 
-- `game_env`: `GameEnv`, constraints: instance of `Q_Sea_Battle.game_env.GameEnv`, shape: N/A; stored reference used for constructing a `Game`.
-- `players`: `Players`, constraints: instance of `Q_Sea_Battle.players_base.Players`, shape: N/A; stored reference used for constructing a `Game` and optional per-game logging (`has_log_probs`, `has_prev`).
-- `game_layout`: `GameLayout`, constraints: instance of `Q_Sea_Battle.game_layout.GameLayout`, shape: N/A; stored reference used to create `TournamentLog` and determine `n_games` via `number_of_games_in_tournament`.
+- `game_env`: `GameEnv`, constraints: stored reference; shape: N/A.
+- `players`: `Players`, constraints: stored reference; shape: N/A.
+- `game_layout`: `GameLayout`, constraints: stored reference; shape: N/A.
 
 ## Planned (design-spec)
 
-Not specified.
+- Not specified.
 
 ## Deviations
 
-Not specified.
+- Not specified.
 
 ## Notes for Contributors
 
-- The implementation uses fixed identifiers `tournament_id = 0` and `meta_id = 0` for all games; comments indicate these may be extended later.
-- Optional logging is enabled via `getattr(self.players, "has_log_probs", False)` and `getattr(self.players, "has_prev", False)`; when present, the code assumes child players implement `get_log_prob()` (for A and B) and `get_prev()` (for A).
-- `cell_value` is derived as `int(field[gun == 1][0])`; ensure `gun` contains at least one element equal to `1` and that the masking semantics are valid for the `field`/`gun` types returned by `Game.play()`.
+- `cell_value` is derived via `int(field[gun == 1][0])`; if the representation of `gun` changes (e.g., multiple active cells), this selection rule must be revisited alongside the logging schema.
+- The feature flags `players.has_log_probs` and `players.has_prev` are accessed via `getattr(..., False)`; this intentionally tolerates `Players` implementations that do not define these attributes.
 
 ## Related
 
 - `Q_Sea_Battle.game.Game`
-- `Q_Sea_Battle.tournament_log.TournamentLog`
 - `Q_Sea_Battle.game_env.GameEnv`
 - `Q_Sea_Battle.game_layout.GameLayout`
 - `Q_Sea_Battle.players_base.Players`
+- `Q_Sea_Battle.tournament_log.TournamentLog`
 
 ## Changelog
 
-- 0.1: Initial version (module header indicates Version: 0.1).
+- Not specified.

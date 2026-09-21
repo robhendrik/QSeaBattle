@@ -1,132 +1,162 @@
 # PRAssistedPlayers
 
-> Role: Factory that owns a hierarchy of PR-assisted resources and hands out paired `PRAssistedPlayerA` / `PRAssistedPlayerB` instances.
+> Role: Factory for PR-assisted players that owns a per-level hierarchy of shared PR-assisted resources and vends a cached paired `(PlayerA, PlayerB)`.
 
 Location: `Q_Sea_Battle.pr_assisted_players.PRAssistedPlayers`
 
 ## Derived constraints
 
-- Let `field_size` be `game_layout.field_size` (int, constraints not specified in this module) and `comms_size` be `game_layout.comms_size` (int, constraints not specified in this module).
-- `comms_size == 1` is required.
-- Let `n2 = field_size ** 2` (int). `n2 > 0` is required.
-- `n2` must be a power of two (equivalently: `n2 & (n2 - 1) == 0` for `n2 > 0`), and additionally `_create_pr_assisted_array()` enforces exact power-of-two via `2**n == n2` where $n = \lfloor \log_2(n2) \rfloor$.
-- The internal PR-assisted resource list has length $n$, and contains resources with lengths $2^{n-1}, 2^{n-2}, \dots, 2^0$.
+- `comms_size`: `int`, must equal `1`.
+- `field_size`: `int`, must be positive.
+- `n2`: `int`, defined as $n2 = field\_size^2$, must be a positive power of two.
+- `p_rule`: `float`, no additional constraints specified.
+- PR-assisted hierarchy size: if $n2 = 2^n$ for integer $n$, then the factory owns exactly $n$ `PRAssisted` resources with lengths $2^{n-1}, 2^{n-2}, \dots, 2^0$.
 
 ## Constructor
 
 | Parameter | Type | Description |
-|---|---|---|
-| `game_layout` | `GameLayout`, constraints Unknown, shape N/A | Game configuration used to derive `field_size` and `comms_size`. |
-| `p_high` | `float`, constraints Unknown, shape N/A | Correlation parameter used for all PR-assisted resources. Coerced via `float(p_high)`. |
+| --- | --- | --- |
+| `game_layout` | `GameLayout`, constraints: `game_layout.comms_size == 1`, `game_layout.field_size > 0`, and `n2 = game_layout.field_size ** 2` is a power of two, shape: N/A | Game configuration and board dimensions. |
+| `p_rule` | `float`, constraints: not specified, shape: scalar | Correlation parameter used for all owned PR-assisted resources. |
 
 Preconditions
 
 - `game_layout.comms_size == 1`.
-- `n2 = game_layout.field_size ** 2` satisfies `n2 > 0`.
-- `n2` is a power of two.
+- `game_layout.field_size > 0`.
+- `n2 = game_layout.field_size ** 2` is a power of two.
 
 Postconditions
 
-- `self.p_high` is set to `float(p_high)`.
-- `self._pr_assisted_array` is created via `_create_pr_assisted_array()`.
-- `self._playerA is None` and `self._playerB is None` (players are created lazily by `players()`).
+- `self.p_rule` is set to `float(p_rule)`.
+- `self._pr_assisted_array` is created via `_create_pr_assisted_array()` and contains per-level `PRAssisted` resources.
+- `self._playerA` and `self._playerB` are initialized to `None` (lazy creation on first `players()` call).
 
 Errors
 
-- Raises `ValueError` if `game_layout.comms_size != 1`.
-- Raises `ValueError` if `game_layout.field_size ** 2 <= 0`.
-- Raises `ValueError` if `game_layout.field_size ** 2` is not a power of two.
+- Raises `ValueError` if `comms_size != 1`.
+- Raises `ValueError` if `field_size` is not positive (i.e., `field_size ** 2 <= 0`).
+- Raises `ValueError` if `field_size ** 2` is not a power of two.
 
 Example
 
 ```python
-from Q_Sea_Battle.game_layout import GameLayout
 from Q_Sea_Battle.pr_assisted_players import PRAssistedPlayers
+from Q_Sea_Battle.game_layout import GameLayout
 
-layout = GameLayout(field_size=4, comms_size=1)  # other args, if any, are not specified here
-factory = PRAssistedPlayers(game_layout=layout, p_high=0.9)
+layout = GameLayout(field_size=4, comms_size=1)  # n2 = 16
+factory = PRAssistedPlayers(game_layout=layout, p_rule=0.9)
 player_a, player_b = factory.players()
 ```
 
 ## Public Methods
 
-### players
+### `players(self) -> Tuple[PlayerA, PlayerB]`
 
-- Signature: `players(self) -> Tuple[PlayerA, PlayerB]`
-- Returns: `Tuple[PlayerA, PlayerB]`, constraints Unknown, shape `(2,)` as a 2-tuple `(player_a, player_b)`.
-- Behavior: Creates `PRAssistedPlayerA` and `PRAssistedPlayerB` on first call (lazy initialization) and caches them; later calls return the cached instances.
+Return the paired players, creating them on first use; the created players keep a reference to this factory as their parent and use it to access the per-level PR-assisted resources.
+
+Parameters
+
+- None.
+
+Returns
+
+- `tuple[PlayerA, PlayerB]`, constraints: length exactly `2`, shape: `(2,)` tuple; returns `(player_a, player_b)`.
 
 Errors
 
 - Not specified.
 
-Example
+### `reset(self) -> None`
 
-```python
-player_a, player_b = factory.players()
-player_a2, player_b2 = factory.players()
-assert player_a is player_a2 and player_b is player_b2
-```
+Reset the owned PR-assisted resources by recreating the internal PR-assisted hierarchy; cached player objects are not recreated but will observe the new resources through the parent.
 
-### reset
+Parameters
 
-- Signature: `reset(self) -> None`
-- Returns: `None`, constraints N/A, shape N/A.
-- Behavior: Recreates `self._pr_assisted_array` via `_create_pr_assisted_array()`; does not modify cached `_playerA` / `_playerB` in this module.
+- None.
+
+Returns
+
+- `None`, shape: N/A.
 
 Errors
 
-- May raise `ValueError` propagated from `_create_pr_assisted_array()` if the current `game_layout.field_size ** 2` is not an exact power of two.
+- Not specified.
 
-Example
+### `pr_assisted(self, index: int) -> PRAssisted`
 
-```python
-factory.reset()
-```
+Return the PR-assisted resource at the given level.
 
-### pr_assisted
+Parameters
 
-- Signature: `pr_assisted(self, index: int) -> PRAssisted`
-- Parameters:
-  - `index`: `int`, constraints: must be a valid list index for `self._pr_assisted_array`, shape N/A.
-- Returns: `PRAssisted`, constraints Unknown, shape N/A.
-- Behavior: Returns the PR-assisted resource at `self._pr_assisted_array[index]`.
+- `index`: `int`, constraints: must be a valid index into the internal PR-assisted resource list, shape: scalar.
+
+Returns
+
+- `PRAssisted`, constraints: resource exists at `index`, shape: N/A.
 
 Errors
 
-- Raises `IndexError` if `index` is out of bounds (propagated from list indexing).
+- Raises `IndexError` if `index` is out of bounds.
 
-Example
+### `shared_randomness(self, index: int) -> PRAssisted`
 
-```python
-box0 = factory.pr_assisted(0)
-```
+Deprecated alias for `pr_assisted`; prints a warning and returns the same resource as `pr_assisted(index)`.
 
-### shared_randomness
+Parameters
 
-- Signature: `shared_randomness(self, index: int) -> PRAssisted`
-- Parameters:
-  - `index`: `int`, constraints: must be a valid list index for `self._pr_assisted_array`, shape N/A.
-- Returns: `PRAssisted`, constraints Unknown, shape N/A.
-- Behavior: Prints a deprecation warning to stdout and delegates to `pr_assisted(index)`.
+- `index`: `int`, constraints: must be a valid index into the internal PR-assisted resource list, shape: scalar.
+
+Returns
+
+- `PRAssisted`, constraints: resource exists at `index`, shape: N/A.
 
 Errors
 
 - Raises `IndexError` if `index` is out of bounds (via `pr_assisted`).
 
-Example
+!!! warning "Deprecation"
+    `shared_randomness()` is deprecated; use `pr_assisted()` instead. This method emits a warning via `print(...)` in the current implementation.
 
-```python
-box0 = factory.shared_randomness(0)  # prints a deprecation warning
-```
+### `set_replay_round(self, replay_specs: list[dict]) -> None`
+
+Enable replay mode for all owned PR-assisted resources by applying `PRAssisted.set_replay_round(**spec)` to each resource.
+
+Parameters
+
+- `replay_specs`: `list[dict]`, constraints: length must equal `len(self._pr_assisted_array)` and every element must be a `dict`, shape: `(m,)` where `m = len(self._pr_assisted_array)`.
+
+Returns
+
+- `None`, shape: N/A.
+
+Errors
+
+- Raises `ValueError` if `len(replay_specs) != len(self._pr_assisted_array)`.
+- Raises `ValueError` if any `replay_specs[i]` is not a `dict`.
+
+### `clear_replay_round(self) -> None`
+
+Disable replay mode for all owned PR-assisted resources by applying `PRAssisted.clear_replay_round()` to each resource.
+
+Parameters
+
+- None.
+
+Returns
+
+- `None`, shape: N/A.
+
+Errors
+
+- Not specified.
 
 ## Data & State
 
-- `game_layout`: `GameLayout`, constraints Unknown, shape N/A; inherited from `Players` (assignment performed by `Players.__init__` as invoked by `super().__init__(game_layout)`).
-- `p_high`: `float`, constraints Unknown, shape N/A; correlation parameter used when constructing each `PRAssisted`.
-- `_pr_assisted_array`: `list[PRAssisted]`, constraints: length `n` where $n = \log_2(n2)$ with `n2 = field_size ** 2` an exact power of two, shape N/A.
-- `_playerA`: `PRAssistedPlayerA | None`, constraints Unknown, shape N/A; cached instance created by `players()`.
-- `_playerB`: `PRAssistedPlayerB | None`, constraints Unknown, shape N/A; cached instance created by `players()`.
+- `game_layout`: `GameLayout`, constraints: inherited from `Players` and additionally requires `comms_size == 1` and `n2 = field_size ** 2` is a power of two, shape: N/A.
+- `p_rule`: `float`, constraints: not specified, shape: scalar.
+- `_pr_assisted_array`: `list[PRAssisted]`, constraints: non-empty when `n2 >= 2`, ordered from largest resource to smallest, shape: `(m,)` where $m = \log_2(n2)$.
+- `_playerA`: `PRAssistedPlayerA | None`, constraints: `None` until first `players()` call, shape: N/A.
+- `_playerB`: `PRAssistedPlayerB | None`, constraints: `None` until first `players()` call, shape: N/A.
 
 ## Planned (design-spec)
 
@@ -138,8 +168,8 @@ box0 = factory.shared_randomness(0)  # prints a deprecation warning
 
 ## Notes for Contributors
 
-- `_create_pr_assisted_array()` uses `np.log2(n2)` and casts to `int`, then verifies exactness via `2**n == n2`; keep this check if refactoring to avoid float rounding issues.
-- `shared_randomness()` prints directly; if changing deprecation behavior, ensure compatibility considerations are addressed across the package.
+- `_create_pr_assisted_array()` relies on `np.log2(n2)` and integer casting; although constructor checks for power-of-two via bit test, `_create_pr_assisted_array()` also validates exact power-of-two via `2**n != n2` and raises `ValueError` on mismatch.
+- `shared_randomness()` uses `print(...)` for deprecation warning; a TODO indicates an intended migration to `warnings.warn` when API policy allows.
 
 ## Related
 
@@ -151,4 +181,4 @@ box0 = factory.shared_randomness(0)  # prints a deprecation warning
 
 ## Changelog
 
-- Version 0.1: Introduced `PRAssistedPlayers` with `pr_assisted()` and deprecated alias `shared_randomness()`.
+- Not specified.
