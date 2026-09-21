@@ -38,8 +38,6 @@ The project grew out of a series of investigations into random access codes, non
 
 The project provides tutorials that show how the game, tournaments and models can be used.
 
-## Tutorials
-
 1. [A quick start guide showing how to run the provided players in a tournament](html/Tutorial_QSeaBattle_QuickStartGuide.html)
 
 2. [Demonstration of a neural-net player trained to imitate the majority algorithm](html/Tutorial_imitation_training_neural_net_models.html)
