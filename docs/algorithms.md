@@ -1,349 +1,214 @@
-﻿# Algorithms
+# Built-In Algorithms
 
-## Purpose
+QSeaBattle includes several player strategies that all solve the same basic problem in different ways.
 
-This page defines the **normative** algorithms for QSeaBattle player families and the shared resource (SR) interface. The goal is to make the reference behavior independently re-implementable without reading Python source.
+Player A sees the complete battlefield. Player B sees only the cell that is being queried. Player A may send a limited message to Player B, and Player B must use that message to guess the value of the requested cell.
 
-!!! note
-If any behavior in code contradicts this page, the code is considered incorrect.
+The algorithms differ in how they compress information, how they use shared resources, and whether parts of the strategy are fixed or trainable.
 
-## Scope
+## The Same Game, Different Strategies
 
-This page specifies:
+At a high level, every strategy follows the same information flow:
 
-* Core game-level semantics needed by algorithms.
-* Deterministic classical baselines (Simple, Majority).
-* Assisted algorithms using **SR (shared resource)**.
-* Trainable assisted algorithms (Lin and Pyr) as constrained implementations of the same information flow.
-* SR semantics and sampling modes.
+1. Player A receives the field.
+2. Player A computes a communication message.
+3. Player B receives the queried position and the communication message.
+4. Player B produces a one-bit answer.
 
-This page does not specify:
+The interesting part is how much useful information can be packed into the allowed communication.
 
-* Training procedures (see Training pages).
-* Implementation details of TensorFlow/Keras layers.
-* Logging, tournaments, or visualization.
+The built-in algorithms can be viewed as a progression from simple classical baselines to more structured assisted strategies.
 
-## Notation and symbols
+| Strategy | Main idea | Communication | Shared resource |
+| --- | --- | --- | --- |
+| Simple | Send selected field bits directly | Configurable | None |
+| Majority | Summarize groups of cells by their majority value | Configurable | None |
+| PR-assisted | Use non-signaling correlations to improve how information is combined | Limited | PR-style resource |
+| Linear | Use assisted correlations in a parallel, linear-style construction | Configurable | PR-style resource |
+| Pyramid | Recursively compress information through several levels | Typically one bit | PR-style resource |
+| Trainable variants | Learn mappings while preserving the same information constraints | Depends on family | Depends on family |
 
-* `field_size`: integer $n \ge 1$.
-* `n2`: integer $n^2$.
-* `comms_size`: integer $m$ with $1 \le m \le n2$.
-* `field`: binary vector of length `n2`, flattened in a fixed order.
-* `gun`: one-hot vector of length `n2` indicating the queried cell index.
-* `comm`: communicated message from Player A to Player B, binary vector of length `m` (Lin) or a single bit (Pyr).
-* `sr`: shared resource value(s) available to both players without signaling.
+## Simple Strategy
 
-Shapes used throughout:
+The Simple strategy is the most direct classical baseline.
 
-* `field`: `np.ndarray, dtype int {0,1}, shape (n2,)` or `tf.Tensor, dtype float32, shape (B, n2)`.
-* `gun`: `np.ndarray, dtype int {0,1}, shape (n2,)` one-hot or `tf.Tensor, dtype float32, shape (B, n2)` one-hot.
-* `comm`: `np.ndarray, dtype int {0,1}, shape (m,)` or `tf.Tensor, dtype float32, shape (B, m)`.
-* `shoot`: scalar decision bit `np.ndarray, dtype int {0,1}, shape (1,)` or `tf.Tensor, dtype float32, shape (B, 1)`.
+Player A and Player B agree in advance on a fixed set of field positions. Player A sends the values of those selected positions directly.
 
-!!! warning
-All math symbols MUST be interpreted using the variable names above. Do not mix different meanings of `m`, `n2`, `field_size`.
+If Player B is asked about one of the communicated positions, the answer is known exactly. If the queried position lies outside the covered set, Player B has no direct information about it and must fall back to a fixed guess.
 
-## Shared resource (SR)
+This makes the trade-off easy to understand:
 
-### Definition
+- more communication means more cells can be covered directly;
+- uncovered cells remain essentially unknown;
+- the strategy does not try to compress structure in the field.
 
-**SR (shared resource)** is any pre-established auxiliary resource accessible to both Player A and Player B without communication and without signaling. SR may be classical, post-quantum, or simulated.
+The Simple player is useful as a reference because it shows what can be achieved by straightforward communication without any additional processing.
 
-`PRAssistedLayer` is one concrete SR mechanism that provides structured correlations.
+## Majority Strategy
 
-### SR interface contract
+The Majority strategy uses the same communication budget differently.
 
-SR MUST satisfy:
+Instead of sending individual cells, Player A divides the flattened field into several segments. For each segment, Player A sends one bit indicating the majority value in that segment.
 
-* **No signaling**: Player B MUST NOT obtain information about `field` except via `comm` and SR that is independent of `field` given the chosen SR mode.
-* **Symmetry**: Player A and Player B MUST interpret SR values in the same indexing convention.
-* **Mode control**: Any `sr_mode` parameter MUST be defined as a choice of shared resource mechanism, not "randomness".
+Player B determines which segment contains the queried position and uses the majority bit of that segment as the answer.
 
-SR MAY be used in one of two modes:
+This sacrifices certainty about individual cells but spreads information over a larger part of the field.
 
-* **Expected-mode**: SR outcomes are replaced by their expectation under the SR distribution (deterministic, differentiable).
-* **Sample-mode**: SR outcomes are sampled (stochastic).
+The idea is simple:
 
-Preconditions:
+- direct communication is accurate but narrow;
+- majority communication is approximate but broad.
 
-* SR configuration is fixed before a game begins.
-* SR does not depend on runtime observations (`field`, `gun`) except through allowed conditional selection rules described below.
+This makes Majority a useful classical compression baseline. It is often more effective than direct coverage when one communication bit must summarize several cells.
 
-Postconditions:
+## Shared Resources
 
-* SR usage preserves the information flow constraints described in Invariants.
+Some QSeaBattle strategies use an additional shared resource.
 
-Errors:
+A shared resource gives Player A and Player B access to correlated outcomes that are established without allowing direct signaling between them. In QSeaBattle, PR-style resources are used as a model of stronger-than-classical correlations.
 
-* Any SR mechanism that can encode `field` into SR outcomes is invalid.
+The important point is that the shared resource does **not** give Player B direct access to the field.
 
-## Core game semantics used by all algorithms
+Player B can still depend on the field only through:
 
-### Game inputs and outputs
+- the message sent by Player A;
+- the agreed shared resource correlations.
 
-For each game instance:
+The shared resource changes how efficiently the limited communication can be used, but it does not add an ordinary communication channel.
 
-* Player A receives `field`.
-* Player B receives `gun`.
-* Player A sends `comm` to Player B.
-* Player B outputs `shoot` as a guess of the battlefield value at the gun index.
+## PR-Assisted Strategies
 
-Success condition (conceptual):
+PR-assisted players use the shared resource together with the ordinary communication channel.
 
-* Let `k = argmax(gun)` for one-hot `gun`.
-* The game is won if `shoot == field[k]`.
+The basic pattern is:
 
-!!! note
-Algorithms below specify how `comm` and `shoot` are computed; the environment defines win/loss bookkeeping.
+1. Player A computes one or more inputs to the shared resource from the field.
+2. Player B computes corresponding inputs from the queried position.
+3. The shared resource produces correlated outcomes.
+4. Player A combines those outcomes with the field to form the message.
+5. Player B combines the received message, the query, and the corresponding shared-resource outcomes to form the final answer.
 
-## Deterministic baseline algorithms
+The exact construction depends on the algorithm family.
 
-### Simple (coverage) strategy
+The common goal is to exploit correlations that are stronger than what purely classical shared randomness can provide.
 
-Intent: communicate `m` cells directly and guess randomly outside coverage.
+## Linear Strategy
 
-Algorithm:
+The Linear family uses several assisted correlations in a relatively direct, parallel-style construction.
 
-* Partition indices into a fixed agreed set `C` of size `m` and its complement.
-* Player A sets `comm[j] = field[C[j]]` for $j = 0..m-1$.
-* Player B computes `k = argmax(gun)`.
-* If `k` is in `C`, Player B outputs the matching communicated bit.
-* Else Player B outputs `0` or `1` using a fixed baseline rule (for example, always `0`, or a fixed prior).
+Conceptually, Player A computes measurements from the field, combines those measurements with shared-resource outcomes, and turns the result into the communication message.
 
-Preconditions:
+Player B performs the matching operation on the query side and combines:
 
-* `1 <= m <= n2`.
-* Both players share the same ordered index set `C`.
+- the queried position;
+- the received communication;
+- the corresponding shared-resource outcomes.
 
-Postconditions:
+This family is useful because it keeps the structure fairly transparent. The strategy is built from repeated measurement-and-combine operations rather than from a deep recursive reduction.
 
-* If `k` is in coverage, `shoot` matches `field[k]` in noiseless communication.
+In the trainable version, the same information flow is preserved while some of the fixed mappings are replaced by neural-network components.
 
-Errors:
+## Pyramid Strategy
 
-* `ValueError` if `m` invalid or coverage mapping inconsistent.
+The Pyramid family uses a different idea: recursive compression.
 
-### Majority (segment-majority) strategy
-
-Intent: communicate one bit per segment of the field.
-
-Algorithm:
-
-* Partition the flattened field indices into `m` contiguous segments of equal length `L = n2 / m` (requires `m | n2`).
-* Player A computes, for each segment, the majority bit (ties map to `1`).
-* Player A sends these `m` bits as `comm`.
-* Player B computes `k = argmax(gun)` and determines which segment contains `k`.
-* Player B outputs the corresponding segment bit.
-
-Preconditions:
-
-* `field_size >= 1`.
-* `1 <= m <= n2`.
-* `m | n2`.
-
-Postconditions:
-
-* `comm` is deterministic given `field`.
-* `shoot` depends only on `comm` and `gun`.
-
-Errors:
-
-* `ValueError` if `m` does not divide `n2`.
-
-## Assisted algorithms with SR
-
-This section specifies algorithms that may outperform purely classical deterministic baselines by using SR correlations while respecting no-signaling constraints.
-
-### Assisted (Lin) algorithm family
-
-This family uses `m`-bit communication with linear-style primitives.
-
-#### Lin teacher primitives
-
-Teacher layers define reference transformations:
-
-* Measurement-A: produces `meas_a` from `field`.
-* Combine-A: produces `comm` from `meas_a` and SR outcomes.
-* Measurement-B: produces `meas_b` from `gun`.
-* Combine-B: produces `shoot` from `meas_b`, SR outcomes, and `comm`.
-
-Types and shapes (batch form):
-
-* `field`: `tf.Tensor, dtype float32, shape (B, n2)`.
-* `gun`: `tf.Tensor, dtype float32, shape (B, n2)` one-hot.
-* `meas_a`: `tf.Tensor, dtype float32, shape (B, n2)` (Lin design default).
-* `meas_b`: `tf.Tensor, dtype float32, shape (B, n2)` (Lin design default).
-* `comm`: `tf.Tensor, dtype float32, shape (B, m)`.
-* `shoot`: `tf.Tensor, dtype float32, shape (B, 1)`.
-
-!!! note
-Lin exact measurement/combine semantics depend on the selected Lin reference strategy (for example, parity prototype). The teacher primitives MUST be the single source of truth for these semantics.
-
-#### Lin end-to-end reference flow
-
-Algorithm (single sample):
-
-* Player A:
-
-  * Compute `meas_a = MeasureA(field)`.
-  * Obtain SR outcomes required by Combine-A according to `sr_mode`.
-  * Compute `comm = CombineA(meas_a, sr_outcomes_a)`.
-* Player B:
-
-  * Compute `meas_b = MeasureB(gun)`.
-  * Obtain SR outcomes required by Combine-B according to `sr_mode`.
-  * Compute `shoot = CombineB(meas_b, sr_outcomes_b, comm)`.
-
-Preconditions:
-
-* `field_size >= 1`.
-* `1 <= m <= n2`.
-* SR configuration is compatible with the Combine rules.
-
-Postconditions:
-
-* `comm` depends on `field` only through MeasureA and CombineA.
-* `shoot` depends on `field` only through `comm` and SR outcomes.
-
-Errors:
-
-* `ValueError` on shape mismatch or invalid SR configuration.
-
-### Assisted (Pyr) algorithm family
-
-This family uses a pyramid reduction structure and typically enforces `comms_size = 1`.
-
-#### Pyramid structural constraints
-
-* `n2 = field_size^2` MUST be a power of two.
-* `comms_size` MUST equal `1`.
-* The pyramid has `K = log2(n2)` levels.
-* Level $l$ has active length $L_l = n2 / 2^l$ for $l = 0..K-1$.
-* Each level maps length $L$ to $L/2$.
-
-Preconditions:
-
-* `field_size >= 1`.
-* `n2` is a power of two.
-* `m = 1`.
-
-Errors:
-
-* `ValueError` if `n2` not power of two or `m != 1`.
-
-#### Pyr teacher primitives
+Instead of processing the whole field in one step, the strategy repeatedly reduces the active representation.
 
 At each level:
 
-* Measurement-A: `meas_a_l = MeasureA_l(field_l)` where `field_l` has length $L$ and output has length $L/2$.
-* Combine-A: `field_{l+1} = CombineA_l(field_l, sr_outcome_l)` output length $L/2$.
-* Measurement-B: `meas_b_l = MeasureB_l(gun_l)` input length $L$, output length $L/2$.
-* Combine-B: `(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)` where `comm_l` is a single bit.
+1. neighbouring pieces of information are paired;
+2. a shared-resource interaction is applied;
+3. the active representation becomes smaller;
+4. the next level repeats the process.
 
-Types and shapes (single sample):
+The number of active elements is halved at each stage until only the final information needed for the one-bit communication remains.
 
-* `field_l`: `np.ndarray, dtype int {0,1}, shape (L,)`.
-* `gun_l`: `np.ndarray, dtype int {0,1}, shape (L,)` one-hot.
-* `sr_outcome_l`: `np.ndarray, dtype int {0,1}, shape (L/2,)`.
-* `comm_l`: `np.ndarray, dtype int {0,1}, shape (1,)`.
+Player B performs a matching reduction on the query side.
 
-#### Pyr end-to-end reference flow
+This creates a tree-like or pyramidal information flow, which is where the strategy gets its name.
 
-Algorithm (single sample):
+The Pyramid strategy is especially interesting because the final communication can remain very small even though the original field may contain many cells.
 
-* Initialize:
+## Linear Versus Pyramid
 
-  * `field_0 = field` reshaped/flattened to length `n2`.
-  * `gun_0 = gun` one-hot length `n2`.
-  * `comm_0` is a single bit initialized by Player A at level 0 (teacher-defined rule).
-* For each level $l = 0..K-1$:
+The Linear and Pyramid families use the same basic ingredients but organize them differently.
 
-  * Player A:
+The Linear construction is closer to a flat or parallel computation. The Pyramid construction is hierarchical.
 
-    * Compute `meas_a_l = MeasureA_l(field_l)`.
-    * Obtain SR outcomes `sr_outcome_l` for this level.
-    * Compute `field_{l+1} = CombineA_l(field_l, sr_outcome_l)`.
-    * Update `comm_l` according to the Pyr-A teacher rule and send the current `comm_l` (or final `comm_K`) to Player B depending on the protocol definition.
-  * Player B:
+A useful way to think about the difference is:
 
-    * Compute `meas_b_l = MeasureB_l(gun_l)`.
-    * Obtain SR outcomes `sr_outcome_l` for this level.
-    * Compute `(gun_{l+1}, comm_{l+1}) = CombineB_l(gun_l, sr_outcome_l, comm_l)`.
-* Output:
+- **Linear:** combine many assisted pieces of information directly;
+- **Pyramid:** repeatedly compress information through successive levels.
 
-  * Player B outputs `shoot = comm_K` or the protocol-defined final bit.
+Neither description by itself implies that one family is always superior. They represent different structural choices for how information is processed before the final answer is produced.
 
-!!! warning
-The exact rule for how `comm` is initialized and when it is transmitted MUST match the Pyr teacher implementation used for dataset generation.
+## Trainable Assisted Models
 
-## Trainable assisted models as constrained implementations
+QSeaBattle also contains trainable versions of the assisted strategies.
 
-### Teacher vs trainable relationship
+These models are not unrestricted neural networks. Their architecture is deliberately constrained so that the rules of the game remain intact.
 
-For both Lin and Pyr:
+In particular:
 
-* Teacher primitives define the **reference mapping** used to generate supervised targets.
-* Trainable models MUST be architectures that cannot violate the information flow constraints and are trained to approximate the teacher mapping.
+- Player A may use the field, but Player B may not;
+- Player B may use the query and the received communication;
+- shared resources may only enter through the allowed assisted interfaces;
+- there is no hidden path that bypasses the communication constraint.
 
-Normative requirement:
+This makes it possible to train parts of a strategy while still preserving the information structure of the original game.
 
-* A trainable assisted model MUST NOT have any input path that bypasses:
+The trainable Linear and Pyramid models are therefore best understood as learned implementations of the same constrained information flow, rather than as generic end-to-end predictors.
 
-  * `field -> comm` only through Player A,
-  * `comm + gun -> shoot` only through Player B,
-  * SR usage only through SR interfaces.
+## Expected And Sampled Shared Resources
 
-### Equivalence targets
+The shared-resource implementation can be used in two broad ways.
 
-When trained on the corresponding imitation datasets:
+### Expected Mode
 
-* `LinTrainableAssistedModelA` SHOULD approximate `Lin teacher A` mapping: `field -> comm`.
-* `LinTrainableAssistedModelB` SHOULD approximate `Lin teacher B` mapping: `(gun, comm) -> shoot`.
-* `PyrTrainableAssistedModelA` SHOULD approximate `Pyr teacher A` per-level mappings.
-* `PyrTrainableAssistedModelB` SHOULD approximate `Pyr teacher B` per-level mappings.
+The resource is replaced by its expected behaviour.
 
-!!! note
-This page does not claim optimality of learned models. It specifies the intended target behavior and constraints.
+This is deterministic and is useful when a differentiable signal is needed during training.
 
-## Preconditions, postconditions, errors summary
+### Sample Mode
 
-### Global preconditions
+Actual resource outcomes are sampled.
 
-* `field_size >= 1`.
-* `n2 = field_size^2`.
-* `1 <= comms_size <= n2` unless specified otherwise.
-* For Pyr: `n2` power of two and `comms_size = 1`.
-* All bit-vectors are binary in `{0,1}` (or float32 equivalents `{0.0,1.0}` for TF).
+This is stochastic and more closely resembles repeated gameplay with explicit random outcomes.
 
-### Global postconditions
+Both modes represent the same underlying resource model, but they are useful for different purposes.
 
-* Player B output `shoot` is a single bit.
-* Player B uses only `gun`, received `comm`, and SR outcomes.
-* SR does not violate no-signaling constraints.
+## When To Use Which Strategy
 
-### Global errors
+If you are exploring QSeaBattle for the first time, a useful progression is:
 
-* `ValueError` for invalid shapes, invalid parameter domains, or violated structural constraints.
-* `RuntimeError` for detected internal inconsistency (for example, mismatched level lists between Player A and Player B).
+1. start with **Simple** to understand the communication constraint;
+2. compare it with **Majority** to see the effect of classical compression;
+3. move to **PR-assisted** players to introduce stronger correlations;
+4. compare **Linear** and **Pyramid** constructions;
+5. use the **trainable assisted** models to study whether the same strategy structure can be learned from data.
 
-## Testing hooks
+The tutorials on the project homepage follow this progression from fixed players to neural and assisted models.
 
-Suggested invariants to test algorithm correctness without training:
+## Technical Constraints
 
-* Majority segmentation covers `[0, n2)` with no overlaps and total length `n2`.
-* For Pyr: level sizes are `[n2, n2/2, ..., 2]` and count is `log2(n2)`.
-* For Pyr: each level halves the active length for both field and gun representations.
-* For Lin: `comm` has shape `(m,)` and `shoot` has shape `(1,)` for single-sample execution.
-* No-signaling smoke test: holding `comm` fixed, varying `field` MUST NOT change Player B output distribution in expected-mode SR.
+A few implementation constraints are worth keeping in mind.
 
-## Planned (design-spec)
+- The field is represented as a flattened binary vector.
+- The query is represented as a one-hot position.
+- The communication size is configurable for most strategies.
+- The Pyramid family typically uses a single communication bit.
+- The Pyramid construction requires the number of field cells to support repeated halving through its levels.
+- Player B never receives the field directly.
 
-* A fully explicit pseudocode listing for each teacher primitive (Measure/Combine for Lin and Pyr) may be added if the reference teachers are updated or extended.
+For exact tensor shapes, layer interfaces, and class-level details, see the generated documentation for the corresponding player and model classes.
 
-## Deviations
+## Related Documentation
 
-* None.
+For implementation details, see:
 
-## Changelog
-
-* 2026-01-16 (Rob Hendriks): Initial `algorithms.md` drafted as normative baseline for assisted and trainable-assisted algorithm families.
+- **Players** for the concrete Player A and Player B classes;
+- **Shared Resources** for the PR-assisted resource implementation;
+- **Linear Models** for the trainable linear family;
+- **Pyramidal Models** for the recursive trainable family;
+- **Dataset Utilities** for the imitation-training data pipelines;
+- **Tutorials** on the homepage for worked examples.

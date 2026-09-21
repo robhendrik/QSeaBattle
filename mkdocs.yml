@@ -1,5 +1,5 @@
-site_name: QSeaBattle Specification
-site_description: Living specification for the QSeaBattle project.
+site_name: QSeaBattle Landing Page
+site_description: Landing Page for the QSeaBattle project.
 site_author: Rob Hendriks
 
 docs_dir: docs
@@ -45,6 +45,7 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - Architecture: architecture.md
   - Algorithms: algorithms.md
 
   - Game:
