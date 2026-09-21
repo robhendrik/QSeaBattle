@@ -2,7 +2,6 @@ site_name: QSeaBattle Specification
 site_description: Living specification for the QSeaBattle project.
 site_author: Rob Hendriks
 
-# Where your Markdown lives (matches your skeleton)
 docs_dir: docs
 site_dir: site
 
@@ -28,108 +27,89 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
-
-  # Technical-spec friendly extensions
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
-
-  # --- Math rendering (LaTeX-style) ---
-  # Use $math$ for inline and $$math$$ for display math.
   - pymdownx.arithmatex:
       generic: true
 
-
 plugins:
   - search
-#   - mkdocstrings:
-#       default_handler: python
-#       handlers:
-#         python:
-#           options:
-#             docstring_style: google
-#             show_signature: true
-#             show_source: false
-# markdown_extensions:
-#   - toc:
-#       permalink: true
-#       slugify: !!python/name:pymdownx.slugs.slugify
-#   - pymdownx.superfences      
-#   - pymdownx.highlight:
-#       anchor_linenums: true
 
-
-
-# Load MathJax (CDN). This enables LaTeX math rendering in the browser.
+# MathJax for LaTeX-style math in Markdown.
 extra_javascript:
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 nav:
-  - Introduction: index.md
-  - Conventions: conventions.md
-  - Invariants: invariants.md
-  - Algorithms:
-      - Algorithms: algorithms.md
-      - Simple: simple_algorithm.md
-      - Majority: majority_algorithm.md
-      - Linear: linear_algorithm.md
-      - Pyramid: pyramidal_algorithm.md
-      
+  - Algorithms: algorithms.md
+
   - Game:
+      - Game: game.md
       - GameLayout: game_layout.md
       - GameEnv: game_env.md
-      - Game: game.md
+      - Gameplay Adapters: gameplay_adapters.md
       - Tournament: tournament.md
       - TournamentLog: tournament_log.md
+
   - Players:
-      - Players: players_base.md
-      - PlayerA: player_base_a.md
-      - PlayerB: player_base_b.md
-      - SimplePlayers: simple_players.md
-      - SimplePlayerA: simple_player_a.md
-      - SimplePlayerB: simple_player_b.md
-      - MajorityPlayers: majority_players.md
-      - MajorityPlayerA: majority_player_a.md
-      - MajorityPlayerB: majority_player_b.md
-      - PRAssistedPlayers: pr_assisted_players.md
-      - PRAssistedPlayerA: pr_assisted_player_a.md
-      - PRAssistedPlayerB: pr_assisted_player_b.md
-      - TrainableAssistedPlayers: trainable_assisted_players.md
-      - TrainableAssistedPlayerA: trainable_assisted_player_a.md
-      - TrainableAssistedPlayerB: trainable_assisted_player_b.md
- 
-  - Shared resources:
-      - Overview: shared_resources.md
-      - PRAssisted: pr_assisted.md
-      - PRAssistedLayer: pr_assisted_layer.md
-      
-  - Models:
-      - LinTrainableAssistedModelA: lin_trainable_assisted_model_a.md
-      - LinTrainableAssistedModelB: lin_trainable_assisted_model_b.md
-      - LinCombineLayerA: lin_combine_layer_a.md
-      - LinCombineLayerB: lin_combine_layer_b.md
-      - LinMeasurementLayerA: lin_measurement_layer_a.md
-      - LinMeasurementLayerB: lin_measurement_layer_b.md
-      - lin_teacher_layers: lin_teacher_layers.md
-      - lin_trainable_layers: lin_trainable_layers.md
-      - PyrTrainableAssistedModelA: pyr_trainable_assisted_model_a.md
-      - PyrTrainableAssistedModelB: pyr_trainable_assisted_model_b.md
-      - PyrCombineLayerA: pyr_combine_layer_a.md
-      - PyrCombineLayerB: pyr_combine_layer_b.md
-      - PyrMeasurementLayerA: pyr_measurement_layer_a.md
-      - PyrMeasurementLayerB: pyr_measurement_layer_b.md
-      - pyr_teacher_layers: pyr_teacher_layers.md
-      - pyr_trainable_layers: pyr_trainable_layers.md
+      - Base:
+          - Players: players_base.md
+          - PlayerA: player_base_a.md
+          - PlayerB: player_base_b.md
+      - Simple:
+          - SimplePlayers: simple_players.md
+          - SimplePlayerA: simple_player_a.md
+          - SimplePlayerB: simple_player_b.md
+      - Majority:
+          - MajorityPlayers: majority_players.md
+          - MajorityPlayerA: majority_player_a.md
+          - MajorityPlayerB: majority_player_b.md
+      - Neural Net:
+          - NeuralNetPlayers: neural_net_players.md
+          - NeuralNetPlayerA: neural_net_player_a.md
+          - NeuralNetPlayerB: neural_net_player_b.md
+      - PR Assisted:
+          - PRAssistedPlayers: pr_assisted_players.md
+          - PRAssistedPlayerA: pr_assisted_player_a.md
+          - PRAssistedPlayerB: pr_assisted_player_b.md
+      - Trainable Assisted:
+          - TrainableAssistedPlayers: trainable_assisted_players.md
+          - TrainableAssistedPlayerA: trainable_assisted_player_a.md
+          - TrainableAssistedPlayerB: trainable_assisted_player_b.md
+
+  - Shared Resources:
+      - PR Assisted: pr_assisted.md
+      - PR Assisted Replay: pr_assisted_replay.md
+
+  - Linear Models:
+      - Trainable Assisted Model A: lin_trainable_assisted_model_a.md
+      - Trainable Assisted Model B: lin_trainable_assisted_model_b.md
+      - Internal Model A: lin_internal_model_a.md
+      - Internal Model B: lin_internal_model_b.md
+      - Combine Layer A: lin_combine_layer_a.md
+      - Combine Layer B: lin_combine_layer_b.md
+      - Measurement Layer A: lin_measurement_layer_a.md
+      - Measurement Layer B: lin_measurement_layer_b.md
+
+  - Pyramidal Models:
+      - Internal Model A: pyr_internal_model_a.md
+      - Internal Model B: pyr_internal_model_b.md
+      - Combine Layer A: pyr_combine_layer_a.md
+      - Combine Layer B: pyr_combine_layer_b.md
+      - Measurement Layer A: pyr_measurement_layer_a.md
+      - Measurement Layer B: pyr_measurement_layer_b.md
+
+  - Dataset Utilities:
+      - Linear Dataset Generation: lin_dataset_generation_utilities.md
+      - Linear Dataset Conversion: lin_dataset_conversion_utilities.md
+      - Pyramidal Dataset Generation: pyr_dataset_generation_utilities.md
+      - Pyramidal Dataset Conversion: pyr_dataset_conversion_utilities.md
 
   - Utilities:
-      - reference_performance_utilities: reference_performance_utilities.md
-      - neural_net_imitation_utilities: neural_net_imitation_utilities.md
-      - dru_utilities: dru_utilities.md
-      - logits_utilities: logits_utilities.md
-      - lin_trainable_assisted_imitation_utilities: lin_trainable_assisted_imitation_utilities.md
-      - pyr_trainable_assisted_imitation_utilities: pyr_trainable_assisted_imitation_utilities.md
-
-
+      - Reference Performance: reference_performance_utilities.md
+      - Neural Net Imitation: neural_net_imitation_utilities.md
+      - DRU Utilities: dru_utilities.md
+      - Logit Utilities: logit_utilities.md
