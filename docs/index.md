@@ -38,15 +38,15 @@ The project grew out of a series of investigations into random access codes, non
 
 The project provides tutorials that show how the game, tournaments and models can be used.
 
-1. **[A quick start guide showing how to run the provided players in a tournament](https://github.com/robhendrik/QSeaBattle/blob/main/docs/html/Tutorial_QSeaBattle_QuickStartGuide.html)
+1. **[A quick start guide showing how to run the provided players in a tournament](https://robhendrik.github.io/QSeaBattle/html/Tutorial_QSeaBattle_QuickStartGuide.html)
 
-2. **[Demonstration for a neural-net player that is trained to imitate the majority algorithm](https://github.com/robhendrik/QSeaBattle/blob/main/docs/html/Tutorial_imitation_training_neural_net_models.html)
+2. **[Demonstration for a neural-net player that is trained to imitate the majority algorithm](https://github.com/robhendrik/QSeaBattle/html/Tutorial_imitation_training_neural_net_models.html)
 
-3. **[Self training of a neural-net based player](https://github.com/robhendrik/QSeaBattle/blob/main/docs/html/Tutorial_DIAL_DRU_training_neural_net_models.html)
+3. **[Self training of a neural-net based player](https://github.com/robhendrik/QSeaBattle/html/Tutorial_DIAL_DRU_training_neural_net_models.html)
 
-4. **[Imitation training of a player using post-quantum resources with the 'linear' model](https://github.com/robhendrik/QSeaBattle/blob/main/docs/html/Tutorial_LinTrainableAssisted_Imitation.html)
+4. **[Imitation training of a player using post-quantum resources with the 'linear' model](https://github.com/robhendrik/QSeaBattle/html/Tutorial_LinTrainableAssisted_Imitation.html)
 
-5. **[Imitation training of a player using post-quantum resources with the 'pyramid' model](https://github.com/robhendrik/QSeaBattle/blob/main/docs/html/Tutorial_PyrTrainableAssisted_Imitation.html)
+5. **[Imitation training of a player using post-quantum resources with the 'pyramid' model](https://github.com/robhendrik/QSeaBattle/html/Tutorial_PyrTrainableAssisted_Imitation.html)
 
 ---
 
