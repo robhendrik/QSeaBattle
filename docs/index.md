@@ -6,7 +6,7 @@ The project grew out of a series of investigations into random access codes, non
 
 <div class="grid cards" markdown>
 
--   :material-book-open-page-variant:{ .lg .middle } **Read The Story**
+-   **Read The Story**
 
     ---
 
@@ -15,7 +15,7 @@ The project grew out of a series of investigations into random access codes, non
 
     [Read the articles →](https://armchairquantumphysicist.com/)
 
--   :fontawesome-brands-github:{ .lg .middle } **Explore The Code**
+-   **Explore The Code**
 
     ---
 
@@ -23,7 +23,7 @@ The project grew out of a series of investigations into random access codes, non
 
     [Open the GitHub repository →](https://github.com/robhendrik/QSeaBattle)
 
--   :material-file-document-multiple:{ .lg .middle } **Technical Documentation**
+-   **Technical Documentation**
 
     ---
 
@@ -51,7 +51,7 @@ The project is accompanied by five articles that develop the ideas step by step.
 4. **Why Isn’t Nature More Quantum? (to be published)**  
    Quantum physics draws a boundary. Information theory approaches the same limit from a completely different direction.
 
-5. **Is quantum mechanics the optimal balance between what we can know and what we can do?**  
+5. **Is quantum mechanics the optimal balance between what we can know and what we can do? (to be published)**  
    Quantum theory achieves in some sense an optimal balance of allowed states and dynamics.
 
 ---
@@ -78,11 +78,9 @@ If you want to understand the motivation and the physics behind the project, sta
 
 ## Repository Structure
 
-```text
-QSeaBattle/
-├─ docs/          Documentation source
-├─ notebooks/     Tutorials and experiments
-├─ presentation/  Presentation material
-├─ src/           QSeaBattle source code
-├─ tests/         Automated tests
-└─ tools/         Documentation and maintenance tools
+- `docs/` — Documentation source
+- `notebooks/` — Tutorials and experiments
+- `presentation/` — Presentation material
+- `src/` — QSeaBattle source code
+- `tests/` — Automated tests
+- `tools/` — Documentation and maintenance tools
